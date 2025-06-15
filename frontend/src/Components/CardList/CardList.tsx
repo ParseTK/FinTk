@@ -1,8 +1,10 @@
 import React, { JSX } from 'react'
 import Card from '../Card/Card';
+import { CompanySearch } from '../../company';
 
-interface Props {}
-
+interface Props {
+  getSearchResults: CompanySearch[];
+}
 const CardList: React.FC<Props> = (props: Props): JSX.Element => {
   return (
     <div>

@@ -1,10 +1,10 @@
 import React, { JSX, useState, MouseEvent } from 'react';
 
 interface Props {
-    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    getSearch: string | undefined; 
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
+  onClick: (e: MouseEvent<HTMLButtonElement>) => void;
+  getSearch: string;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
 
 const Search: React.FC<Props> = ({onClick, getSearch, handleChange}: Props): JSX.Element => {
   return (
@@ -15,5 +15,6 @@ const Search: React.FC<Props> = ({onClick, getSearch, handleChange}: Props): JSX
     </div>
   )
 }
+
 
 export default Search;

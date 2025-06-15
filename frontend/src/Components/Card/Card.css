@@ -1,18 +1,15 @@
- * {
-    background-color: rgb(248, 232, 203)
-}
 .card {
     width: 300px;
     height: 200px;
-    border: 3px solid rgba(102, 101, 101, 0.973);
-    border-radius: 10px;
-    padding: 50px;
-    box-shadow: 0 2px 4px rgb(0, 0, 0) 0px 6px 12px -2px,
-        rgb(0, 0, 0) 0px 3px 7px -3px;
+    background-color: rgba(75, 63, 63, 0.349);
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+    border: auto;
+    border-radius: auto;
+    padding: 20px;
+    margin: 10px;
 }
 
 details {
@@ -30,4 +27,16 @@ info {
 img {
     max-width: 30%;
     height: auto;
+}
+
+p {
+    font-size: 16px;
+    color: rgb(255, 255, 255);
+    margin: 10px 0;
+}
+
+h2 {
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    margin: 10px 0;
 }
