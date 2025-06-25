@@ -16,14 +16,18 @@ function App() {
   };
 
   const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     console.log("Search button clicked with query:", getSearch);
-    const result = await searchCompanies(getSearch);
-    if (typeof result === 'string') {
-      console.error("Error from API:", result);
-      setServerError(result);
-    } else if (Array.isArray(result.data)) {
-      console.log("Search results:", result.data);
-      setSearchResults(result.data);
+
+    const result = await searchCompanies(getSearch); // Call the API
+    if (typeof result === "string" && result.length === 0) {
+      console.error("No results found or error occurred");
+      setServerError("No results found or error occurred");
+      setSearchResults([]); // Clear previous results
+    } else {
+      console.log("Search results:", result);
+      setServerError(""); // Clear any previous error
+      setSearchResults(Array.isArray(result) ? result : []); // Ensure result is an array or set empty array
     }
   };
 

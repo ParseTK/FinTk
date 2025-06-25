@@ -1,27 +1,27 @@
 import React, { JSX } from 'react';
 import "./Card.css";
+import { CompanySearch } from '../../company';
 
 // Provides labels - spell checks and data validation
 
 interface Props 
 {
-  companyName: string;
-  ticker: string;
-  price: number;
+id: string;
+getSearchResult: CompanySearch;
 }
 
-const Card : React.FC<Props> = ({ companyName, ticker, price }: 
+const Card : React.FC<Props> = ({ id, getSearchResult }: 
   Props): JSX.Element => {
   return (
     <div className="card">
-        <img src="https://media.istockphoto.com/id/185262648/photo/red-apple-with-leaf-isolated-on-white-background.jpg?s=612x612&w=is&k=20&c=yunprkRxHgH8YuA8hIhLeKtY6juSYa2rG2zYWeIY34I="
+        <img alt="Company Logo"
         />
         <div className="details">   
-            <h2>{companyName} ({ticker})</h2>
-            <p>${price}</p>
+            <h2>{getSearchResult.name} ({getSearchResult.symbol})</h2>
+            <p>{getSearchResult.currency}</p>
         </div>
         <p className="info">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            {getSearchResult.exchangeShortName} - {getSearchResult.stockExchange}
         </p>
     </div>
   );
