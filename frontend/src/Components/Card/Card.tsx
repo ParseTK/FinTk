@@ -1,6 +1,7 @@
 import React, { JSX } from 'react';
 import "./Card.css";
 import { CompanySearch } from '../../company';
+import AddPortfolio from '../Portfolio/AddPortfolio/AddPortfolio';
 
 // Provides labels - spell checks and data validation
 
@@ -8,9 +9,10 @@ interface Props
 {
 id: string;
 getSearchResult: CompanySearch;
+onPortfolioCreate: (e: React.SyntheticEvent) => void;
 }
 
-const Card : React.FC<Props> = ({ id, getSearchResult }: 
+const Card : React.FC<Props> = ({ id, getSearchResult, onPortfolioCreate }: 
   Props): JSX.Element => {
   return (
     <div className="card">
@@ -23,6 +25,7 @@ const Card : React.FC<Props> = ({ id, getSearchResult }:
         <p className="info">
             {getSearchResult.exchangeShortName} - {getSearchResult.stockExchange}
         </p>
+        <AddPortfolio onPortfolioCreate={onPortfolioCreate} symbol={getSearchResult.symbol}/>
     </div>
   );
 }

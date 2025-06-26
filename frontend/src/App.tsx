@@ -1,6 +1,6 @@
 import './App.css';
 import CardList from './Components/CardList/CardList';
-import React, { useState } from 'react';
+import React, { SyntheticEvent, useState } from 'react';
 import Search from './Components/Search/Search';
 import { CompanySearch } from './company';
 import { searchCompanies } from './api';
@@ -10,12 +10,18 @@ function App() {
   const [getSearchResults, setSearchResults] = useState<CompanySearch[]>([]);
   const [getServerError, setServerError] = useState<string>("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     console.log("Search input changed:", e.target.value);
   };
 
-  const onClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onPortfolioCreate = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    console.log("Portfolio creation triggered");
+    // Handle portfolio creation logic here
+  };
+  
+  const onSearchSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     console.log("Search button clicked with query:", getSearch);
 
@@ -34,8 +40,8 @@ function App() {
   return (
     <div className="App">
       {getServerError && <div className="error">Error: {getServerError}</div>}
-      <Search onClick={onClick} getSearch={getSearch} handleChange={handleChange} />
-      <CardList getSearchResults={getSearchResults} />
+      <Search onSearchSubmit={onSearchSubmit} getSearch={getSearch} handleSearchChange={handleSearchChange} />
+      <CardList getSearchResults={getSearchResults} onPortfolioCreate={onPortfolioCreate}/>
     </div>
   );
 }

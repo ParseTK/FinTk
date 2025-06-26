@@ -1,22 +1,18 @@
 import React, { JSX, useState, MouseEvent } from 'react';
 
 interface Props {
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onSearchSubmit: (e: React.FormEvent) => void;
   getSearch: string;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Search: React.FC<Props> = ({ onClick, getSearch, handleChange }) => {
+const Search: React.FC<Props> = ({ onSearchSubmit, getSearch, handleSearchChange }) => {
   return (
-    <div>
-      <input
-        type="text"
-        value={getSearch}
-        onChange={handleChange}
-        placeholder="Search for a company..."
-      />
-      <button onClick={onClick}>Search</button>
-    </div>
+    <>  
+    <form onSubmit={onSearchSubmit}>
+      <input value={getSearch} onChange={handleSearchChange}/>
+    </form>
+    </>
   );
 };
 
