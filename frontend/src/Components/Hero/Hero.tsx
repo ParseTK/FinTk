@@ -1,32 +1,36 @@
 import React from "react";
 import hero from "./stonks.png";
-import "./Hero.css";
 
-interface Props {}
-
-const Hero = (props: Props) => {
+const Hero = () => {
   return (
-    <section id="hero">
-      <div className="container flex flex-col-reverse mx-auto p-8 lg:flex-row">
-        <div className="flex flex-col space-y-10 mb-44 m-10 lg:m-10 xl:m-20 lg:mt:16 lg:w-1/2 xl:mb-52">
-          <h1 className="text-5xl font-bold text-center lg:text-6xl lg:max-w-md lg:text-left">
+    <section id="hero" className="bg-white">
+      <div className="flex flex-col-reverse items-center gap-10 px-6 py-20 md:flex-row lg:gap-20 lg:px-24">
+        {/* Text Content */}
+        <div className="flex-1 text-center md:text-left space-y-8">
+          <h1 className="text-4xl font-bold leading-tight lg:text-6xl">
             Financial data with no news.
           </h1>
-          <p className="text-2xl text-center text-gray-400 lg:max-w-md lg:text-left">
+          <p className="text-xl text-gray-500 lg:max-w-md">
             Search relevant financial documents without fear mongering and fake
             news.
           </p>
-          <div className="mx-auto lg:mx-0">
+          <div>
             <a
-              href=""
-              className="py-5 px-10 text-2xl font-bold text-white bg-lightGreen rounded lg:py-4 hover:opacity-70"
+              href="#"
+              className="inline-block rounded bg-light-green px-8 py-4 text-lg font-semibold text-white transition-opacity duration-300 hover:opacity-80"
             >
               Get Started
             </a>
           </div>
         </div>
-        <div className="mb-24 mx-auto md:w-180 md:px-10 lg:mb-0 lg:w-1/2">
-          <img src={hero} alt="" />
+
+        {/* Hero Image */}
+        <div className="flex-1 max-w-lg md:max-w-md lg:max-w-xl">
+          <img
+            className="w-full h-auto object-contain"
+            src={hero}
+            alt="Stonks Chart"
+          />
         </div>
       </div>
     </section>

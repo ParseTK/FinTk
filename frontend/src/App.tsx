@@ -29,7 +29,7 @@ function App() {
     
 
     console.log("Portfolio creation triggered");
-    // Handle portfolio creation logic here
+    // Handle portfolio creation
   };
 
   const onPortfolioDelete = (e: any) => {
@@ -58,22 +58,23 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Navbar />
-      <Hero />
-      {getServerError && <div className="error">Error: {getServerError}</div>}
-      <Search 
-        onSearchSubmit={onSearchSubmit}
-        getSearch={getSearch} 
-        handleSearchChange={handleSearchChange}   
-      />
-      <ListPortfolio 
-        getPortfolioValues={getPortfolioValues} 
-        onPortfolioDelete={onPortfolioDelete}/>
-      <CardList 
-        getSearchResults={getSearchResults} 
-        onPortfolioCreate={onPortfolioCreate} />
-    </div>
+      <>
+        <Navbar />
+        <Hero />
+        {getServerError && <div className="error">Error: {getServerError}</div>}
+        <Search 
+          onSearchSubmit={onSearchSubmit}
+          getSearch={getSearch} 
+          handleSearchChange={handleSearchChange}   
+        />
+        <ListPortfolio 
+          getPortfolioValues={getPortfolioValues} 
+          onPortfolioDelete={onPortfolioDelete}/>
+        <CardList 
+          getSearchResults={getSearchResults} 
+          onPortfolioCreate={onPortfolioCreate} />
+    
+    </>
   );
 }
 
