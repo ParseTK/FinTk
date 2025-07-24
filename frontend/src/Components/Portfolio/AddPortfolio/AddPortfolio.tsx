@@ -12,7 +12,7 @@ const AddPortfolio = ({onPortfolioCreate, symbol}: Props) => {
         <input type="hidden" value={symbol} readOnly />
         <button
           type="submit"
-          className="p-2 px-8 text-black bg-dark-blue rounded-lg hover:opacity-70 focus:outline-hidden transition-opacity"
+          className="p-2 px-8 text-white bg-dark-blue rounded-lg hover:opacity-70 focus:outline-hidden transition-opacity"
         >
           Add to Portfolio
         </button>
