@@ -1,9 +1,38 @@
 @import "tailwindcss";
 
 @theme {
+  --color-white: hsl(0 0% 100%);
+  --color-black: hsl(0 0% 0%);
+  --color-gray: hsl(0 0% 50%);
+  --color-dark-gray: hsl(0 0% 20%);
+  --color-light-gray: hsl(0 0% 90%);
+  --color-red: hsl(0 100% 50%);
+  --color-yellow: hsl(60 100% 50%);
+  --color-green: hsl(120 100% 50%);
+  --color-blue: hsl(240 100% 50%);
+  --color-purple: hsl(270 100% 50%);
+  --color-pink: hsl(300 100% 50%);
+  --color-orange: hsl(30 100% 50%);
+  --color-light-gray-100: hsl(0 0% 95%);
   --color-light-blue: hsl(215.02 98.39% 51.18%);
   --color-dark-blue: hsl(213.86 58.82% 46.67%);
   --color-light-green: hsl(156.62 73.33% 58.82%);
   --font-family-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --spacing-180: 32rem;
+}
+
+.bg-light-green {
+  background-color: var(--color-light-green);
+}
+
+.hover\:text-dark-blue:hover {
+  color: var(--color-dark-blue);
+}
+
+.text-black {
+  color: var(--color-black);
+}
+
+.hover\:opacity-70:hover {
+  opacity: 0.7;
 }
