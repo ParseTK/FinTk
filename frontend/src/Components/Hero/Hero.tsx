@@ -18,7 +18,7 @@ const Hero = () => {
           <div>
             <Link
               to="/Search"
-              className="inline-block rounded bg-light-green px-8 py-4 text-lg font-semibold text-white transition-opacity duration-300 hover:opacity-80"
+              className="inline-block rounded bg-light-blue px-8 py-4 text-lg font-semibold text-white transition-opacity duration-300 hover:opacity-80"
             >
               Get Started
             </Link>
