@@ -1,6 +1,7 @@
 import React, { JSX } from 'react';
 import { CompanySearch } from '../../company';
 import AddPortfolio from '../Portfolio/AddPortfolio/AddPortfolio';
+import { Link } from 'react-router';
 
 
 
@@ -19,9 +20,9 @@ const Card : React.FC<Props> = ({ id, getSearchResult, onPortfolioCreate }:
       key={id}
       id={id}
     >
-      <h2 className="font-bold text-center text-black md:text-left">
+      <Link to={`/company/${getSearchResult.symbol}`} className="font-bold text-center text-black md:text-left">
         {getSearchResult.name} ({getSearchResult.symbol})
-      </h2>
+      </Link> 
       <p className="text-black">{getSearchResult.currency}</p>
       <p className="font-bold text-black">
         {getSearchResult.exchangeShortName} - {getSearchResult.stockExchange}
