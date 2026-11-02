@@ -17,9 +17,9 @@ export function LogoMark({ className = "size-8" }: { className?: string }) {
 
 export function Logo() {
   return (
-    <span className="text-brand-dark inline-flex items-center gap-2">
+    <span className="text-brand inline-flex items-center gap-2">
       <LogoMark />
-      <span className="text-xl font-semibold tracking-tight text-black">Virello</span>
+      <span className="text-fg text-xl font-semibold tracking-tight">Virello</span>
     </span>
   );
 }

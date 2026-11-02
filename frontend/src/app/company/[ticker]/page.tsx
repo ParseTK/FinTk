@@ -22,7 +22,7 @@ export default async function CompanyPage({ params }: Props) {
       <p className="text-xl">
         {company.price} {company.currency}
       </p>
-      <p className="text-gray-700">{company.description}</p>
+      <p className="text-fg-muted">{company.description}</p>
     </article>
   );
 }
