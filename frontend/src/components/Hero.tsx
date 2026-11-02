@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { SearchForm } from "./SearchForm";
 
 export function Hero() {
   return (
@@ -12,12 +12,9 @@ export function Hero() {
           <p className="text-fg-muted text-xl lg:max-w-md">
             Search relevant financial documents without fear mongering and fake news.
           </p>
-          <Link
-            href="/search"
-            className="bg-brand text-on-accent inline-block rounded px-8 py-4 text-lg font-semibold transition-opacity hover:opacity-80"
-          >
-            Get started
-          </Link>
+          <div className="flex justify-center md:justify-start">
+            <SearchForm size="lg" />
+          </div>
         </div>
         <div className="max-w-lg flex-1 md:max-w-md lg:max-w-xl">
           <Image
