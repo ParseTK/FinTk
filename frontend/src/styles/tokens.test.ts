@@ -2,21 +2,39 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/contrast";
+import { ACCENTS } from "@/lib/preferences";
 
 // Vitest and CI both run from the frontend/ directory.
-const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
+const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8").replace(
+  /\/\*[\s\S]*?\*\//g,
+  "",
+);
 
-function readTokens(selector: ":root" | ".dark"): Record<string, string> {
-  const block = new RegExp(`(?:^|\\n)${selector.replace(".", "\\.")}\\s*\\{([^}]*)\\}`).exec(css);
-  if (!block) throw new Error(`Missing ${selector} block in globals.css`);
-  const tokens: Record<string, string> = {};
-  for (const [, name, value] of block[1]!.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)) {
-    tokens[name!] = value!;
+/** Collects the hex custom properties of the first rule whose selector list includes `selector`. */
+function readTokens(selector: string): Record<string, string> {
+  for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    // Drop any preceding at-rule statements (e.g. `@import ...;`) that share the match.
+    const list = selectors!
+      .split(";")
+      .pop()!
+      .split(",")
+      .map((s) => s.trim());
+    if (!list.includes(selector)) continue;
+    const tokens: Record<string, string> = {};
+    for (const [, name, value] of body!.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)) {
+      tokens[name!] = value!;
+    }
+    return tokens;
   }
-  return tokens;
+  throw new Error(`No rule for "${selector}" in globals.css`);
 }
 
-const themes = { light: readTokens(":root"), dark: readTokens(".dark") } as const;
+const BASE = { light: readTokens(":root"), dark: readTokens(".dark") } as const;
+
+const combos = ACCENTS.flatMap(({ id }) => [
+  { name: `${id} / light`, tokens: { ...BASE.light, ...readTokens(`[data-accent="${id}"]`) } },
+  { name: `${id} / dark`, tokens: { ...BASE.dark, ...readTokens(`.dark[data-accent="${id}"]`) } },
+]);
 
 const BACKGROUNDS = ["surface", "surface-raised"] as const;
 // Text needs 4.5:1 (WCAG 1.4.3). UI boundaries and focus rings need 3:1 (WCAG 1.4.11).
@@ -24,7 +42,13 @@ const TEXT_ON_BACKGROUND = ["fg", "fg-muted", "brand", "gain", "loss"] as const;
 const NON_TEXT_ON_BACKGROUND = ["border-strong", "focus"] as const;
 const TEXT_ON_ACCENT_FILL = ["brand", "gain", "loss", "fg-muted"] as const;
 
-describe.each(Object.entries(themes))("%s theme tokens", (_name, tokens) => {
+describe("accent coverage", () => {
+  it("has a light and a dark rule for every accent", () => {
+    expect(combos).toHaveLength(ACCENTS.length * 2);
+  });
+});
+
+describe.each(combos)("$name", ({ tokens }) => {
   it("defines every token used by the tests", () => {
     const required = [
       ...BACKGROUNDS,

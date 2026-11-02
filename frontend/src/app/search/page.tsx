@@ -17,7 +17,9 @@ export default async function SearchPage({
 
   return (
     <>
-      <SearchForm defaultValue={query} />
+      <div className="flex justify-center px-6 py-6">
+        <SearchForm defaultValue={query} />
+      </div>
       <PortfolioList />
       {query && (
         <section

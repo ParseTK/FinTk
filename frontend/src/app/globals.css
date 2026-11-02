@@ -1,12 +1,15 @@
 @import "tailwindcss";
 
-/* Dark mode is class-based (set by the theme script) so the user can override the OS setting. */
+/* Dark mode is class-based (set by the preferences script) so the user can override the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design tokens. This block and the .dark block below are the single source of truth for color:
- * src/styles/tokens.test.ts parses them and fails CI if any text/background pair drops below WCAG AA.
- * Use only plain hex values here so that test can read them.
+ * Design tokens. The rules below are the single source of truth for color:
+ * src/styles/tokens.test.ts parses them and fails CI if any text/background pair drops below WCAG AA,
+ * for every accent in both light and dark. Use only plain 6-digit hex values so that test can read them.
+ *
+ * Accents override only --brand and --focus. A rule can also be placed on any element (the palette
+ * swatches do this), so each accent selector has a descendant form.
  */
 :root {
   --surface: #ffffff;
@@ -15,7 +18,7 @@
   --border-strong: #64748b; /* boundaries of inputs and controls (3:1) */
   --fg: #0f172a;
   --fg-muted: #475569;
-  --brand: #1d4ed8;
+  --brand: #1d4ed8; /* blue is the default accent */
   --gain: #15803d;
   --loss: #b91c1c;
   --focus: #1d4ed8;
@@ -36,6 +39,58 @@
   --on-accent: #020617;
 }
 
+[data-accent="violet"] {
+  --brand: #6d28d9;
+  --focus: #6d28d9;
+}
+.dark[data-accent="violet"],
+.dark [data-accent="violet"] {
+  --brand: #a78bfa;
+  --focus: #c4b5fd;
+}
+
+[data-accent="emerald"] {
+  --brand: #047857;
+  --focus: #047857;
+}
+.dark[data-accent="emerald"],
+.dark [data-accent="emerald"] {
+  --brand: #34d399;
+  --focus: #6ee7b7;
+}
+
+[data-accent="rose"] {
+  --brand: #be123c;
+  --focus: #be123c;
+}
+.dark[data-accent="rose"],
+.dark [data-accent="rose"] {
+  --brand: #fb7185;
+  --focus: #fda4af;
+}
+
+/* Blue must also win when a swatch inside a violet/emerald/rose page asks for it. */
+[data-accent="blue"] {
+  --brand: #1d4ed8;
+  --focus: #1d4ed8;
+}
+.dark[data-accent="blue"],
+.dark [data-accent="blue"] {
+  --brand: #60a5fa;
+  --focus: #93c5fd;
+}
+
+/* Typeface choice. The font variables come from next/font in the root layout. */
+:root {
+  --font-active: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+[data-font="plex"] {
+  --font-active: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+}
+[data-font="serif"] {
+  --font-active: var(--font-source-serif), ui-serif, Georgia, serif;
+}
+
 @theme inline {
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
@@ -48,7 +103,7 @@
   --color-loss: var(--loss);
   --color-focus: var(--focus);
   --color-on-accent: var(--on-accent);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-active);
 }
 
 @layer base {
