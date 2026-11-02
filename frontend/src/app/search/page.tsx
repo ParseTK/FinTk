@@ -42,8 +42,12 @@ export default async function SearchPage({
               />
             ) : (
               <ul className="space-y-3">
-                {results.map((company) => (
-                  <CompanyCard key={`${company.symbol}-${company.exchange}`} company={company} />
+                {results.map((company, index) => (
+                  <CompanyCard
+                    key={`${company.symbol}-${company.exchange}`}
+                    company={company}
+                    index={index}
+                  />
                 ))}
               </ul>
             )}

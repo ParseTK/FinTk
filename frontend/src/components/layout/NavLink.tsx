@@ -17,6 +17,7 @@ export function NavLink({ href, className, ...rest }: ComponentProps<typeof Link
       aria-current={active ? "page" : undefined}
       className={clsx(
         "hover:text-brand font-semibold",
+        !active && "link-underline",
         active && "text-brand underline decoration-2 underline-offset-8",
         className,
       )}

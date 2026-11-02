@@ -26,7 +26,7 @@ export function MobileMenu({ items }: { items: readonly NavItem[] }) {
       {open && (
         <ul
           id={panelId}
-          className="border-border bg-surface-raised absolute right-0 z-20 mt-2 w-48 space-y-1 rounded-2xl border p-2 shadow-lg"
+          className="border-border bg-surface-raised animate-pop-in absolute right-0 z-20 mt-2 w-48 origin-top-right space-y-1 rounded-2xl border p-2 shadow-lg"
         >
           {items.map(({ href, label }) => (
             <li key={href}>

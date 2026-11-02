@@ -6,7 +6,13 @@ import clsx from "clsx";
  */
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div aria-hidden="true" className={clsx("bg-border animate-pulse rounded-md", className)} />
+    <div
+      aria-hidden="true"
+      className={clsx(
+        "animate-shimmer rounded-md bg-[linear-gradient(90deg,var(--border),var(--surface-raised),var(--border))] bg-[length:200%_100%]",
+        className,
+      )}
+    />
   );
 }
 

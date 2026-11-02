@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { prefersReducedMotion } from "@/lib/motion";
 import { SearchIcon } from "./icons";
 
 interface SearchFormProps {
@@ -9,9 +10,32 @@ interface SearchFormProps {
   size?: "md" | "lg";
 }
 
+const DEFAULT_PLACEHOLDER = "Search companies or tickers";
+const EXAMPLES = [DEFAULT_PLACEHOLDER, "Try Apple", "Try NVDA", "Try Microsoft", "Try Coca-Cola"];
+const ROTATE_MS = 3500;
+
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+}
+
+/**
+ * Cycles example placeholders to hint at what to type. It plays through the list once and settles
+ * back on the default, stops while the field is focused or has text, and never runs under reduced
+ * motion. The visible label never changes.
+ */
+function useRotatingPlaceholder(paused: boolean) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (paused || index === -1 || prefersReducedMotion()) return;
+    const id = setTimeout(() => {
+      setIndex((current) => (current + 1 >= EXAMPLES.length ? -1 : current + 1));
+    }, ROTATE_MS);
+    return () => clearTimeout(id);
+  }, [paused, index]);
+
+  return index === -1 ? DEFAULT_PLACEHOLDER : EXAMPLES[index]!;
 }
 
 /**
@@ -21,6 +45,9 @@ function isTypingTarget(target: EventTarget | null) {
 export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [focused, setFocused] = useState(false);
+  const [hasText, setHasText] = useState(defaultValue !== "");
+  const placeholder = useRotatingPlaceholder(focused || hasText);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -41,21 +68,24 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
         Search companies
       </label>
       <div
-        className={`border-border-strong bg-surface focus-within:border-brand focus-within:ring-brand flex items-center gap-3 rounded-full border shadow-sm transition-shadow focus-within:ring-2 hover:shadow-md ${
+        className={`group border-border-strong bg-surface focus-within:border-brand flex items-center gap-3 rounded-full border shadow-sm transition-[box-shadow,border-color] duration-300 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_22%,transparent)] hover:shadow-md ${
           large ? "py-2 pr-2 pl-6" : "py-1.5 pr-1.5 pl-5"
         }`}
       >
-        <SearchIcon className="text-fg-muted size-5 shrink-0" />
+        <SearchIcon className="text-fg-muted group-focus-within:text-brand size-5 shrink-0 transition-colors duration-300" />
         <input
           ref={inputRef}
           id={inputId}
           name="q"
           type="search"
           defaultValue={defaultValue}
-          placeholder="Search companies or tickers"
+          placeholder={placeholder}
           maxLength={64}
           autoComplete="off"
           enterKeyHint="search"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onChange={(event) => setHasText(event.target.value !== "")}
           className={`placeholder:text-fg-muted text-fg min-w-0 flex-1 bg-transparent focus-visible:outline-none ${
             large ? "py-2 text-lg" : "py-1.5"
           }`}
@@ -68,7 +98,7 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
         </kbd>
         <button
           type="submit"
-          className={`bg-brand text-on-accent rounded-full font-semibold transition-opacity hover:opacity-90 ${
+          className={`bg-brand text-on-accent rounded-full font-semibold transition duration-150 hover:opacity-90 motion-safe:active:scale-[0.96] ${
             large ? "px-6 py-3" : "px-5 py-2"
           }`}
         >
