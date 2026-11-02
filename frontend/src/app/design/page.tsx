@@ -1,0 +1,247 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { LogoMark } from "@/components/Logo";
+import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/icons";
+import { Container } from "@/components/layout/Container";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Change } from "@/components/ui/Change";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TextField } from "@/components/ui/Field";
+import { IconButton } from "@/components/ui/IconButton";
+import { LinkButton } from "@/components/ui/LinkButton";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
+import { isEnabled } from "@/lib/flags";
+import { formatCompact, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
+
+// An internal review page: not indexed, and a 404 unless the `design` flag is on.
+export const metadata: Metadata = { title: "Design", robots: { index: false, follow: false } };
+
+const TOKENS = [
+  ["surface", "bg-surface"],
+  ["surface-raised", "bg-surface-raised"],
+  ["border", "bg-border"],
+  ["border-strong", "bg-border-strong"],
+  ["fg", "bg-fg"],
+  ["fg-muted", "bg-fg-muted"],
+  ["brand", "bg-brand"],
+  ["gain", "bg-gain"],
+  ["loss", "bg-loss"],
+  ["focus", "bg-focus"],
+] as const;
+
+const TYPE_SCALE = [
+  ["text-5xl font-bold", "Display"],
+  ["text-3xl font-bold", "Heading 1"],
+  ["text-xl font-semibold", "Heading 2"],
+  ["text-base", "Body text for reading and data"],
+  ["text-sm text-fg-muted", "Secondary and helper text"],
+] as const;
+
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="space-y-4">
+      <h2 id={id} className="border-border border-b pb-2 text-2xl font-semibold">
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+export default function DesignPage() {
+  if (!isEnabled("design")) notFound();
+
+  return (
+    <Container className="space-y-12 py-10">
+      <header className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">Design gallery</h1>
+        <p className="text-fg-muted max-w-2xl">
+          Every shared component and state in one place. Use the palette in the nav to check each
+          accent, typeface, light and dark mode, and the Motion setting.
+        </p>
+      </header>
+
+      <Section id="tokens" title="Color tokens">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {TOKENS.map(([name, swatch]) => (
+            <li key={name} className="space-y-1.5">
+              <span className={`${swatch} border-border block h-14 rounded-lg border`} />
+              <span className="text-sm">{name}</span>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Section id="type" title="Typography">
+        <div className="space-y-3">
+          {TYPE_SCALE.map(([classes, sample]) => (
+            <p key={classes} className={classes}>
+              {sample}
+            </p>
+          ))}
+          <p className="tabular-nums">Tabular figures line up: 1,111.11 / 8,888.88 / 0,000.00</p>
+        </div>
+      </Section>
+
+      <Section id="buttons" title="Buttons">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button>Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="danger">Danger</Button>
+          <Button disabled>Disabled</Button>
+          <Button loading>Loading</Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button size="sm">Small</Button>
+          <Button size="md">Medium</Button>
+          <Button size="lg">Large</Button>
+          <LinkButton href="/search" variant="secondary">
+            Link styled as a button
+          </LinkButton>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <IconButton label="Search" variant="secondary">
+            <SearchIcon />
+          </IconButton>
+          <IconButton label="Open menu">
+            <MenuIcon />
+          </IconButton>
+          <IconButton label="Appearance" size="lg">
+            <PaletteIcon />
+          </IconButton>
+        </div>
+      </Section>
+
+      <Section id="fields" title="Form fields">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <TextField label="Ticker" hint="For example AAPL" placeholder="AAPL" />
+          <TextField label="Shares" defaultValue="-2" error="Must be greater than zero" />
+          <TextField label="Disabled" defaultValue="Read only" disabled />
+        </div>
+      </Section>
+
+      <Section id="feedback" title="Alerts and states">
+        <div className="space-y-3">
+          <Alert title="Heads up">Informational message with some detail.</Alert>
+          <Alert variant="success" title="Saved">
+            Your changes were saved.
+          </Alert>
+          <Alert variant="error" title="Could not save">
+            Check your connection and try again.
+          </Alert>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <EmptyState
+              headingLevel={3}
+              title="Nothing saved yet"
+              description="Search for a company to add it."
+              action={<LinkButton href="/search">Search</LinkButton>}
+            />
+          </Card>
+          <Card>
+            <ErrorState
+              headingLevel={3}
+              description="We could not load market data."
+              onRetry={undefined}
+            />
+          </Card>
+        </div>
+      </Section>
+
+      <Section id="data" title="Data display">
+        <div className="flex flex-wrap items-center gap-6">
+          <Change value="5.76" />
+          <Change value="-3.84" />
+          <Change value="0" />
+          <Change value={null} />
+          <Change kind="money" value="12.3" />
+          <Change kind="money" value="-4.5" />
+        </div>
+        <Card as="div" className="overflow-x-auto p-0">
+          <table className="w-full text-left text-sm">
+            <caption className="sr-only">Formatter examples</caption>
+            <thead className="border-border border-b">
+              <tr>
+                <th scope="col" className="p-3 font-semibold">
+                  Formatter
+                </th>
+                <th scope="col" className="p-3 font-semibold">
+                  Output
+                </th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              <tr className="border-border border-b">
+                <th scope="row" className="p-3 font-normal">
+                  formatMoney(&quot;1234.5&quot;)
+                </th>
+                <td className="p-3">{formatMoney("1234.5")}</td>
+              </tr>
+              <tr className="border-border border-b">
+                <th scope="row" className="p-3 font-normal">
+                  formatPercent(5.76, signed)
+                </th>
+                <td className="p-3">{formatPercent(5.76, { signed: true })}</td>
+              </tr>
+              <tr className="border-border border-b">
+                <th scope="row" className="p-3 font-normal">
+                  formatCompact(2500000000000)
+                </th>
+                <td className="p-3">{formatCompact(2_500_000_000_000)}</td>
+              </tr>
+              <tr className="border-border border-b">
+                <th scope="row" className="p-3 font-normal">
+                  formatNumber(&quot;3.14159&quot;, 3)
+                </th>
+                <td className="p-3">{formatNumber("3.14159", 3)}</td>
+              </tr>
+              <tr>
+                <th scope="row" className="p-3 font-normal">
+                  formatDate(&quot;2024-08-01&quot;, long)
+                </th>
+                <td className="p-3">{formatDate("2024-08-01", "long")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </Card>
+      </Section>
+
+      <Section id="loading" title="Loading placeholders">
+        <Card className="space-y-4">
+          <p role="status" className="sr-only">
+            Loading example
+          </p>
+          <Skeleton className="h-8 w-1/3" />
+          <SkeletonText lines={3} />
+        </Card>
+      </Section>
+
+      <Section id="brand" title="Brand and motion">
+        <div className="flex flex-wrap items-center gap-6">
+          <span className="text-brand">
+            <LogoMark className="size-12" />
+          </span>
+          <p className="animate-fade-up">Fade up on load</p>
+          <p className="animate-pop-in">Pop in</p>
+          <Skeleton className="h-6 w-32" />
+          <p className="text-fg-muted text-sm">
+            Switch Motion to Reduced in the palette: everything above stops.
+          </p>
+        </div>
+      </Section>
+    </Container>
+  );
+}
