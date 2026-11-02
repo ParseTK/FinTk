@@ -1,11 +1,18 @@
+import clsx from "clsx";
+import { isEnabled } from "@/lib/flags";
+import { Feature } from "./Feature";
 import { HeroChart } from "./HeroChart";
 import { TickerChips } from "./home/TickerChips";
-import { SearchForm } from "./SearchForm";
+import { SearchBox } from "./SearchBox";
 
 /** Entrance stagger: headline, copy, search, then the chart. Each step is a CSS delay. */
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 export function Hero() {
+  // With the chart switched off, the text column is centered and takes the full width.
+  const withChart = isEnabled("hero_chart");
+  const centered = !withChart;
+
   return (
     <section aria-labelledby="hero-heading" className="bg-surface relative isolate overflow-hidden">
       {/* Decorative depth: an accent glow and a faint grid that fades out. */}
@@ -22,7 +29,12 @@ export function Hero() {
       </div>
 
       <div className="flex flex-col-reverse items-center gap-12 px-6 py-16 md:flex-row lg:gap-20 lg:px-24 lg:py-24">
-        <div className="flex-1 space-y-8 text-center md:text-left">
+        <div
+          className={clsx(
+            "flex-1 space-y-8 text-center",
+            centered ? "mx-auto max-w-3xl" : "md:text-left",
+          )}
+        >
           <h1
             id="hero-heading"
             className="animate-fade-up text-4xl leading-[1.05] font-bold tracking-tight lg:text-6xl"
@@ -33,24 +45,32 @@ export function Hero() {
             </span>
             .
           </h1>
-          <p className="animate-fade-up text-fg-muted text-xl lg:max-w-md" style={delay(120)}>
+          <p
+            className={clsx(
+              "animate-fade-up text-fg-muted text-xl",
+              centered ? "mx-auto max-w-xl" : "lg:max-w-md",
+            )}
+            style={delay(120)}
+          >
             Research public companies from primary filings and financials, without the noise.
           </p>
           <div className="animate-fade-up space-y-4" style={delay(240)}>
-            <div className="flex justify-center md:justify-start">
-              <SearchForm size="lg" />
+            <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
+              <SearchBox size="lg" />
             </div>
-            <div className="flex justify-center md:justify-start">
+            <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
               <TickerChips />
             </div>
           </div>
         </div>
-        <div
-          className="animate-fade-up w-full max-w-lg flex-1 md:max-w-md lg:max-w-xl"
-          style={delay(200)}
-        >
-          <HeroChart />
-        </div>
+        <Feature flag="hero_chart">
+          <div
+            className="animate-fade-up w-full max-w-lg flex-1 md:max-w-md lg:max-w-xl"
+            style={delay(200)}
+          >
+            <HeroChart />
+          </div>
+        </Feature>
       </div>
     </section>
   );

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CompanyCard } from "@/components/CompanyCard";
 import { Container } from "@/components/layout/Container";
 import { PortfolioList } from "@/components/portfolio/PortfolioList";
-import { SearchForm } from "@/components/SearchForm";
+import { SearchBox } from "@/components/SearchBox";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { searchCompanies } from "@/lib/fmp";
 
@@ -21,7 +21,7 @@ export default async function SearchPage({
     <>
       <h1 className="sr-only">Search companies</h1>
       <div className="flex justify-center px-4 py-6 sm:px-6">
-        <SearchForm defaultValue={query} />
+        <SearchBox defaultValue={query} />
       </div>
       <PortfolioList />
       {query && (

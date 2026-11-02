@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { COLLAPSE_AFTER, NAV_ITEMS } from "@/lib/navigation";
+import { Feature } from "./Feature";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./layout/MobileMenu";
 import { NavLink } from "./layout/NavLink";
@@ -24,7 +25,9 @@ export function Navbar() {
             ))}
           </div>
           {collapse && <MobileMenu items={NAV_ITEMS} />}
-          <PalettePicker />
+          <Feature flag="palette">
+            <PalettePicker />
+          </Feature>
         </div>
       </nav>
     </header>

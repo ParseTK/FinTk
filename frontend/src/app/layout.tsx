@@ -24,6 +24,9 @@ const sourceSerif = Source_Serif_4({
   preload: false,
 });
 
+// Feature flags come from environment variables at request time, so pages must not be prerendered.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: { default: "Virello", template: "%s | Virello" },
   description: "Research public companies from primary sources.",
