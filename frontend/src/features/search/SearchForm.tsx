@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { isMotionOff } from "@/lib/motion";
 import { SearchIcon } from "@/components/ui/icons";
+import { useTypewriterPlaceholder } from "./useTypewriterPlaceholder";
 
 interface SearchFormProps {
   defaultValue?: string;
@@ -10,44 +10,22 @@ interface SearchFormProps {
   size?: "md" | "lg";
 }
 
-const DEFAULT_PLACEHOLDER = "Search companies or tickers";
-const EXAMPLES = [DEFAULT_PLACEHOLDER, "Try Apple", "Try NVDA", "Try Microsoft", "Try Coca-Cola"];
-const ROTATE_MS = 3500;
-
 function isTypingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
 /**
- * Cycles example placeholders to hint at what to type. It plays through the list once and settles
- * back on the default, stops while the field is focused or has text, and never runs under reduced
- * motion. The visible label never changes.
- */
-function useRotatingPlaceholder(paused: boolean) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (paused || index === -1 || isMotionOff()) return;
-    const id = setTimeout(() => {
-      setIndex((current) => (current + 1 >= EXAMPLES.length ? -1 : current + 1));
-    }, ROTATE_MS);
-    return () => clearTimeout(id);
-  }, [paused, index]);
-
-  return index === -1 ? DEFAULT_PLACEHOLDER : EXAMPLES[index]!;
-}
-
-/**
  * Plain GET form: works without JS, is shareable by URL, and results render on the server.
- * Pressing "/" anywhere on the page focuses the field.
+ * Pressing "/" anywhere on the page focuses the field. While idle, the placeholder types out
+ * example company names.
  */
 export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
   const [hasText, setHasText] = useState(defaultValue !== "");
-  const placeholder = useRotatingPlaceholder(focused || hasText);
+  const placeholder = useTypewriterPlaceholder(focused || hasText);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -62,14 +40,15 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
 
   const large = size === "lg";
 
+  // Sizes step up with the field's own width (container queries), so a narrow field never clips.
   return (
     <form action="/search" role="search" className="@container w-full max-w-2xl">
       <label htmlFor={inputId} className="sr-only">
         Search companies
       </label>
       <div
-        className={`group border-border-strong bg-surface focus-within:border-brand flex items-center gap-3 rounded-full border shadow-sm transition-[box-shadow,border-color] duration-300 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_22%,transparent)] hover:shadow-md ${
-          large ? "py-2 pr-2 pl-6" : "py-1.5 pr-1.5 pl-5"
+        className={`group border-border-strong bg-surface focus-within:border-brand flex items-center gap-2 rounded-full border shadow-sm transition-[box-shadow,border-color] duration-300 focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--brand)_22%,transparent)] hover:shadow-md @md:gap-3 ${
+          large ? "py-1.5 pr-1.5 pl-4 @md:py-2 @md:pr-2 @md:pl-6" : "py-1.5 pr-1.5 pl-4 @md:pl-5"
         }`}
       >
         <SearchIcon className="text-fg-muted group-focus-within:text-brand size-5 shrink-0 transition-colors duration-300" />
@@ -86,8 +65,8 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onChange={(event) => setHasText(event.target.value !== "")}
-          className={`placeholder:text-fg-muted text-fg min-w-0 flex-1 bg-transparent focus-visible:outline-none ${
-            large ? "py-2 text-lg" : "py-1.5"
+          className={`placeholder:text-fg-muted text-fg min-w-0 flex-1 bg-transparent text-base focus-visible:outline-none ${
+            large ? "py-2 @md:text-lg" : "py-1.5"
           }`}
         />
         <kbd
@@ -99,7 +78,7 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
         <button
           type="submit"
           className={`bg-brand text-on-accent rounded-full font-semibold transition duration-150 hover:opacity-90 motion-safe:active:scale-[0.96] ${
-            large ? "px-6 py-3" : "px-5 py-2"
+            large ? "px-5 py-2.5 @md:px-6 @md:py-3" : "px-5 py-2"
           }`}
         >
           Search
