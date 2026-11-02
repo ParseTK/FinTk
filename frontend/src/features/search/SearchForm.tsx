@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { isMotionOff } from "@/lib/motion";
-import { SearchIcon } from "./icons";
+import { SearchIcon } from "@/components/ui/icons";
 
 interface SearchFormProps {
   defaultValue?: string;

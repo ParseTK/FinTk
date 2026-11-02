@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import { isEnabled } from "@/lib/flags";
-import { Feature } from "./Feature";
+import { Feature } from "@/components/ui/Feature";
 import { HeroChart } from "./HeroChart";
-import { TickerChips } from "./home/TickerChips";
-import { SearchBox } from "./SearchBox";
+import { TickerChips } from "./TickerChips";
+import { SearchBox } from "@/features/search";
 
 /** Entrance stagger: headline, copy, search, then the chart. Each step is a CSS delay. */
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });

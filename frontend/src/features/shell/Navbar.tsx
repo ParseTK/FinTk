@@ -1,11 +1,11 @@
 import clsx from "clsx";
 import Link from "next/link";
-import { COLLAPSE_AFTER, NAV_ITEMS } from "@/lib/navigation";
-import { Feature } from "./Feature";
+import { COLLAPSE_AFTER, NAV_ITEMS } from "./navigation";
+import { Feature } from "@/components/ui/Feature";
 import { Logo } from "./Logo";
-import { MobileMenu } from "./layout/MobileMenu";
-import { NavLink } from "./layout/NavLink";
-import { PalettePicker } from "./PalettePicker";
+import { MobileMenu } from "./MobileMenu";
+import { NavLink } from "./NavLink";
+import { PalettePicker } from "@/features/appearance";
 
 export function Navbar() {
   const collapse = NAV_ITEMS.length > COLLAPSE_AFTER;

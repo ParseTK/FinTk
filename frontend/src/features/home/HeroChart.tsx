@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { formatMoney, formatPercent } from "@/lib/format";
-import { Change } from "./ui/Change";
+import { Change } from "@/components/ui/Change";
 
 // Illustrative data only, clearly labelled "Sample data" in the UI. It is not real market data.
 const POINTS = [

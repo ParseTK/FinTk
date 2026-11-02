@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Container } from "../layout/Container";
-import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { usePortfolio } from "./PortfolioProvider";
 
 export function PortfolioList() {

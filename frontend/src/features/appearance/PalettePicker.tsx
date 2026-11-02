@@ -11,10 +11,10 @@ import {
   readPreferences,
   STORAGE_KEYS,
   type Preferences,
-} from "@/lib/preferences";
+} from "./preferences";
 import { withViewTransition } from "@/lib/motion";
 import { useDisclosure } from "@/lib/useDisclosure";
-import { PaletteIcon } from "./icons";
+import { PaletteIcon } from "@/components/ui/icons";
 
 const CHANGE_EVENT = "preferences-change";
 

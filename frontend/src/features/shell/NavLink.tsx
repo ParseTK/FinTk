@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
-import { isActivePath } from "@/lib/navigation";
+import { isActivePath } from "./navigation";
 
 /** A nav link that marks the current page with aria-current and an underline (not color alone). */
 export function NavLink({ href, className, ...rest }: ComponentProps<typeof Link>) {

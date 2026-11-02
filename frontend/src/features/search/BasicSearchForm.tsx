@@ -1,6 +1,6 @@
 import { useId } from "react";
-import { Button } from "./ui/Button";
-import { Input } from "./ui/Field";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
 
 /**
  * Plain search form with no client JavaScript. It is what visitors get when the `rich_search` flag

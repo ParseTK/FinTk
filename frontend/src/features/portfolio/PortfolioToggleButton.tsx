@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "../ui/Button";
+import { Button } from "@/components/ui/Button";
 import { usePortfolio } from "./PortfolioProvider";
 
 export function PortfolioToggleButton({ symbol }: { symbol: string }) {

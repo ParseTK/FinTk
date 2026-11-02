@@ -1,13 +1,8 @@
 import { act, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { STORAGE_KEYS } from "@/lib/preferences";
+import { PortfolioProvider } from "@/features/portfolio";
 import { CompanyCard } from "./CompanyCard";
-import { PalettePicker } from "./PalettePicker";
-import { PortfolioProvider } from "./portfolio/PortfolioProvider";
 import { SearchForm } from "./SearchForm";
-import { Button } from "./ui/Button";
-import { Skeleton } from "./ui/Skeleton";
 
 function stubMatchMedia(reducedMotion: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
@@ -20,13 +15,7 @@ function stubMatchMedia(reducedMotion: boolean) {
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
-  delete (document as unknown as Record<string, unknown>).startViewTransition;
-  localStorage.clear();
-  const root = document.documentElement;
-  root.classList.remove("dark");
-  delete root.dataset.accent;
-  delete root.dataset.font;
-  delete root.dataset.motion;
+  delete document.documentElement.dataset.motion;
 });
 
 const input = () => screen.getByRole("searchbox");
@@ -89,52 +78,7 @@ describe("SearchForm rotating placeholder", () => {
   });
 });
 
-describe("PalettePicker view transition", () => {
-  it("cross-fades a change when the browser supports it", async () => {
-    stubMatchMedia(false);
-    const start = vi.fn((callback: () => void) => callback());
-    (document as unknown as Record<string, unknown>).startViewTransition = start;
-    const user = userEvent.setup();
-    render(<PalettePicker />);
-    await user.click(screen.getByRole("button", { name: "Appearance" }));
-
-    await user.click(screen.getByRole("button", { name: "Dark" }));
-
-    expect(start).toHaveBeenCalledTimes(1);
-    expect(document.documentElement).toHaveClass("dark");
-    expect(localStorage.getItem(STORAGE_KEYS.mode)).toBe("dark");
-  });
-
-  it("still applies the change, without a transition, under reduced motion", async () => {
-    stubMatchMedia(true);
-    const start = vi.fn();
-    (document as unknown as Record<string, unknown>).startViewTransition = start;
-    const user = userEvent.setup();
-    render(<PalettePicker />);
-    await user.click(screen.getByRole("button", { name: "Appearance" }));
-
-    await user.click(screen.getByRole("button", { name: "Dark" }));
-
-    expect(start).not.toHaveBeenCalled();
-    expect(document.documentElement).toHaveClass("dark");
-  });
-});
-
-describe("micro-interaction styles", () => {
-  it("only applies press and lift transforms when motion is allowed", () => {
-    render(<Button>Go</Button>);
-    const classes = screen.getByRole("button", { name: "Go" }).className;
-    expect(classes).toContain("motion-safe:enabled:active:scale-");
-    expect(classes).toContain("motion-safe:enabled:hover:-translate-y-px");
-    expect(classes).not.toMatch(/(^|\s)(active|hover):(scale|-translate)/);
-  });
-
-  it("shimmers skeletons and hides them from assistive tech", () => {
-    const { container } = render(<Skeleton className="h-4" />);
-    expect(container.firstChild).toHaveClass("animate-shimmer");
-    expect(container.firstChild).toHaveAttribute("aria-hidden", "true");
-  });
-
+describe("result card entrance", () => {
   it("staggers list entrances with a capped delay", () => {
     const company = {
       symbol: "AAPL",

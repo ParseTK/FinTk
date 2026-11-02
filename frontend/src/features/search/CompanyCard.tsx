@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { CompanySearchResult } from "@/lib/types";
-import { PortfolioToggleButton } from "./portfolio/PortfolioToggleButton";
+import type { CompanySearchResult } from "@/features/market-data";
+import { PortfolioToggleButton } from "@/features/portfolio";
 import { staggerDelay } from "@/lib/motion";
-import { Card } from "./ui/Card";
+import { Card } from "@/components/ui/Card";
 
 export function CompanyCard({
   company,

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Container } from "@/components/layout/Container";
+import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
-import { getCompanyProfile } from "@/lib/fmp";
+import { getCompanyProfile } from "@/features/market-data";
 import { formatMoney } from "@/lib/format";
 
 type Props = { params: Promise<{ ticker: string }> };

@@ -1,5 +1,5 @@
 import { BasicSearchForm } from "./BasicSearchForm";
-import { Feature } from "./Feature";
+import { Feature } from "@/components/ui/Feature";
 import { SearchForm } from "./SearchForm";
 
 interface SearchBoxProps {
