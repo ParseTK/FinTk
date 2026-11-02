@@ -71,6 +71,9 @@ export function applyPreferences(prefs: Preferences, root: HTMLElement = documen
 
 /**
  * Runs in <head> before first paint so the page never flashes the wrong look.
- * Dependency-free on purpose; a test keeps it in sync with the parse and apply functions above.
+ * A plain string literal on purpose: no code is built from values at runtime, so nothing can be
+ * injected into it. The ids and storage keys are repeated here, and tests fail if they drift from
+ * the constants above.
  */
-export const PREFERENCES_INIT_SCRIPT = `(function(){try{var d=document.documentElement,s=localStorage,t=s.getItem(${JSON.stringify(STORAGE_KEYS.mode)}),a=s.getItem(${JSON.stringify(STORAGE_KEYS.accent)}),f=s.getItem(${JSON.stringify(STORAGE_KEYS.font)});d.classList.toggle("dark",t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches));d.dataset.accent=${JSON.stringify(ACCENT_IDS)}.indexOf(a)>-1?a:${JSON.stringify(DEFAULT_PREFERENCES.accent)};d.dataset.font=${JSON.stringify(FONT_IDS)}.indexOf(f)>-1?f:${JSON.stringify(DEFAULT_PREFERENCES.font)}}catch(e){}})()`;
+export const PREFERENCES_INIT_SCRIPT =
+  '(function(){try{var d=document.documentElement,s=localStorage,t=s.getItem("theme"),a=s.getItem("accent"),f=s.getItem("font");d.classList.toggle("dark",t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches));d.dataset.accent=["blue","violet","emerald","rose"].indexOf(a)>-1?a:"blue";d.dataset.font=["inter","plex","serif"].indexOf(f)>-1?f:"inter"}catch(e){}})()';
