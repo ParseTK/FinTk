@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { HeroChart } from "./HeroChart";
 import { SearchForm } from "./SearchForm";
 
 export function Hero() {
@@ -10,21 +10,14 @@ export function Hero() {
             Financial data without the hype.
           </h1>
           <p className="text-fg-muted text-xl lg:max-w-md">
-            Search relevant financial documents without fear mongering and fake news.
+            Research public companies from primary filings and financials, without the noise.
           </p>
           <div className="flex justify-center md:justify-start">
             <SearchForm size="lg" />
           </div>
         </div>
         <div className="max-w-lg flex-1 md:max-w-md lg:max-w-xl">
-          <Image
-            src="/images/stonks.jpg"
-            alt="Line chart trending upward"
-            width={270}
-            height={187}
-            className="h-auto w-full object-contain"
-            priority
-          />
+          <HeroChart className="h-auto w-full" />
         </div>
       </div>
     </section>
