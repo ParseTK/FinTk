@@ -9,15 +9,17 @@ import {
   parseMode,
   PREFERENCES_INIT_SCRIPT,
   readPreferences,
-  resolveDark,
+  resolveMode,
   STORAGE_KEYS,
 } from "./preferences";
 
 describe("parsers", () => {
   it("accept known ids and fall back to the defaults", () => {
     expect(parseMode("dark")).toBe("dark");
-    expect(parseMode("purple")).toBe(DEFAULT_PREFERENCES.mode);
-    expect(parseMode(null)).toBe(DEFAULT_PREFERENCES.mode);
+    expect(parseMode("light")).toBe("light");
+    expect(parseMode("purple")).toBeNull();
+    expect(parseMode("system")).toBeNull(); // retired option from earlier versions
+    expect(parseMode(null)).toBeNull();
     expect(parseAccent("rose")).toBe("rose");
     expect(parseAccent("neon")).toBe(DEFAULT_PREFERENCES.accent);
     expect(parseFont("serif")).toBe("serif");
@@ -25,12 +27,12 @@ describe("parsers", () => {
   });
 });
 
-describe("resolveDark", () => {
-  it("follows the OS only for system", () => {
-    expect(resolveDark("system", true)).toBe(true);
-    expect(resolveDark("system", false)).toBe(false);
-    expect(resolveDark("dark", false)).toBe(true);
-    expect(resolveDark("light", true)).toBe(false);
+describe("resolveMode", () => {
+  it("uses the saved choice, otherwise the device setting", () => {
+    expect(resolveMode(null, true)).toBe("dark");
+    expect(resolveMode(null, false)).toBe("light");
+    expect(resolveMode("dark", false)).toBe("dark");
+    expect(resolveMode("light", true)).toBe("light");
   });
 });
 

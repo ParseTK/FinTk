@@ -4,7 +4,7 @@ import { PalettePicker } from "./PalettePicker";
 
 export function Navbar() {
   return (
-    <header className="container mx-auto p-6">
+    <header className="w-full px-4 py-4 sm:px-6 lg:px-8">
       <nav aria-label="Main" className="flex items-center justify-between gap-4">
         <Link href="/" aria-label="Virello home">
           <Logo />

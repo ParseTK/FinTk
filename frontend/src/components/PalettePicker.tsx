@@ -57,11 +57,11 @@ function usePreferences() {
 }
 
 const optionClass =
-  "border-border-strong text-fg hover:bg-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm aria-pressed:border-brand aria-pressed:border-2 aria-pressed:font-semibold";
+  "border-border-strong text-fg not-aria-pressed:hover:bg-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-on-accent aria-pressed:font-semibold";
 
 function Check() {
   return (
-    <span aria-hidden="true" className="text-brand">
+    <span aria-hidden="true" className="font-bold">
       ✓
     </span>
   );
@@ -125,7 +125,7 @@ export function PalettePicker() {
             <legend className="text-fg-muted mb-2 text-xs font-semibold tracking-wide uppercase">
               Mode
             </legend>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {MODES.map(({ id, label }) => (
                 <button
                   key={id}
@@ -158,7 +158,7 @@ export function PalettePicker() {
                     <span
                       aria-hidden="true"
                       data-accent={id}
-                      className="bg-brand inline-block size-4 rounded-full"
+                      className="bg-brand ring-on-accent inline-block size-4 rounded-full ring-2"
                     />
                     {label}
                   </span>
