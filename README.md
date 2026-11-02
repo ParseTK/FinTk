@@ -7,7 +7,7 @@ A fact-first place to research public companies. Work in progress.
 ## Stack
 
 - Frontend: Next.js (App Router), React, TypeScript, Tailwind CSS
-- Backend: FastAPI and Postgres (planned)
+- Backend: FastAPI (Python 3.13, managed with uv); Postgres is planned. See [backend/README.md](backend/README.md)
 
 ## Develop
 
@@ -20,7 +20,9 @@ npm ci
 npm run dev
 ```
 
-Checks run in CI and locally: `npm run format:check`, `lint`, `typecheck`, `test`, `build`.
+The API lives in `backend/` (`uv sync`, then `uv run uvicorn app.main:app --reload`); see its README.
+
+Frontend checks run in CI and locally: `npm run format:check`, `lint`, `typecheck`, `test`, `build`.
 
 ## Project structure
 
