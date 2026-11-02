@@ -109,7 +109,7 @@ export function HeroChart({ className }: { className?: string }) {
 
   return (
     <figure
-      className={`border-border bg-surface-raised/80 relative rounded-3xl border p-4 shadow-xl backdrop-blur sm:p-5 ${className ?? ""}`}
+      className={`border-border bg-surface-raised relative rounded-3xl border p-4 shadow-xl sm:p-5 ${className ?? ""}`}
     >
       <figcaption className="flex items-end justify-between gap-4 px-1 pb-3">
         <div>

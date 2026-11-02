@@ -13,7 +13,7 @@ afterEach(() => vi.unstubAllEnvs());
 describe("TickerChips", () => {
   it("links each example straight to its company page with a readable name", () => {
     render(<TickerChips />);
-    const apple = screen.getByRole("link", { name: "Apple (AAPL)" });
+    const apple = screen.getByRole("link", { name: "AAPL Apple" });
     expect(apple).toHaveAttribute("href", "/company/AAPL");
     expect(screen.getAllByRole("link")).toHaveLength(4);
   });

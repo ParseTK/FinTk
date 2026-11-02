@@ -17,10 +17,9 @@ export function TickerChips() {
           <li key={symbol}>
             <Link
               href={`/company/${symbol}`}
-              aria-label={`${name} (${symbol})`}
               className="border-border-strong hover:border-brand hover:text-brand inline-block rounded-full border px-3 py-1 text-sm font-semibold transition duration-150 motion-safe:hover:-translate-y-0.5"
             >
-              {symbol}
+              {symbol} <span className="sr-only">{name}</span>
             </Link>
           </li>
         ))}
