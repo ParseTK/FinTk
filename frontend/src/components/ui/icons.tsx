@@ -40,32 +40,6 @@ export function MenuIcon({ className = "size-5" }: { className?: string }) {
   );
 }
 
-export function DocumentIcon({ className = "size-6" }: { className?: string }) {
-  return (
-    <svg {...base} className={className}>
-      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-      <path d="M14 3v5h5M9 13h6M9 17h4" />
-    </svg>
-  );
-}
-
-export function BookmarkIcon({ className = "size-6" }: { className?: string }) {
-  return (
-    <svg {...base} className={className}>
-      <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-6-4-6 4z" />
-    </svg>
-  );
-}
-
-export function TrendIcon({ className = "size-6" }: { className?: string }) {
-  return (
-    <svg {...base} className={className}>
-      <path d="m3 17 6-6 4 4 8-8" />
-      <path d="M15 7h6v6" />
-    </svg>
-  );
-}
-
 export function PauseIcon({ className = "size-4" }: { className?: string }) {
   return (
     <svg {...base} className={className}>

@@ -34,6 +34,11 @@ export const FLAGS = {
     description:
       "Appearance palette in the nav. Off: the picker is hidden; saved choices still apply.",
   },
+  scroll_motion: {
+    default: true,
+    description:
+      "Scroll-driven reveal, parallax depth and drawn illustrations in the feature section. Off: a plain static section.",
+  },
   market_ticker: {
     default: true,
     description: "Sample market ticker strip on the home page.",
