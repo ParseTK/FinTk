@@ -100,21 +100,18 @@ describe("FeatureGrid", () => {
     );
   });
 
-  it("gives each scroll animation its own element, with the hover lift on the card", () => {
+  it("keeps the hover lift on the card, inside the entrance element", () => {
     const { container } = render(<FeatureGrid />);
     const item = container.querySelector("ul > li");
-    expect(item).toHaveClass("reveal");
-    const wrapper = item?.firstElementChild;
-    expect(wrapper).toHaveClass("parallax-enter");
-    const card = wrapper?.firstElementChild;
+    const card = item?.firstElementChild;
     expect(card?.tagName).toBe("ARTICLE");
     expect(card?.className).toContain("hover:-translate-y-1.5");
-    expect(item?.className).not.toContain("hover:");
+    expect(item?.className ?? "").not.toContain("hover:");
   });
 
-  it("never puts two scroll animations on one element (they would fight over animation)", () => {
+  it("never puts two CSS animations on one element (they would fight over animation)", () => {
     const { container } = render(<FeatureGrid />);
-    const animations = ["reveal", "parallax", "parallax-enter"];
+    const animations = ["parallax", "parallax-page"];
     for (const element of container.querySelectorAll("*")) {
       const used = animations.filter((name) => element.classList.contains(name));
       expect(used.length, element.outerHTML.slice(0, 80)).toBeLessThanOrEqual(1);
@@ -126,22 +123,92 @@ describe("FeatureGrid", () => {
     expect(container.innerHTML).not.toContain("overflow-hidden");
   });
 
-  it("staggers the cards by index, with the middle card lagging most", () => {
-    const { container } = render(<FeatureGrid />);
-    const items = [...container.querySelectorAll("ul > li")] as HTMLElement[];
-    expect(items.map((item) => item.style.getPropertyValue("--i"))).toEqual(["0", "1", "2"]);
-    const wrappers = [...container.querySelectorAll(".parallax-enter")];
-    expect(wrappers).toHaveLength(3);
-    expect(wrappers.map((el) => /--parallax-from:(\d+)px/.exec(el.className)?.[1])).toEqual([
-      "48",
-      "104",
-      "48",
-    ]);
+  describe("entrance", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
+      // @ts-expect-error: remove the animate stub
+      delete HTMLElement.prototype.animate;
+    });
+
+    it("plays heading first, then the cards left to right, 110ms apart", () => {
+      const callbacks: Array<() => void> = [];
+      const played: Array<{ element: Element; delay: number }> = [];
+      vi.stubGlobal(
+        "IntersectionObserver",
+        class {
+          constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+            callbacks.push(() => callback([{ isIntersecting: true }]));
+          }
+          observe() {}
+          disconnect() {}
+        },
+      );
+      HTMLElement.prototype.animate = function (this: HTMLElement, _k: unknown, options: unknown) {
+        played.push({ element: this, delay: (options as { delay: number }).delay });
+        return {} as Animation;
+      } as never;
+      vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
+        top: 3000,
+      } as DOMRect);
+
+      const { container } = render(<FeatureGrid />);
+      callbacks.forEach((fire) => fire());
+
+      const items = [...container.querySelectorAll("ul > li")];
+      const delays = items.map((li) => played.find((p) => p.element === li)?.delay);
+      expect(delays).toEqual([0, 110, 220]);
+      expect(played.some((p) => p.element.querySelector("h2"))).toBe(true);
+    });
   });
 
-  it("layers depth: a background glow plus the icon and the text of every card", () => {
+  it("layers depth: three background layers plus the icon and text of every card", () => {
     const { container } = render(<FeatureGrid />);
-    expect(container.querySelectorAll(".parallax").length).toBe(1 + 3 * 2);
+    expect(container.querySelectorAll(".parallax").length).toBe(3 + 3 * 2);
+  });
+
+  describe("background art", () => {
+    const layers = (container: HTMLElement) =>
+      [
+        ...container.querySelectorAll('section > div[aria-hidden="true"] svg.parallax'),
+      ] as SVGElement[];
+
+    it("is decorative and has three layers at three speeds", () => {
+      const { container } = render(<FeatureGrid />);
+      expect(container.querySelector('section > div[aria-hidden="true"]')).toBeInTheDocument();
+      const travel = layers(container).map((layer) => {
+        const cls = layer.getAttribute("class") ?? "";
+        const from = Number(/--parallax-from:(-?\d+)px/.exec(cls)?.[1]);
+        const to = Number(/--parallax-to:(-?\d+)px/.exec(cls)?.[1]);
+        return { from, to };
+      });
+      expect(travel).toEqual([
+        { from: -36, to: 36 },
+        { from: -110, to: 110 },
+        { from: 190, to: -190 },
+      ]);
+    });
+
+    it("moves the near layer against the page and the far layers with it, for depth", () => {
+      const { container } = render(<FeatureGrid />);
+      const [far, mid, near] = layers(container).map((layer) => {
+        const cls = layer.getAttribute("class") ?? "";
+        return Number(/--parallax-to:(-?\d+)px/.exec(cls)?.[1]);
+      });
+      expect(far).toBeGreaterThan(0);
+      expect(mid).toBeGreaterThan(far!);
+      expect(near).toBeLessThan(0);
+    });
+
+    it("still draws the full composition when scroll_motion is off, just without drift", () => {
+      vi.stubEnv("FEATURE_SCROLL_MOTION", "false");
+      const { container } = render(<FeatureGrid />);
+      expect(layers(container)).toHaveLength(0);
+      const art = container.querySelectorAll(
+        'section > div[aria-hidden="true"] svg[viewBox="0 0 1400 900"]',
+      );
+      expect(art).toHaveLength(3);
+    });
   });
 
   describe("icons", () => {
@@ -217,7 +284,7 @@ describe("FeatureGrid", () => {
   it("is a plain static section when the scroll_motion flag is off", async () => {
     vi.stubEnv("FEATURE_SCROLL_MOTION", "false");
     const { container } = render(<FeatureGrid />);
-    for (const name of [".reveal", ".parallax", ".parallax-enter"]) {
+    for (const name of [".parallax"]) {
       expect(container.querySelector(name), name).not.toBeInTheDocument();
     }
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(3);
@@ -226,7 +293,7 @@ describe("FeatureGrid", () => {
 
   it("hides the decorative illustrations from assistive technology", () => {
     const { container } = render(<FeatureGrid />);
-    const svgs = container.querySelectorAll("svg");
+    const svgs = container.querySelectorAll("ul svg");
     expect(svgs).toHaveLength(3);
     for (const svg of svgs) expect(svg).toHaveAttribute("aria-hidden", "true");
   });
