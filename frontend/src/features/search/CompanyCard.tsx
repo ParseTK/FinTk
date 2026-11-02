@@ -1,16 +1,10 @@
 import Link from "next/link";
-import type { CompanySearchResult } from "@/features/market-data";
+import type { CompanySummary } from "@/features/market-data";
 import { PortfolioToggleButton } from "@/features/portfolio";
 import { staggerDelay } from "@/lib/motion";
 import { Card } from "@/components/ui/Card";
 
-export function CompanyCard({
-  company,
-  index = 0,
-}: {
-  company: CompanySearchResult;
-  index?: number;
-}) {
+export function CompanyCard({ company, index = 0 }: { company: CompanySummary; index?: number }) {
   return (
     <Card
       as="li"
@@ -18,16 +12,13 @@ export function CompanyCard({
       style={{ animationDelay: staggerDelay(index) }}
     >
       <Link
-        href={`/company/${encodeURIComponent(company.symbol)}`}
+        href={`/company/${encodeURIComponent(company.ticker)}`}
         className="font-bold underline-offset-2 hover:underline"
       >
-        {company.name} ({company.symbol})
+        {company.name} ({company.ticker})
       </Link>
-      <p>{company.currency}</p>
-      <p className="font-bold">
-        {company.exchange} - {company.exchangeFullName}
-      </p>
-      <PortfolioToggleButton symbol={company.symbol} />
+      <p className="font-bold">{company.exchange}</p>
+      <PortfolioToggleButton symbol={company.ticker} />
     </Card>
   );
 }

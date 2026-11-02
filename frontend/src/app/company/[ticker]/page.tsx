@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
-import { Change } from "@/components/ui/Change";
-import { getCompanyProfile } from "@/features/market-data";
-import { formatMoney } from "@/lib/format";
+import {
+  FilingsList,
+  FinancialsTable,
+  getCompanyProfile,
+  getKeyFilings,
+  getFinancials,
+} from "@/features/market-data";
+import { formatFiscalYearEnd } from "@/lib/format";
 
 type Props = { params: Promise<{ ticker: string }> };
 
@@ -17,25 +22,67 @@ export default async function CompanyPage({ params }: Props) {
   const { ticker } = await params;
   const company = await getCompanyProfile(ticker);
   if (!company) notFound();
+  const [financials, filings] = await Promise.all([
+    getFinancials(company.ticker),
+    getKeyFilings(company.ticker),
+  ]);
+
+  const facts = [
+    ["Industry", company.industry],
+    ["Exchange", company.exchange],
+    ["Filer type", company.category],
+    ["Fiscal year ends", formatFiscalYearEnd(company.fiscal_year_end)],
+  ].filter((entry): entry is [string, string] => Boolean(entry[1]));
 
   return (
     <Container size="narrow" className="py-8">
       <article className="space-y-6">
-        <header className="space-y-2">
+        <header className="space-y-1">
           <h1 className="text-3xl font-bold">
-            {company.companyName}{" "}
-            <span className="text-fg-muted font-normal">({company.symbol})</span>
+            {company.name} <span className="text-fg-muted font-normal">({company.ticker})</span>
           </h1>
-          <p className="flex flex-wrap items-baseline gap-3 text-2xl font-semibold tabular-nums">
-            {formatMoney(company.price, { currency: company.currency })}
-            <Change value={company.changePercentage} className="text-base" />
-          </p>
+          {company.industry && <p className="text-fg-muted">{company.industry}</p>}
         </header>
-        <Card as="section" aria-labelledby="about-heading" className="space-y-2">
-          <h2 id="about-heading" className="text-xl font-semibold">
-            About
+
+        {facts.length > 0 && (
+          <Card as="section" aria-labelledby="about-heading" className="space-y-3">
+            <h2 id="about-heading" className="text-xl font-semibold">
+              About
+            </h2>
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+              {facts.map(([term, value]) => (
+                <div key={term}>
+                  <dt className="text-fg-muted text-sm">{term}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+        )}
+
+        <Card as="section" aria-labelledby="financials-heading" className="space-y-3">
+          <h2 id="financials-heading" className="text-xl font-semibold">
+            Annual results
           </h2>
-          <p className="text-fg-muted">{company.description}</p>
+          {financials && financials.metrics.length > 0 ? (
+            <>
+              <FinancialsTable financials={financials} />
+              <p className="text-fg-muted text-sm">Source: {financials.source}. Amounts in USD.</p>
+            </>
+          ) : (
+            <p className="text-fg-muted">No annual financial data is available for this company.</p>
+          )}
+        </Card>
+
+        <Card as="section" aria-labelledby="filings-heading" className="space-y-3">
+          <h2 id="filings-heading" className="text-xl font-semibold">
+            Recent filings
+          </h2>
+          {filings.length > 0 ? (
+            <FilingsList filings={filings} />
+          ) : (
+            <p className="text-fg-muted">No recent filings found.</p>
+          )}
         </Card>
       </article>
     </Container>

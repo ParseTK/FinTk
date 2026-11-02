@@ -170,17 +170,16 @@ describe("pickWordIndex", () => {
 describe("result card entrance", () => {
   it("staggers list entrances with a capped delay", () => {
     const company = {
-      symbol: "AAPL",
+      ticker: "AAPL",
       name: "Apple Inc.",
-      currency: "USD",
       exchange: "NASDAQ",
-      exchangeFullName: "NASDAQ Global Select",
+      cik: "0000320193",
     };
     render(
       <PortfolioProvider>
         <ul>
           <CompanyCard company={company} index={2} />
-          <CompanyCard company={{ ...company, symbol: "MSFT" }} index={99} />
+          <CompanyCard company={{ ...company, ticker: "MSFT" }} index={99} />
         </ul>
       </PortfolioProvider>,
     );

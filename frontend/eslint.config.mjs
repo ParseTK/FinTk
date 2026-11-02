@@ -87,5 +87,12 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     rules: { "import/no-restricted-paths": ["error", { zones }] },
   },
-  globalIgnores([".next/**", ".next-*/**", "out/**", "coverage/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    ".next-*/**",
+    "out/**",
+    "coverage/**",
+    "next-env.d.ts",
+    "src/features/market-data/api/schema.d.ts", // generated
+  ]),
 ]);

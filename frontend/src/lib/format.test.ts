@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatCompact,
   formatDate,
+  formatFiscalYearEnd,
   formatMoney,
   formatNumber,
   formatPercent,
@@ -98,5 +99,16 @@ describe("sign helpers", () => {
     expect(isNegative("-0.01")).toBe(true);
     expect(isNegative("abc")).toBe(false);
     expect(isPositive(null)).toBe(false);
+  });
+});
+
+describe("formatFiscalYearEnd", () => {
+  it("turns MMDD into a month and day", () => {
+    expect(formatFiscalYearEnd("0926")).toBe("September 26");
+    expect(formatFiscalYearEnd("1231")).toBe("December 31");
+  });
+
+  it.each([null, undefined, "", "926", "1326", "0132x", "0000"])("returns null for %j", (value) => {
+    expect(formatFiscalYearEnd(value)).toBeNull();
   });
 });
