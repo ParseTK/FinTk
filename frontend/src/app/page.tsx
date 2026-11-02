@@ -1,15 +1,14 @@
 import { Feature } from "@/components/ui/Feature";
-import { Hero } from "@/features/home";
-import { FeatureGrid } from "@/features/home";
-import { MarketTicker } from "@/features/home";
+import { FeatureGrid, Hero, MarketTicker } from "@/features/home";
 
 export default function HomePage() {
   return (
     <>
-      <Hero />
+      {/* The market strip sits right under the navigation, like a finance site's ticker bar. */}
       <Feature flag="market_ticker">
         <MarketTicker />
       </Feature>
+      <Hero />
       <FeatureGrid />
     </>
   );
