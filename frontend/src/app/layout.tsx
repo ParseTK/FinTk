@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
+import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/Navbar";
 import { PortfolioProvider } from "@/components/portfolio/PortfolioProvider";
 import { PREFERENCES_INIT_SCRIPT } from "@/lib/preferences";
@@ -45,7 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: PREFERENCES_INIT_SCRIPT }} />
       </head>
-      <body className="font-sans antialiased">
+      <body className="flex min-h-screen flex-col font-sans antialiased">
         <a
           href="#main"
           className="focus:bg-surface sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10 focus:rounded focus:p-3"
@@ -54,7 +55,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </a>
         <PortfolioProvider>
           <Navbar />
-          <main id="main">{children}</main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <Footer />
         </PortfolioProvider>
       </body>
     </html>

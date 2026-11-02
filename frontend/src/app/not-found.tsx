@@ -1,13 +1,13 @@
-import Link from "next/link";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { LinkButton } from "@/components/ui/LinkButton";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-xl space-y-4 px-6 py-16 text-center">
-      <h1 className="text-2xl font-bold">Not found</h1>
-      <p className="text-fg-muted">We could not find that page or company.</p>
-      <Link href="/search" className="text-brand underline">
-        Back to search
-      </Link>
-    </div>
+    <EmptyState
+      headingLevel={1}
+      title="Not found"
+      description="We could not find that page or company."
+      action={<LinkButton href="/search">Back to search</LinkButton>}
+    />
   );
 }

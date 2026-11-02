@@ -1,4 +1,12 @@
 import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
+
+// Components that read the current route get "/" by default; tests override with
+// vi.mocked(usePathname).mockReturnValue("/search").
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: vi.fn(() => "/"),
+}));
 
 // jsdom does not implement matchMedia; default to "light, no preference".
 if (!window.matchMedia) {

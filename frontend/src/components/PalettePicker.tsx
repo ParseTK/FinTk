@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useId, useMemo, useSyncExternalStore } from "react";
 import {
   ACCENTS,
   applyPreferences,
@@ -19,6 +11,7 @@ import {
   STORAGE_KEYS,
   type Preferences,
 } from "@/lib/preferences";
+import { useDisclosure } from "@/lib/useDisclosure";
 import { PaletteIcon } from "./icons";
 
 const CHANGE_EVENT = "preferences-change";
@@ -68,49 +61,19 @@ function Check() {
 }
 
 export function PalettePicker() {
-  const [open, setOpen] = useState(false);
+  const { open, toggle, buttonRef, containerProps } = useDisclosure();
   const { prefs, update } = usePreferences();
   const panelId = useId();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
-  const close = useCallback((returnFocus: boolean) => {
-    setOpen(false);
-    if (returnFocus) buttonRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) close(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [open, close]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative"
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && open) {
-          event.stopPropagation();
-          close(true);
-        }
-      }}
-      onBlur={(event) => {
-        if (open && !containerRef.current?.contains(event.relatedTarget as Node | null)) {
-          close(false);
-        }
-      }}
-    >
+    <div {...containerProps} className="relative">
       <button
         ref={buttonRef}
         type="button"
         aria-label="Appearance"
         aria-expanded={open}
         aria-controls={panelId}
-        onClick={() => setOpen((value) => !value)}
+        onClick={toggle}
         className="text-fg-muted hover:text-fg hover:bg-surface-raised rounded-full p-2"
       >
         <PaletteIcon />
