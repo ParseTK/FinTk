@@ -1,0 +1,24 @@
+name: Main source branch
+
+# main only accepts changes that have been integrated and tested on dev.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  source-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require head branch to be dev
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ]; then
+            echo "PRs into main must come from dev (got: $HEAD_REF)."
+            exit 1
+          fi
