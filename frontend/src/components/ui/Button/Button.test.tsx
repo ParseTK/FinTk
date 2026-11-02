@@ -3,8 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 import { Button } from "./Button";
-import { IconButton } from "./IconButton";
-import { LinkButton } from "./LinkButton";
 
 describe("Button", () => {
   it("defaults to type=button so it never submits a form by accident", () => {
@@ -51,6 +49,14 @@ describe("Button", () => {
     expect(button).toHaveClass("bg-loss", "px-6", "w-full");
   });
 
+  it("only applies press and lift transforms when motion is allowed", () => {
+    render(<Button>Go</Button>);
+    const classes = screen.getByRole("button", { name: "Go" }).className;
+    expect(classes).toContain("motion-safe:enabled:active:scale-");
+    expect(classes).toContain("motion-safe:enabled:hover:-translate-y-px");
+    expect(classes).not.toMatch(/(^|\s)(active|hover):(scale|-translate)/);
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(
       <div>
@@ -61,35 +67,6 @@ describe("Button", () => {
         </Button>
         <Button loading>Loading</Button>
       </div>,
-    );
-    await expectNoA11yViolations(container);
-  });
-});
-
-describe("LinkButton", () => {
-  it("is a link that looks like a button", () => {
-    render(<LinkButton href="/search">Go to search</LinkButton>);
-    const link = screen.getByRole("link", { name: "Go to search" });
-    expect(link).toHaveAttribute("href", "/search");
-    expect(link).toHaveClass("bg-brand");
-  });
-});
-
-describe("IconButton", () => {
-  it("gets its accessible name from label", () => {
-    render(
-      <IconButton label="Close">
-        <svg aria-hidden="true" />
-      </IconButton>,
-    );
-    expect(screen.getByRole("button", { name: "Close" })).toHaveAttribute("type", "button");
-  });
-
-  it("has no accessibility violations", async () => {
-    const { container } = render(
-      <IconButton label="Close" variant="secondary">
-        <svg aria-hidden="true" />
-      </IconButton>,
     );
     await expectNoA11yViolations(container);
   });

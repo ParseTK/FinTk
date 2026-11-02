@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { ComponentProps } from "react";
-import { buttonStyles, type ButtonStyleOptions } from "./button-styles";
+import { buttonStyles, type ButtonStyleOptions } from "@/components/ui/Button";
 
 export interface IconButtonProps
   extends

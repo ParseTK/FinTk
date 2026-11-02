@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { Button } from "./Button";
-import type { HeadingLevel } from "./EmptyState";
+import { Button } from "@/components/ui/Button";
+import type { HeadingLevel } from "@/components/ui/EmptyState";
 
 export interface ErrorStateProps {
   title?: string;

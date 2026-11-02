@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps } from "react";
-import { buttonStyles, type ButtonStyleOptions } from "./button-styles";
+import { buttonStyles, type ButtonStyleOptions } from "@/components/ui/Button";
 
 export interface LinkButtonProps
   extends ComponentProps<typeof Link>, Omit<ButtonStyleOptions, "className"> {}
