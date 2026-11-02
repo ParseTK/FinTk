@@ -1,36 +1,67 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
+import { IBM_Plex_Sans, Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
-import { Navbar } from "@/components/Navbar";
-import { PortfolioProvider } from "@/components/portfolio/PortfolioProvider";
+import { Footer } from "@/features/shell";
+import { Navbar } from "@/features/shell";
+import { PortfolioProvider } from "@/features/portfolio";
+import { PREFERENCES_INIT_SCRIPT } from "@/features/appearance";
 import "./globals.css";
 
-const poppins = Poppins({
+// Inter is the default and is preloaded. The alternates are not preloaded, so the browser only
+// downloads them when a visitor actually picks that typeface.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const plex = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
+  variable: "--font-plex",
+  display: "swap",
+  preload: false,
+});
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-source-serif",
+  display: "swap",
+  preload: false,
 });
 
+// Feature flags come from environment variables at request time, so pages must not be prerendered.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: { default: "FinTk", template: "%s | FinTk" },
-  description: "Search financial data without the news noise.",
+  title: { default: "Virello", template: "%s | Virello" },
+  description: "Research public companies from primary sources.",
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={poppins.variable}>
-      <body className="font-sans text-black antialiased">
+    // suppressHydrationWarning: the script below sets class/data attributes before React hydrates.
+    <html
+      lang="en"
+      className={`${inter.variable} ${plex.variable} ${sourceSerif.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: PREFERENCES_INIT_SCRIPT }} />
+      </head>
+      <body className="flex min-h-screen flex-col font-sans antialiased">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10 focus:rounded focus:bg-white focus:p-3"
+          className="focus:bg-surface sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10 focus:rounded focus:p-3"
         >
           Skip to content
         </a>
         <PortfolioProvider>
           <Navbar />
-          <main id="main">{children}</main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <Footer />
         </PortfolioProvider>
       </body>
     </html>

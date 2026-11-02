@@ -14,9 +14,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "new:component": "node scripts/new-component.mjs"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "next": "^16.4.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
@@ -31,6 +33,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.14.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.3",
     "eslint-config-prettier": "^10.1.8",

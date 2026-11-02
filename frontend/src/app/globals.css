@@ -1,7 +1,494 @@
 @import "tailwindcss";
 
+/* Dark mode is class-based (set by the preferences script) so the user can override the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. The rules below are the single source of truth for color:
+ * src/styles/tokens.test.ts parses them and fails CI if any text/background pair drops below WCAG AA,
+ * for every accent in both light and dark. Use only plain 6-digit hex values so that test can read them.
+ *
+ * Accents override only --brand and --focus. A rule can also be placed on any element (the palette
+ * swatches do this), so each accent selector has a descendant form.
+ */
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #64748b; /* boundaries of inputs and controls (3:1) */
+  --fg: #0f172a;
+  --fg-muted: #475569;
+  --brand: #1d4ed8; /* blue is the default accent */
+  --gain: #15803d;
+  --loss: #b91c1c;
+  --focus: #1d4ed8;
+  --on-accent: #ffffff; /* text on solid brand / gain / loss / fg-muted fills */
+}
+
+.dark {
+  --surface: #020617;
+  --surface-raised: #0f172a;
+  --border: #1e293b;
+  --border-strong: #94a3b8;
+  --fg: #f8fafc;
+  --fg-muted: #94a3b8;
+  --brand: #60a5fa;
+  --gain: #4ade80;
+  --loss: #f87171;
+  --focus: #93c5fd;
+  --on-accent: #020617;
+}
+
+[data-accent="violet"] {
+  --brand: #6d28d9;
+  --focus: #6d28d9;
+}
+.dark[data-accent="violet"],
+.dark [data-accent="violet"] {
+  --brand: #a78bfa;
+  --focus: #c4b5fd;
+}
+
+[data-accent="emerald"] {
+  --brand: #047857;
+  --focus: #047857;
+}
+.dark[data-accent="emerald"],
+.dark [data-accent="emerald"] {
+  --brand: #34d399;
+  --focus: #6ee7b7;
+}
+
+[data-accent="rose"] {
+  --brand: #be123c;
+  --focus: #be123c;
+}
+.dark[data-accent="rose"],
+.dark [data-accent="rose"] {
+  --brand: #fb7185;
+  --focus: #fda4af;
+}
+
+/* Blue must also win when a swatch inside a violet/emerald/rose page asks for it. */
+[data-accent="blue"] {
+  --brand: #1d4ed8;
+  --focus: #1d4ed8;
+}
+.dark[data-accent="blue"],
+.dark [data-accent="blue"] {
+  --brand: #60a5fa;
+  --focus: #93c5fd;
+}
+
+/* Typeface choice. The font variables come from next/font in the root layout. */
+:root {
+  --font-active: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+[data-font="plex"] {
+  --font-active: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+}
+[data-font="serif"] {
+  --font-active: var(--font-source-serif), ui-serif, Georgia, serif;
+}
+
+/*
+ * Motion tokens: one set of easings, durations and keyframes so everything moves consistently.
+ * Only transform and opacity are animated (no layout shift). The reduced-motion rule in the base
+ * layer below shortens every animation and transition to near zero, so content is simply shown.
+ */
 @theme {
-  --color-brand: hsl(215 98% 51%);
-  --color-brand-dark: hsl(214 59% 40%);
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-fade-up: fade-up 0.7s var(--ease-out-expo) both;
+  --animate-fade-in: fade-in 0.5s var(--ease-out-expo) both;
+  --animate-pop-in: pop-in 0.2s var(--ease-out-expo) both;
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  /* Hero chart: the line draws itself, bars rise, and the end marker blinks softly (about 0.4 Hz, far
+   below the flash threshold). The Motion setting in the palette stops every animation site-wide. */
+  --animate-draw: draw 1.6s var(--ease-out-expo) 0.2s both;
+  --animate-rise: rise 0.8s var(--ease-out-expo) both;
+  --animate-ring: ring 2.4s ease-out 1.8s infinite both;
+  --animate-blink: blink 2.4s ease-in-out 1.8s infinite;
+  /* Sample ticker: a slow, pausable marquee. */
+  --animate-marquee: marquee 60s linear infinite;
+  /* Feature icons: short, one-shot animations that play on hover or keyboard focus of the card. */
+  --animate-lens-scan: lens-scan 2.6s ease-in-out both;
+  --animate-pin: pin 0.7s var(--ease-spring) both;
+  --animate-redraw: draw 0.9s var(--ease-out-expo) 0.15s both;
+  --animate-ping-dot: ping-dot 0.9s var(--ease-out-expo) 0.9s both;
+  --animate-ray: ray 0.6s var(--ease-out-expo) both;
+  --animate-bulb: bulb 0.8s var(--ease-spring) both;
+
+  @keyframes lens-scan {
+    0% {
+      transform: translate(0, 0);
+    }
+    14% {
+      transform: translate(-30px, -20px);
+    }
+    28% {
+      transform: translate(-12px, -20px);
+    }
+    42% {
+      transform: translate(-30px, -10px);
+    }
+    56% {
+      transform: translate(-8px, -10px);
+    }
+    70% {
+      transform: translate(-30px, 0);
+    }
+    84%,
+    92% {
+      transform: translate(-18px, 0);
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes pin {
+    0% {
+      transform: translateY(0);
+    }
+    35% {
+      transform: translateY(-8px);
+    }
+    70% {
+      transform: translateY(2px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes ping-dot {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(2.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes ray {
+    from {
+      stroke-dashoffset: 1;
+      opacity: 0.2;
+    }
+    to {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+  }
+  @keyframes bulb {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes parallax-shift {
+    from {
+      transform: translateY(var(--parallax-from, 24px));
+    }
+    to {
+      transform: translateY(var(--parallax-to, -24px));
+    }
+  }
+  /* Transform only, no fade: text must never be half-transparent while it scrolls in. */
+  @keyframes reveal-up {
+    from {
+      transform: translateY(28px);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: scaleY(0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+  @keyframes ring {
+    from {
+      opacity: 0.55;
+      transform: scale(0.7);
+    }
+    to {
+      opacity: 0;
+      transform: scale(2.4);
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/**
+ * Reveals an element as it scrolls into view, driven by scroll position (no JavaScript).
+ * Browsers without scroll-driven animations simply show the element; reduced motion disables it.
+ */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry calc(var(--i, 0) * 7%) entry calc(45% + var(--i, 0) * 7%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/*
+ * motion-safe: and motion-reduce: follow the palette's Motion setting. Until it is set (no
+ * JavaScript), they fall back to the device preference.
+ */
+@custom-variant motion-safe {
+  &:where(html[data-motion="full"] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &:where(html:not([data-motion]) *) {
+      @slot;
+    }
+  }
+}
+@custom-variant motion-reduce {
+  &:where(html[data-motion="reduced"] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:where(html:not([data-motion]) *) {
+      @slot;
+    }
+  }
+}
+
+/**
+ * Moves an element a little as it crosses the viewport, so layers appear to sit at different depths.
+ * Set the travel with --parallax-from and --parallax-to (keep them small: about 30px or less).
+ * Same support and motion rules as reveal.
+ */
+@utility parallax {
+  @supports (animation-timeline: view()) {
+    animation: parallax-shift linear both;
+    animation-timeline: view();
+    animation-range: cover;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/**
+ * Like parallax, but driven by how far the PAGE has scrolled (first screen), so a hero layer visibly
+ * lags behind the content as you scroll away from the top. Travel is set with the same variables.
+ */
+@utility parallax-page {
+  @supports (animation-timeline: scroll()) {
+    animation: parallax-shift linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/**
+ * Like parallax, but only while the element scrolls INTO view: it starts offset by --parallax-from
+ * and settles exactly in place (set --parallax-to to 0px), so it always rests aligned. Give
+ * neighbours different distances and they converge at different speeds.
+ */
+@utility parallax-enter {
+  @supports (animation-timeline: view()) {
+    animation: parallax-shift linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 85%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/** A link whose underline draws in on hover and keyboard focus. */
+@utility link-underline {
+  padding-bottom: 2px;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  transition: background-size 280ms var(--ease-out-expo);
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 2px;
+  }
+}
+
+/* Theme / accent / typeface changes cross-fade instead of flipping (View Transitions API). */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 320ms;
+    animation-timing-function: var(--ease-out-expo);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-brand: var(--brand);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-focus: var(--focus);
+  --color-on-accent: var(--on-accent);
+  --font-sans: var(--font-active);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Device asks for reduced motion and the visitor has not explicitly chosen Full motion. */
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) *,
+    html:not([data-motion="full"]) ::before,
+    html:not([data-motion="full"]) ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Visitor chose Reduced motion in the palette. */
+  html[data-motion="reduced"] *,
+  html[data-motion="reduced"] ::before,
+  html[data-motion="reduced"] ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
 }
