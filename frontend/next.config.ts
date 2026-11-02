@@ -16,9 +16,6 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   output: "standalone",
-  images: {
-    remotePatterns: [{ protocol: "https", hostname: "images.financialmodelingprep.com" }],
-  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
