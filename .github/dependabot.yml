@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /frontend
+    target-branch: dev
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
@@ -11,6 +12,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     groups:
@@ -19,8 +21,13 @@ updates:
 
   - package-ecosystem: docker
     directory: /frontend
+    target-branch: dev
     schedule:
       interval: weekly
+    ignore:
+      # Stay on the Node LTS line; move majors deliberately.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
 
   # Enable when /backend exists (plan step 4):
   # - package-ecosystem: pip
