@@ -8,7 +8,7 @@ failure redirects to /sign-in?error=... so a person never sees raw JSON mid-logi
 
 import logging
 from typing import Annotated, Literal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import RedirectResponse
@@ -73,6 +73,19 @@ def _provider(request: Request, name: str) -> OAuthProvider:
 def _redirect_uri(request: Request, provider: str) -> str:
     base = get_settings_from(request).public_url or ""
     return f"{base}/api/v1/auth/{provider}/callback"
+
+
+def _local_target(value: object) -> str:
+    """The post-login destination, guaranteed to stay on this site.
+
+    The value already passed `safe_redirect_path` when login started and is signed into the flow
+    cookie, so it is trusted. This is a second, independent check at the point of use: a target with
+    a host or a scheme is never followed, whatever produced it.
+    """
+    target = safe_redirect_path(value if isinstance(value, str) else None).replace("\\", "")
+    if not urlparse(target).netloc and not urlparse(target).scheme:
+        return target
+    return "/"
 
 
 def _failure(request: Request, reason: str) -> RedirectResponse:
@@ -173,7 +186,7 @@ async def callback(
     except UpstreamError:
         return _failure(request, "unavailable")
 
-    response = RedirectResponse(safe_redirect_path(str(flow.get("n", "/"))), REDIRECT_STATUS)
+    response = RedirectResponse(_local_target(flow.get("n")), REDIRECT_STATUS)
     clear_cookie(response, settings, flow_cookie_name(settings))
     set_session_cookie(response, settings, token)
     return response
