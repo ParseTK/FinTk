@@ -1,6 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { STORAGE_KEYS } from "@/lib/preferences";
 import { PalettePicker } from "./PalettePicker";
 
@@ -30,12 +30,37 @@ describe("PalettePicker", () => {
     expect(screen.getByRole("group", { name: "Typeface" })).toBeInTheDocument();
   });
 
-  it("defaults to System, Blue and Inter", async () => {
+  it("offers only Light and Dark for mode", async () => {
     const user = userEvent.setup();
     render(<PalettePicker />);
     await user.click(openButton());
 
-    expect(screen.getByRole("button", { name: "System", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Light" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dark" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "System" })).not.toBeInTheDocument();
+  });
+
+  it("starts in the device's mode: Dark when the device prefers dark", async () => {
+    vi.stubGlobal("matchMedia", () => ({
+      matches: true,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+    const user = userEvent.setup();
+    render(<PalettePicker />);
+    await user.click(openButton());
+
+    expect(screen.getByRole("button", { name: "Dark", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Light", pressed: false })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+
+  it("defaults to Light (device default here), Blue and Inter", async () => {
+    const user = userEvent.setup();
+    render(<PalettePicker />);
+    await user.click(openButton());
+
+    expect(screen.getByRole("button", { name: "Light", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Blue/, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Inter/, pressed: true })).toBeInTheDocument();
   });

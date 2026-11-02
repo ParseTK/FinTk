@@ -1,7 +1,9 @@
-/** Appearance preferences: mode (light/dark/system), accent color and typeface. */
+/**
+ * Appearance preferences: mode (light or dark), accent color and typeface.
+ * Until the visitor picks a mode, it follows their device setting; there is no "system" option.
+ */
 
 export const MODES = [
-  { id: "system", label: "System" },
   { id: "light", label: "Light" },
   { id: "dark", label: "Dark" },
 ] as const;
@@ -30,7 +32,8 @@ export interface Preferences {
   font: FontId;
 }
 
-export const DEFAULT_PREFERENCES: Preferences = { mode: "system", accent: "blue", font: "inter" };
+/** Server-side default. In the browser an unset mode resolves from the device setting instead. */
+export const DEFAULT_PREFERENCES: Preferences = { mode: "light", accent: "blue", font: "inter" };
 
 export const STORAGE_KEYS = { mode: "theme", accent: "accent", font: "font" } as const;
 
@@ -38,8 +41,9 @@ const MODE_IDS: readonly string[] = MODES.map((m) => m.id);
 const ACCENT_IDS: readonly string[] = ACCENTS.map((a) => a.id);
 const FONT_IDS: readonly string[] = FONTS.map((f) => f.id);
 
-export function parseMode(value: string | null | undefined): Mode {
-  return MODE_IDS.includes(value ?? "") ? (value as Mode) : DEFAULT_PREFERENCES.mode;
+/** Returns null when nothing valid is stored (including the retired "system" value). */
+export function parseMode(value: string | null | undefined): Mode | null {
+  return MODE_IDS.includes(value ?? "") ? (value as Mode) : null;
 }
 export function parseAccent(value: string | null | undefined): Accent {
   return ACCENT_IDS.includes(value ?? "") ? (value as Accent) : DEFAULT_PREFERENCES.accent;
@@ -48,14 +52,18 @@ export function parseFont(value: string | null | undefined): FontId {
   return FONT_IDS.includes(value ?? "") ? (value as FontId) : DEFAULT_PREFERENCES.font;
 }
 
-export function resolveDark(mode: Mode, systemPrefersDark: boolean): boolean {
-  return mode === "dark" || (mode === "system" && systemPrefersDark);
+/** A saved choice wins; otherwise follow the device setting. */
+export function resolveMode(stored: Mode | null, systemPrefersDark: boolean): Mode {
+  return stored ?? (systemPrefersDark ? "dark" : "light");
 }
 
-/** Reads saved preferences. Safe to call only in the browser. */
-export function readPreferences(storage: Pick<Storage, "getItem"> = localStorage): Preferences {
+/** Reads saved preferences (mode already resolved). Safe to call only in the browser. */
+export function readPreferences(
+  storage: Pick<Storage, "getItem"> = localStorage,
+  systemPrefersDark: boolean = window.matchMedia("(prefers-color-scheme: dark)").matches,
+): Preferences {
   return {
-    mode: parseMode(storage.getItem(STORAGE_KEYS.mode)),
+    mode: resolveMode(parseMode(storage.getItem(STORAGE_KEYS.mode)), systemPrefersDark),
     accent: parseAccent(storage.getItem(STORAGE_KEYS.accent)),
     font: parseFont(storage.getItem(STORAGE_KEYS.font)),
   };
@@ -63,8 +71,7 @@ export function readPreferences(storage: Pick<Storage, "getItem"> = localStorage
 
 /** Applies preferences to <html>. Safe to call only in the browser. */
 export function applyPreferences(prefs: Preferences, root: HTMLElement = document.documentElement) {
-  const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  root.classList.toggle("dark", resolveDark(prefs.mode, systemDark));
+  root.classList.toggle("dark", prefs.mode === "dark");
   root.dataset.accent = prefs.accent;
   root.dataset.font = prefs.font;
 }

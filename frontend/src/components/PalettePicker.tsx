@@ -125,7 +125,7 @@ export function PalettePicker() {
             <legend className="text-fg-muted mb-2 text-xs font-semibold tracking-wide uppercase">
               Mode
             </legend>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {MODES.map(({ id, label }) => (
                 <button
                   key={id}
