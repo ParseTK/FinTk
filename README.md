@@ -52,6 +52,32 @@ To add a UI component, run `npm run new:component -- Name` (in `frontend/`). It 
 
 Work happens on short-lived branches that merge into `dev`; `dev` merges into `main`. `main` is always deployable. Unfinished features are hidden behind server-side feature flags (`FEATURE_<NAME>=true`).
 
+## Releasing
+
+Releases are a one-click fast-forward, so `main` and `dev` are always the same commit afterwards
+(`dev` is never "behind"). In GitHub: **Actions, "Release: fast-forward", Run workflow, action: release**.
+
+The workflow refuses to run unless:
+
+- `main` can be fast-forwarded to `dev` (nothing on `main` would be lost), and
+- the required checks (frontend, secrets, CodeQL analysis) have passed on that exact commit.
+
+It adds no merge commit and needs no extra pull request. Use **action: sync** only if something ever
+lands on `main` directly, to bring `dev` up to it.
+
+### One-time setup
+
+Moving `main` without a pull request needs an identity that is allowed to, which the built-in workflow
+token is not. Create a fine-grained personal access token and store it as a repository secret:
+
+1. GitHub, Settings, Developer settings, Fine-grained tokens, **Generate new token**.
+2. Repository access: **only this repository**. Permissions: **Contents: Read and write**,
+   **Checks: Read-only** (Metadata is added automatically). Set an expiry (90 days is a good default).
+3. Add it as the Actions secret **RELEASE_TOKEN** (Settings, Secrets and variables, Actions).
+
+The token owner must be a repository admin. Because the push uses this token (not the built-in one),
+it also starts CI and the container-image build on `main`. Rotate the token before it expires.
+
 ## Security
 
 See [SECURITY.md](SECURITY.md).
