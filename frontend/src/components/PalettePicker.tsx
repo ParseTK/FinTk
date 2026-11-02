@@ -11,6 +11,7 @@ import {
   STORAGE_KEYS,
   type Preferences,
 } from "@/lib/preferences";
+import { withViewTransition } from "@/lib/motion";
 import { useDisclosure } from "@/lib/useDisclosure";
 import { PaletteIcon } from "./icons";
 
@@ -41,9 +42,12 @@ function usePreferences() {
   const prefs = useMemo(() => JSON.parse(snapshot) as Preferences, [snapshot]);
 
   const update = useCallback(<K extends keyof Preferences>(key: K, value: Preferences[K]) => {
-    localStorage.setItem(STORAGE_KEYS[key], value);
-    applyPreferences(readPreferences());
-    window.dispatchEvent(new Event(CHANGE_EVENT));
+    // Cross-fade the change when the browser supports it and motion is allowed.
+    withViewTransition(() => {
+      localStorage.setItem(STORAGE_KEYS[key], value);
+      applyPreferences(readPreferences());
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    });
   }, []);
 
   return { prefs, update };
@@ -82,7 +86,7 @@ export function PalettePicker() {
       {open && (
         <div
           id={panelId}
-          className="border-border bg-surface-raised absolute right-0 z-20 mt-2 w-72 space-y-4 rounded-2xl border p-4 shadow-lg"
+          className="border-border bg-surface-raised animate-pop-in absolute right-0 z-20 mt-2 w-72 origin-top-right space-y-4 rounded-2xl border p-4 shadow-lg"
         >
           <fieldset>
             <legend className="text-fg-muted mb-2 text-xs font-semibold tracking-wide uppercase">

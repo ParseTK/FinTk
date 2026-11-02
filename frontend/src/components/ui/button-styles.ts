@@ -4,10 +4,11 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition duration-150 disabled:cursor-not-allowed disabled:opacity-50 motion-safe:enabled:active:scale-[0.97]";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-on-accent hover:opacity-90",
+  primary:
+    "bg-brand text-on-accent hover:opacity-90 motion-safe:enabled:hover:-translate-y-px enabled:hover:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--brand)_70%,transparent)]",
   secondary: "border border-border-strong bg-surface text-fg hover:bg-surface-raised",
   ghost: "text-fg hover:bg-surface-raised",
   danger: "bg-loss text-on-accent hover:opacity-90",
