@@ -12,7 +12,7 @@ export function PortfolioList() {
         My portfolio
       </h2>
       {symbols.length === 0 ? (
-        <p className="text-center text-lg text-gray-600">Your portfolio is empty.</p>
+        <p className="text-fg-muted text-center text-lg">Your portfolio is empty.</p>
       ) : (
         <ul className="flex flex-wrap justify-center gap-4">
           {symbols.map((symbol) => (
@@ -27,7 +27,7 @@ export function PortfolioList() {
                 type="button"
                 onClick={() => remove(symbol)}
                 aria-label={`Remove ${symbol} from portfolio`}
-                className="rounded-md border-2 border-red-700 px-3 py-1 text-red-700 hover:bg-red-700 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+                className="border-loss text-loss hover:bg-loss hover:text-on-accent focus-visible:outline-loss rounded-md border-2 px-3 py-1 focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 Remove
               </button>

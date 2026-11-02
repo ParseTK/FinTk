@@ -27,7 +27,7 @@ export default async function SearchPage({
           <h2 id="results-heading" className="sr-only">
             Search results
           </h2>
-          <p role="status" className="text-center text-gray-600">
+          <p role="status" className="text-fg-muted text-center">
             {results.length} {results.length === 1 ? "result" : "results"} for &ldquo;{query}
             &rdquo;
           </p>

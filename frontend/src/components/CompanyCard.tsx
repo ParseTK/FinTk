@@ -4,7 +4,7 @@ import { PortfolioToggleButton } from "./portfolio/PortfolioToggleButton";
 
 export function CompanyCard({ company }: { company: CompanySearchResult }) {
   return (
-    <li className="flex flex-col items-center justify-between gap-3 rounded-lg bg-slate-100 p-6 md:flex-row">
+    <li className="bg-surface-raised flex flex-col items-center justify-between gap-3 rounded-lg p-6 md:flex-row">
       <Link
         href={`/company/${encodeURIComponent(company.symbol)}`}
         className="font-bold underline-offset-2 hover:underline"

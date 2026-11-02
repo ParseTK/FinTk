@@ -1,7 +1,82 @@
 @import "tailwindcss";
 
-@theme {
-  --color-brand: hsl(215 98% 51%);
-  --color-brand-dark: hsl(214 59% 40%);
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+/* Dark mode is class-based (set by the theme script) so the user can override the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. This block and the .dark block below are the single source of truth for color:
+ * src/styles/tokens.test.ts parses them and fails CI if any text/background pair drops below WCAG AA.
+ * Use only plain hex values here so that test can read them.
+ */
+:root {
+  --surface: #ffffff;
+  --surface-raised: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #64748b; /* boundaries of inputs and controls (3:1) */
+  --fg: #0f172a;
+  --fg-muted: #475569;
+  --brand: #1d4ed8;
+  --gain: #15803d;
+  --loss: #b91c1c;
+  --focus: #1d4ed8;
+  --on-accent: #ffffff; /* text on solid brand / gain / loss / fg-muted fills */
+}
+
+.dark {
+  --surface: #020617;
+  --surface-raised: #0f172a;
+  --border: #1e293b;
+  --border-strong: #94a3b8;
+  --fg: #f8fafc;
+  --fg-muted: #94a3b8;
+  --brand: #60a5fa;
+  --gain: #4ade80;
+  --loss: #f87171;
+  --focus: #93c5fd;
+  --on-accent: #020617;
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-brand: var(--brand);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-focus: var(--focus);
+  --color-on-accent: var(--on-accent);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

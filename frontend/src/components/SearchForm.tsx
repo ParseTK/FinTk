@@ -4,7 +4,7 @@ export function SearchForm({ defaultValue }: { defaultValue: string }) {
     <form
       action="/search"
       role="search"
-      className="bg-brand-dark mx-auto flex max-w-4xl gap-3 rounded-lg p-6"
+      className="bg-brand mx-auto flex max-w-4xl gap-3 rounded-lg p-6"
     >
       <label htmlFor="search-input" className="sr-only">
         Search companies
@@ -16,11 +16,11 @@ export function SearchForm({ defaultValue }: { defaultValue: string }) {
         defaultValue={defaultValue}
         placeholder="Search companies"
         maxLength={64}
-        className="flex-1 rounded-lg bg-white p-3 text-black placeholder-gray-600"
+        className="bg-surface text-fg placeholder-fg-muted focus-visible:outline-on-accent flex-1 rounded-lg p-3"
       />
       <button
         type="submit"
-        className="rounded-lg bg-white px-6 font-semibold text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="bg-surface text-fg focus-visible:outline-on-accent rounded-lg px-6 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         Search
       </button>
