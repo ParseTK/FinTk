@@ -9,7 +9,7 @@ from functools import lru_cache
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
@@ -53,6 +53,80 @@ class Settings(BaseSettings):
     # Server-side limits so one bad query or a forgotten transaction cannot hold the database.
     db_statement_timeout_ms: int = Field(default=5000, ge=100, le=120_000)
     db_idle_in_transaction_timeout_ms: int = Field(default=10_000, ge=100, le=120_000)
+
+    # --- Sign-in -----------------------------------------------------------------------------
+    # A provider is enabled only when both its client id and secret are set. None set means sign-in
+    # is simply off. Secrets live in the environment or the host's secret store, never in git.
+    github_client_id: str | None = None
+    github_client_secret: SecretStr | None = None
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+
+    # Signs the short-lived OAuth state cookie. Rotating it only invalidates logins in progress.
+    secret_key: SecretStr | None = None
+    # Public origin of the site users visit (the Next.js app, which proxies /api to this service),
+    # e.g. https://virello.example. OAuth redirect URIs and the CSRF Origin check derive from it.
+    public_url: str | None = None
+
+    session_idle_days: int = Field(default=30, ge=1, le=90)  # sliding: each visit extends it
+    session_max_days: int = Field(default=90, ge=1, le=365)  # absolute: forces a fresh sign-in
+    auth_requests_per_minute: int = Field(default=20, ge=1, le=600)  # per client, login endpoints
+    # Behind the Next.js proxy every request arrives from the proxy's address. Turn this on only
+    # when a proxy you control sets X-Forwarded-For; otherwise clients could spoof their address
+    # and dodge the rate limit.
+    trust_proxy_headers: bool = False
+
+    @field_validator("secret_key")
+    @classmethod
+    def _validate_secret_key(cls, key: SecretStr | None) -> SecretStr | None:
+        if key is not None and len(key.get_secret_value()) < 32:
+            msg = "secret_key must be at least 32 characters (try: openssl rand -base64 48)"
+            raise ValueError(msg)
+        return key
+
+    @field_validator("public_url")
+    @classmethod
+    def _validate_public_url(cls, url: str | None) -> str | None:
+        if url is None:
+            return None
+        parts = urlsplit(url)
+        bare = (
+            parts.scheme in {"http", "https"}
+            and bool(parts.netloc)
+            and parts.path in {"", "/"}
+            and not parts.query
+            and not parts.fragment
+        )
+        if not bare:
+            msg = "public_url must look like https://example.com[:port] (no path)"
+            raise ValueError(msg)
+        return url.rstrip("/")
+
+    @model_validator(mode="after")
+    def _check_sign_in_is_complete(self) -> "Settings":
+        for name, id_, secret in (
+            ("github", self.github_client_id, self.github_client_secret),
+            ("google", self.google_client_id, self.google_client_secret),
+        ):
+            if (id_ is None) != (secret is None):
+                msg = f"{name}: set both the client id and the client secret, or neither"
+                raise ValueError(msg)
+        if self.enabled_providers and (self.secret_key is None or self.public_url is None):
+            msg = "sign-in needs VIRELLO_SECRET_KEY and VIRELLO_PUBLIC_URL"
+            raise ValueError(msg)
+        if self.is_production and self.public_url and not self.public_url.startswith("https://"):
+            msg = "public_url must be https in production"
+            raise ValueError(msg)
+        return self
+
+    @property
+    def enabled_providers(self) -> tuple[str, ...]:
+        enabled: list[str] = []
+        if self.github_client_id and self.github_client_secret:
+            enabled.append("github")
+        if self.google_client_id and self.google_client_secret:
+            enabled.append("google")
+        return tuple(enabled)
 
     @field_validator("database_url")
     @classmethod

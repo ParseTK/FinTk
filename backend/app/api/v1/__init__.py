@@ -6,8 +6,10 @@ means a new version.
 
 from fastapi import APIRouter
 
-from app.api.v1 import companies, meta
+from app.api.v1 import auth, companies, me, meta
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(meta.router)
 router.include_router(companies.router)
+router.include_router(auth.router)
+router.include_router(me.router)

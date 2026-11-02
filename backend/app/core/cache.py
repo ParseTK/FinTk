@@ -6,6 +6,8 @@ Three behaviours that matter when the data comes from a rate-limited third party
   once and all ten share the answer.
 - **Stale on error**: if a refresh fails but we hold an older copy that is still within
   ``stale_ttl``, serve it and log a warning, instead of failing the user because a provider blipped.
+  The upstream is then left alone for ``stale_retry`` seconds, so an outage costs one failed call
+  per interval, not one per request.
 - **Bounded**: least-recently-used entries are evicted past ``max_entries``.
 
 Failures are never cached.
@@ -53,6 +55,7 @@ class AsyncTTLCache[K: Hashable, V]:
         *,
         ttl: float,
         stale_ttl: float = 0.0,
+        stale_retry: float = 30.0,
     ) -> V:
         entry = self._entries.get(key)
         if entry is not None and self._clock() < entry.fresh_until:
@@ -61,7 +64,7 @@ class AsyncTTLCache[K: Hashable, V]:
 
         task = self._inflight.get(key)
         if task is None:
-            task = asyncio.create_task(self._load(key, loader, ttl, stale_ttl))
+            task = asyncio.create_task(self._load(key, loader, ttl, stale_ttl, stale_retry))
             self._inflight[key] = task
             task.add_done_callback(lambda finished: self._finished(key, finished))
         # shield: if this caller goes away (client disconnect), the load keeps running for others.
@@ -78,6 +81,7 @@ class AsyncTTLCache[K: Hashable, V]:
         loader: Callable[[], Awaitable[V]],
         ttl: float,
         stale_ttl: float,
+        stale_retry: float,
     ) -> V:
         try:
             value = await loader()
@@ -85,6 +89,9 @@ class AsyncTTLCache[K: Hashable, V]:
             stale = self._entries.get(key)
             if stale is not None and self._clock() < stale.stale_until:
                 logger.warning("serving stale cache entry after a failed refresh", exc_info=True)
+                # Back off: without this, every request during an outage would call the failing
+                # upstream again and wait for its timeout, one after another.
+                stale.fresh_until = self._clock() + stale_retry
                 return stale.value
             raise
 

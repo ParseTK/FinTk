@@ -112,6 +112,40 @@ def parse_filings(payload: Json, cik: str, form: str | None, limit: int) -> list
     return results
 
 
+MAX_FILINGS_PER_FORM = 50  # matches the largest `limit` the API accepts
+
+
+def parse_recent_filings(payload: Json, cik: str) -> tuple[Filing, ...]:
+    """The newest filings, keeping at most ``MAX_FILINGS_PER_FORM`` of each form, newest first.
+
+    A company's "recent" list can run to a thousand rows, mostly insider Form 4s. Capping per form
+    bounds what we keep in memory while still answering "the last N 10-Ks" for any form.
+    """
+    recent: Json = payload.get("filings", {}).get("recent", {})
+    kept: list[Filing] = []
+    per_form: dict[str, int] = {}
+    for i, accession in enumerate(recent.get("accessionNumber", [])):
+        form = recent["form"][i]
+        if per_form.get(form, 0) >= MAX_FILINGS_PER_FORM:
+            continue
+        filed = _date(recent["filingDate"][i])
+        primary = recent["primaryDocument"][i]
+        if filed is None or not primary:
+            continue
+        per_form[form] = per_form.get(form, 0) + 1
+        kept.append(
+            Filing(
+                accession_number=accession,
+                form=form,
+                filed=filed,
+                report_date=_date(recent["reportDate"][i]),
+                description=_text(recent["primaryDocDescription"][i]),
+                url=filing_url(cik, accession, primary),
+            )
+        )
+    return tuple(kept)
+
+
 # metric name -> (unit, us-gaap tags in priority order). Companies change tags over the years
 # (Apple moved from SalesRevenueNet to RevenueFromContractWithCustomer...), so all are merged.
 METRIC_TAGS: Mapping[str, tuple[str, tuple[str, ...]]] = {

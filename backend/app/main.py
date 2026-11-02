@@ -4,7 +4,7 @@
 (production, custom origins) without touching global state. ``app`` is what uvicorn serves.
 """
 
-from collections.abc import AsyncGenerator, Sequence
+from collections.abc import AsyncGenerator, Mapping, Sequence
 from contextlib import asynccontextmanager
 
 import httpx
@@ -15,6 +15,7 @@ from app import __version__
 from app.api import health
 from app.api.health import ReadinessCheck
 from app.api.v1 import router as v1_router
+from app.auth.providers import OAuthProvider, build_oauth_providers
 from app.core.config import Settings, get_settings
 from app.core.errors import ERROR_RESPONSES, install_error_handlers
 from app.core.logging import configure_logging
@@ -23,6 +24,7 @@ from app.core.middleware import (
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
+from app.core.rate_limit import KeyedRateLimiter
 from app.db.engine import Database
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client
@@ -42,6 +44,10 @@ def _lifespan(settings: Settings):
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         client: httpx.AsyncClient | None = None
         owned_database: Database | None = None
+        auth_client: httpx.AsyncClient | None = None
+        if not app.state.oauth_providers and settings.enabled_providers:
+            auth_client = httpx.AsyncClient(follow_redirects=False)
+            app.state.oauth_providers = build_oauth_providers(settings, auth_client)
         if app.state.database is None and settings.database_url is not None:
             owned_database = Database.from_settings(settings)
             app.state.database = owned_database
@@ -58,6 +64,8 @@ def _lifespan(settings: Settings):
                 await client.aclose()
             if owned_database is not None:
                 await owned_database.dispose()
+            if auth_client is not None:
+                await auth_client.aclose()
 
     return lifespan
 
@@ -68,6 +76,7 @@ def create_app(
     extra_routers: Sequence[APIRouter] = (),
     company_service: CompanyService | None = None,
     database: Database | None = None,
+    oauth_providers: Mapping[str, OAuthProvider] | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     if settings.is_production and not settings.sec_contact_email and company_service is None:
@@ -89,6 +98,8 @@ def create_app(
     app.state.readiness_checks = readiness_checks
     app.state.company_service = company_service
     app.state.database = database
+    app.state.oauth_providers = dict(oauth_providers or {})
+    app.state.auth_limiter = KeyedRateLimiter(settings.auth_requests_per_minute)
     if database is not None:
         readiness_checks["database"] = database.ping
 

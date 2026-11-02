@@ -88,3 +88,63 @@ def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
         assert get_settings() is get_settings()
     finally:
         get_settings.cache_clear()
+
+
+# -- sign-in configuration -------------------------------------------------------------------------
+
+
+def sign_in(**overrides: object) -> dict[str, object]:
+    base: dict[str, object] = {
+        "github_client_id": "id",
+        "github_client_secret": "secret",
+        "secret_key": "k" * 40,
+        "public_url": "https://virello.example",
+    }
+    return {**base, **overrides}
+
+
+def test_sign_in_is_off_when_no_provider_is_configured() -> None:
+    assert make_settings().enabled_providers == ()
+
+
+def test_a_provider_is_enabled_only_with_both_id_and_secret() -> None:
+    assert make_settings(**sign_in()).enabled_providers == ("github",)
+    assert make_settings(
+        **sign_in(google_client_id="g", google_client_secret="s")
+    ).enabled_providers == (
+        "github",
+        "google",
+    )
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"github_client_secret": None},
+        {"google_client_id": "only-an-id"},
+        {"secret_key": None},
+        {"public_url": None},
+        {"secret_key": "too-short"},
+        {"public_url": "https://virello.example/path"},
+        {"public_url": "ftp://virello.example"},
+    ],
+)
+def test_incomplete_or_malformed_sign_in_settings_stop_startup(
+    overrides: dict[str, object],
+) -> None:
+    with pytest.raises(ValueError, match=r"."):
+        make_settings(**sign_in(**overrides))
+
+
+def test_production_requires_https_for_the_public_url() -> None:
+    with pytest.raises(ValueError, match="https"):
+        make_settings(**sign_in(environment="production", public_url="http://virello.example"))
+    assert (
+        make_settings(**sign_in(environment="production")).public_url == "https://virello.example"
+    )
+
+
+def test_secrets_never_appear_in_a_repr() -> None:
+    text = repr(make_settings(**sign_in()))
+    assert "secret" not in text.replace("secret_key", "").replace("client_secret", "")
+    assert "kkkk" not in text

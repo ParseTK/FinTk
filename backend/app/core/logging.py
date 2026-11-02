@@ -61,3 +61,8 @@ def configure_logging(level: str) -> None:
     access.handlers.clear()
     access.propagate = False
     access.disabled = True
+
+    # httpx logs every outbound request URL, query string included. Several data providers take
+    # their API key in the query string, so those lines would leak keys. Keep errors, drop the rest.
+    for noisy in ("httpx", "httpcore"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)

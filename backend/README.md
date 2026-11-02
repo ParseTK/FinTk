@@ -66,6 +66,37 @@ How the database layer is built:
 Tests run against a real Postgres: set `VIRELLO_TEST_DATABASE_URL` (database name ending `_test`).
 They skip locally without it and **fail in CI** without it.
 
+## Sign-in
+
+Social login only (Google and GitHub): there are no passwords to store, reset or leak.
+
+- **Flow:** OAuth 2.0 authorization code with PKCE (S256). `GET /api/v1/auth/{provider}/login` sets a
+  signed, ten-minute cookie holding the state and PKCE verifier; the callback checks the state in
+  constant time, exchanges the code server to server, and starts a session. Failures redirect to
+  `/sign-in?error=...`. The redirect after login is restricted to same-site paths.
+- **Sessions:** a random 256-bit token in an `HttpOnly`, `SameSite=Lax` cookie (`Secure` and the
+  `__Host-` prefix in production). Only its SHA-256 is stored, so a database leak cannot be replayed.
+  Idle limit 30 days (sliding, rewritten at most hourly) and a hard limit of 90 days.
+- **CSRF** on every state-changing request, in layers: the SameSite cookie, an `Origin` allowlist,
+  and a per-session token sent as `X-CSRF-Token` (get it from `GET /api/v1/auth/session`).
+- **Accounts:** a second provider links to the same user only through a *verified* email; an
+  unverified or missing email is refused, which prevents the account-takeover-by-email trick.
+  We store email, name and avatar URL, never provider tokens (nothing calls the provider after login).
+- **Authorization** is separate from authentication: any endpoint taking an object id must call
+  `require_owner` (or filter by user id). A foreign object answers 404, not 403, so ids cannot be probed.
+- **Abuse:** login endpoints are rate limited per client. `DELETE /api/v1/me` removes the account and
+  everything attached to it.
+
+Register the OAuth apps (free, no card) and put the ids and secrets in `backend/.env`:
+
+| Provider | Where | Callback URL |
+|---|---|---|
+| GitHub | Settings, Developer settings, OAuth Apps | `<VIRELLO_PUBLIC_URL>/api/v1/auth/github/callback` |
+| Google | Cloud Console, APIs & Services, Credentials (OAuth client, Web application) | `<VIRELLO_PUBLIC_URL>/api/v1/auth/google/callback` |
+
+GitHub allows one callback URL per app, so use a separate app per environment. Without credentials the
+tests still cover the whole flow against a fake provider (`tests/fake_idp.py`).
+
 ## Quality gates
 
 CI runs exactly these, and so should you before opening a PR:
@@ -84,6 +115,7 @@ app/
   main.py          application factory (create_app) and the app uvicorn serves
   core/            config, errors, logging, middleware, request context (no business logic)
   db/              engine and sessions, declarative base, ORM models
+  auth/            sign-in primitives: tokens, PKCE, signed cookies, OAuth providers
   repositories/    the only code that writes SQL
   migrations/      Alembic revisions (one file per schema change)
   api/             routers: health at the root, everything else under /api/v1

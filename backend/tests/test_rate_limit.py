@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from app.core.rate_limit import AsyncRateLimiter
+from app.core.rate_limit import AsyncRateLimiter, KeyedRateLimiter
 
 
 class FakeTime:
@@ -78,3 +78,49 @@ async def test_the_rate_never_exceeds_the_limit_over_a_burst() -> None:
 
     elapsed = fake.now - started
     assert 80 / elapsed <= 8.0 + 1e-9  # 81 calls span 80 intervals
+
+
+# -- KeyedRateLimiter ------------------------------------------------------------------------------
+
+
+def make_keyed(
+    limit: int = 3, window: float = 60.0, max_keys: int = 100
+) -> tuple[KeyedRateLimiter, FakeTime]:
+    fake = FakeTime()
+    return KeyedRateLimiter(limit, window, max_keys=max_keys, clock=fake.clock), fake
+
+
+def test_a_key_may_hit_up_to_the_limit_then_is_told_when_to_retry() -> None:
+    limiter, fake = make_keyed(limit=3, window=60)
+    assert [limiter.hit("a") for _ in range(3)] == [None, None, None]
+    fake.now += 20
+    assert limiter.hit("a") == pytest.approx(40.0)
+
+
+def test_the_window_resets_after_it_passes() -> None:
+    limiter, fake = make_keyed(limit=1, window=60)
+    assert limiter.hit("a") is None
+    assert limiter.hit("a") is not None
+    fake.now += 60
+    assert limiter.hit("a") is None
+
+
+def test_keys_are_counted_independently() -> None:
+    limiter, _ = make_keyed(limit=1)
+    assert limiter.hit("a") is None
+    assert limiter.hit("b") is None
+    assert limiter.hit("a") is not None
+
+
+def test_memory_is_bounded_by_forgetting_the_least_recently_used_key() -> None:
+    limiter, _ = make_keyed(limit=1, max_keys=3)
+    for key in "abcd":  # "a" is evicted when "d" arrives
+        limiter.hit(key)
+    assert limiter.hit("a") is None  # forgotten, so it starts fresh
+    assert limiter.hit("d") is not None  # still remembered
+
+
+@pytest.mark.parametrize("args", [(0, 60.0), (1, 0.0), (1, -1.0)])
+def test_nonsense_limits_are_rejected(args: tuple[int, float]) -> None:
+    with pytest.raises(ValueError, match="positive"):
+        KeyedRateLimiter(*args)
