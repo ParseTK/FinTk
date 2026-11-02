@@ -12,8 +12,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: { default: "FinTk", template: "%s | FinTk" },
-  description: "Search financial data without the news noise.",
+  title: { default: "Virello", template: "%s | Virello" },
+  description: "Research public companies from primary sources.",
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1 };
