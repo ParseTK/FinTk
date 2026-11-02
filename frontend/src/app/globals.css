@@ -112,6 +112,87 @@
   --animate-blink: blink 2.4s ease-in-out 1.8s infinite;
   /* Sample ticker: a slow, pausable marquee. */
   --animate-marquee: marquee 60s linear infinite;
+  /* Feature icons: short, one-shot animations that play on hover or keyboard focus of the card. */
+  --animate-lens-scan: lens-scan 2.6s ease-in-out both;
+  --animate-pin: pin 0.7s var(--ease-spring) both;
+  --animate-redraw: draw 0.9s var(--ease-out-expo) 0.15s both;
+  --animate-ping-dot: ping-dot 0.9s var(--ease-out-expo) 0.9s both;
+  --animate-ray: ray 0.6s var(--ease-out-expo) both;
+  --animate-bulb: bulb 0.8s var(--ease-spring) both;
+
+  @keyframes lens-scan {
+    0% {
+      transform: translate(0, 0);
+    }
+    14% {
+      transform: translate(-30px, -20px);
+    }
+    28% {
+      transform: translate(-12px, -20px);
+    }
+    42% {
+      transform: translate(-30px, -10px);
+    }
+    56% {
+      transform: translate(-8px, -10px);
+    }
+    70% {
+      transform: translate(-30px, 0);
+    }
+    84%,
+    92% {
+      transform: translate(-18px, 0);
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes pin {
+    0% {
+      transform: translateY(0);
+    }
+    35% {
+      transform: translateY(-8px);
+    }
+    70% {
+      transform: translateY(2px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+  @keyframes ping-dot {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(2.2);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes ray {
+    from {
+      stroke-dashoffset: 1;
+      opacity: 0.2;
+    }
+    to {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
+  }
+  @keyframes bulb {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
 
   @keyframes marquee {
     from {
@@ -282,12 +363,36 @@
   }
 }
 
-/** Draws an SVG stroke (set pathLength="1" and stroke-dasharray="1" on it) as it scrolls into view. */
-@utility draw-on-scroll {
+/**
+ * Like parallax, but driven by how far the PAGE has scrolled (first screen), so a hero layer visibly
+ * lags behind the content as you scroll away from the top. Travel is set with the same variables.
+ */
+@utility parallax-page {
+  @supports (animation-timeline: scroll()) {
+    animation: parallax-shift linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 100vh;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/**
+ * Like parallax, but only while the element scrolls INTO view: it starts offset by --parallax-from
+ * and settles exactly in place (set --parallax-to to 0px), so it always rests aligned. Give
+ * neighbours different distances and they converge at different speeds.
+ */
+@utility parallax-enter {
   @supports (animation-timeline: view()) {
-    animation: draw linear both;
+    animation: parallax-shift linear both;
     animation-timeline: view();
-    animation-range: entry calc(5% + var(--i, 0) * 6%) entry calc(75% + var(--i, 0) * 6%);
+    animation-range: entry 0% entry 85%;
   }
   @media (prefers-reduced-motion: reduce) {
     html:not([data-motion="full"]) & {
