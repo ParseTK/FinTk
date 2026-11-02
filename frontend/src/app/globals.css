@@ -121,6 +121,14 @@
       transform: translateX(-50%);
     }
   }
+  @keyframes parallax-shift {
+    from {
+      transform: translateY(var(--parallax-from, 24px));
+    }
+    to {
+      transform: translateY(var(--parallax-to, -24px));
+    }
+  }
   @keyframes reveal-up {
     from {
       opacity: 0;
@@ -216,7 +224,7 @@
   @supports (animation-timeline: view()) {
     animation: reveal-up linear both;
     animation-timeline: view();
-    animation-range: entry 0% entry 45%;
+    animation-range: entry calc(var(--i, 0) * 7%) entry calc(45% + var(--i, 0) * 7%);
   }
   @media (prefers-reduced-motion: reduce) {
     html:not([data-motion="full"]) & {
@@ -250,6 +258,44 @@
     &:where(html:not([data-motion]) *) {
       @slot;
     }
+  }
+}
+
+/**
+ * Moves an element a little as it crosses the viewport, so layers appear to sit at different depths.
+ * Set the travel with --parallax-from and --parallax-to (keep them small: about 30px or less).
+ * Same support and motion rules as reveal.
+ */
+@utility parallax {
+  @supports (animation-timeline: view()) {
+    animation: parallax-shift linear both;
+    animation-timeline: view();
+    animation-range: cover;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
+  }
+}
+
+/** Draws an SVG stroke (set pathLength="1" and stroke-dasharray="1" on it) as it scrolls into view. */
+@utility draw-on-scroll {
+  @supports (animation-timeline: view()) {
+    animation: draw linear both;
+    animation-timeline: view();
+    animation-range: entry calc(5% + var(--i, 0) * 6%) entry calc(75% + var(--i, 0) * 6%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
+    animation: none;
   }
 }
 
