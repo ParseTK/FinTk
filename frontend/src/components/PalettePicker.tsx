@@ -57,11 +57,11 @@ function usePreferences() {
 }
 
 const optionClass =
-  "border-border-strong text-fg hover:bg-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm aria-pressed:border-brand aria-pressed:border-2 aria-pressed:font-semibold";
+  "border-border-strong text-fg not-aria-pressed:hover:bg-surface flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm aria-pressed:border-brand aria-pressed:bg-brand aria-pressed:text-on-accent aria-pressed:font-semibold";
 
 function Check() {
   return (
-    <span aria-hidden="true" className="text-brand">
+    <span aria-hidden="true" className="font-bold">
       ✓
     </span>
   );
@@ -158,7 +158,7 @@ export function PalettePicker() {
                     <span
                       aria-hidden="true"
                       data-accent={id}
-                      className="bg-brand inline-block size-4 rounded-full"
+                      className="bg-brand ring-on-accent inline-block size-4 rounded-full ring-2"
                     />
                     {label}
                   </span>
