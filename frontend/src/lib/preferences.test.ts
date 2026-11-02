@@ -34,6 +34,20 @@ describe("resolveDark", () => {
   });
 });
 
+describe("pre-paint init script (static literal)", () => {
+  it("repeats every storage key, accent and typeface from the constants", () => {
+    for (const key of Object.values(STORAGE_KEYS)) {
+      expect(PREFERENCES_INIT_SCRIPT).toContain(`"${key}"`);
+    }
+    const accentList = `[${ACCENTS.map((a) => `"${a.id}"`).join(",")}]`;
+    const fontList = `[${FONTS.map((f) => `"${f.id}"`).join(",")}]`;
+    expect(PREFERENCES_INIT_SCRIPT).toContain(accentList);
+    expect(PREFERENCES_INIT_SCRIPT).toContain(fontList);
+    expect(PREFERENCES_INIT_SCRIPT).toContain(`:"${DEFAULT_PREFERENCES.accent}"`);
+    expect(PREFERENCES_INIT_SCRIPT).toContain(`:"${DEFAULT_PREFERENCES.font}"`);
+  });
+});
+
 describe("pre-paint init script", () => {
   afterEach(() => {
     localStorage.clear();
