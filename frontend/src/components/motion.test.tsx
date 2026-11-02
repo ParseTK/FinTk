@@ -26,6 +26,7 @@ afterEach(() => {
   root.classList.remove("dark");
   delete root.dataset.accent;
   delete root.dataset.font;
+  delete root.dataset.motion;
 });
 
 const input = () => screen.getByRole("searchbox");

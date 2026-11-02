@@ -7,6 +7,7 @@ import {
   DEFAULT_PREFERENCES,
   FONTS,
   MODES,
+  MOTIONS,
   readPreferences,
   STORAGE_KEYS,
   type Preferences,
@@ -151,6 +152,26 @@ export function PalettePicker() {
                 >
                   {label}
                   {prefs.font === id && <Check />}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-fg-muted mb-1 text-xs font-semibold tracking-wide uppercase">
+              Motion
+            </legend>
+            <p className="text-fg-muted mb-2 text-xs">Reduced stops all animation on the site.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {MOTIONS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={prefs.motion === id}
+                  onClick={() => update("motion", id)}
+                  className={optionClass}
+                >
+                  {label}
                 </button>
               ))}
             </div>

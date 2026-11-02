@@ -104,10 +104,12 @@
   --animate-fade-in: fade-in 0.5s var(--ease-out-expo) both;
   --animate-pop-in: pop-in 0.2s var(--ease-out-expo) both;
   --animate-shimmer: shimmer 1.8s linear infinite;
-  /* Hero chart: the line draws itself, bars rise, and the end marker pulses twice (not forever). */
+  /* Hero chart: the line draws itself, bars rise, and the end marker blinks softly (about 0.4 Hz, far
+   below the flash threshold). The Motion setting in the palette stops every animation site-wide. */
   --animate-draw: draw 1.6s var(--ease-out-expo) 0.2s both;
   --animate-rise: rise 0.8s var(--ease-out-expo) both;
-  --animate-ring: ring 1.8s ease-out 1.8s 2 both;
+  --animate-ring: ring 2.4s ease-out 1.8s infinite both;
+  --animate-blink: blink 2.4s ease-in-out 1.8s infinite;
   /* Sample ticker: a slow, pausable marquee. */
   --animate-marquee: marquee 60s linear infinite;
 
@@ -146,6 +148,15 @@
     to {
       opacity: 1;
       transform: none;
+    }
+  }
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
     }
   }
   @keyframes ring {
@@ -208,7 +219,37 @@
     animation-range: entry 0% entry 45%;
   }
   @media (prefers-reduced-motion: reduce) {
+    html:not([data-motion="full"]) & {
+      animation: none;
+    }
+  }
+  html[data-motion="reduced"] & {
     animation: none;
+  }
+}
+
+/*
+ * motion-safe: and motion-reduce: follow the palette's Motion setting. Until it is set (no
+ * JavaScript), they fall back to the device preference.
+ */
+@custom-variant motion-safe {
+  &:where(html[data-motion="full"] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    &:where(html:not([data-motion]) *) {
+      @slot;
+    }
+  }
+}
+@custom-variant motion-reduce {
+  &:where(html[data-motion="reduced"] *) {
+    @slot;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    &:where(html:not([data-motion]) *) {
+      @slot;
+    }
   }
 }
 
@@ -275,10 +316,11 @@
     outline-offset: 2px;
   }
 
+  /* Device asks for reduced motion and the visitor has not explicitly chosen Full motion. */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    ::before,
-    ::after {
+    html:not([data-motion="full"]) *,
+    html:not([data-motion="full"]) ::before,
+    html:not([data-motion="full"]) ::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       animation-delay: 0s !important;
@@ -286,5 +328,17 @@
       transition-delay: 0s !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Visitor chose Reduced motion in the palette. */
+  html[data-motion="reduced"] *,
+  html[data-motion="reduced"] ::before,
+  html[data-motion="reduced"] ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
   }
 }

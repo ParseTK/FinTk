@@ -97,6 +97,19 @@ describe("HeroChart", () => {
     expect(el).toHaveAttribute("aria-valuenow", "11");
   });
 
+  it("blinks the end marker only while idle", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<HeroChart />);
+    expect(container.querySelector(".animate-blink")).toBeInTheDocument();
+    expect(container.querySelector(".animate-ring")).toBeInTheDocument();
+
+    slider().focus();
+    await user.keyboard("{ArrowLeft}");
+
+    expect(container.querySelector(".animate-blink")).not.toBeInTheDocument();
+    expect(container.querySelector(".animate-ring")).not.toBeInTheDocument();
+  });
+
   it("is reachable by keyboard", async () => {
     const user = userEvent.setup();
     render(<HeroChart />);
