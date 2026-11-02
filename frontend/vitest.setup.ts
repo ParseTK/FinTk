@@ -1,6 +1,9 @@
 import "@testing-library/jest-dom/vitest";
 import { vi } from "vitest";
 
+// "server-only" throws outside a Server Component; tests render those components directly.
+vi.mock("server-only", () => ({}));
+
 // Components that read the current route get "/" by default; tests override with
 // vi.mocked(usePathname).mockReturnValue("/search").
 vi.mock("next/navigation", async (importOriginal) => ({
