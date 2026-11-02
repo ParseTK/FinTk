@@ -21,9 +21,18 @@ def get_database(request: Request) -> Database:
 async def get_session(
     database: Annotated[Database, Depends(get_database)],
 ) -> AsyncGenerator[AsyncSession]:
-    """A request-scoped session. Routes that never ask for one never touch the database."""
+    """A request-scoped session. Routes that never ask for one never touch the database.
+
+    A connection is taken from the pool at the first query and held until the route returns, with
+    a transaction open (Postgres ends one that sits idle for 10 s). So do slow outside I/O, such
+    as a provider call, before the first query or after the session is no longer needed.
+    """
     async with database.session() as session:
         yield session
 
 
-DbSession = Annotated[AsyncSession, Depends(get_session)]
+# scope="function": the session's cleanup (the COMMIT) runs when the route function returns, before
+# the response is sent. With the default scope it runs after the response has gone out, so a client
+# could be told "signed in" (with its cookie) before the session row is committed, and a failed
+# commit would be invisible to it. Measured against a real server, not assumed.
+DbSession = Annotated[AsyncSession, Depends(get_session, scope="function")]

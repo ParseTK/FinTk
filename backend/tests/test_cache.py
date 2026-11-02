@@ -171,3 +171,36 @@ async def test_a_load_survives_its_first_caller_going_away() -> None:
 def test_a_cache_needs_room_for_at_least_one_entry() -> None:
     with pytest.raises(ValueError, match="at least 1"):
         AsyncTTLCache(max_entries=0)
+
+
+# -- an outage must not turn every request into an upstream retry ------------------------------
+
+
+async def test_while_serving_stale_the_failing_upstream_is_not_retried_on_every_request() -> None:
+    clock = Clock()
+    cache: AsyncTTLCache[str, str] = AsyncTTLCache(clock=clock)
+    loader = Counter()
+    await cache.get_or_load("k", loader, ttl=60, stale_ttl=3600)
+    clock.now = 120  # expired
+    loader.fail = True
+
+    for _ in range(10):  # ten requests during an outage
+        assert await cache.get_or_load("k", loader, ttl=60, stale_ttl=3600) == "v1"
+
+    # One attempt found the upstream down. The rest were served from the stale copy without
+    # another upstream call (each of which would cost a timeout or a retry delay).
+    assert loader.calls == 2  # the first load, plus a single failed refresh
+
+
+async def test_the_upstream_is_retried_once_the_backoff_has_passed() -> None:
+    clock = Clock()
+    cache: AsyncTTLCache[str, str] = AsyncTTLCache(clock=clock)
+    loader = Counter()
+    await cache.get_or_load("k", loader, ttl=60, stale_ttl=3600)
+    clock.now = 120
+    loader.fail = True
+    await cache.get_or_load("k", loader, ttl=60, stale_ttl=3600)
+
+    clock.now += 31  # past the stale-retry backoff
+    loader.fail = False
+    assert await cache.get_or_load("k", loader, ttl=60, stale_ttl=3600) == "v3"

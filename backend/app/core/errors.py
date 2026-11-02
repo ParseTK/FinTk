@@ -58,9 +58,13 @@ class AppError(Exception):
     status_code: int = 500
     code: str = "internal_error"
     default_message: str = "Something went wrong."
+    headers: dict[str, str] | None = None
 
-    def __init__(self, message: str | None = None) -> None:
+    def __init__(
+        self, message: str | None = None, *, headers: dict[str, str] | None = None
+    ) -> None:
         self.message = message or self.default_message
+        self.headers = headers
         super().__init__(self.message)
 
 
@@ -74,6 +78,18 @@ class ConflictError(AppError):
     status_code = 409
     code = "conflict"
     default_message = "That conflicts with the current state."
+
+
+class BadRequestError(AppError):
+    status_code = 400
+    code = "bad_request"
+    default_message = "That request could not be understood."
+
+
+class RateLimitedError(AppError):
+    status_code = 429
+    code = "rate_limited"
+    default_message = "Too many requests. Please slow down and try again shortly."
 
 
 class UnauthorizedError(AppError):
@@ -132,7 +148,10 @@ _HTTP_CODES = {
 
 async def _app_error(_: Request, exc: Exception) -> JSONResponse:
     error = cast("AppError", exc)
-    return error_response(error.status_code, error.code, error.message)
+    response = error_response(error.status_code, error.code, error.message)
+    if error.headers:
+        response.headers.update(error.headers)
+    return response
 
 
 # Postgres error classes that mean "the database cannot serve this right now", not "this request or

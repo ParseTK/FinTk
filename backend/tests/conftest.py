@@ -163,13 +163,19 @@ async def database(migrated_database: str) -> AsyncIterator[Database]:
     db = Database.from_settings(make_settings(database_url=migrated_database))
     yield db
     async with db.session() as session:
-        await session.execute(text("TRUNCATE price_series CASCADE"))
+        await session.execute(text("TRUNCATE price_series, user_account CASCADE"))
     await db.dispose()
 
 
 @test_router.get("/db")
 async def db_roundtrip(session: DbSession) -> dict[str, int]:
     return {"value": (await session.execute(text("SELECT 1"))).scalar_one()}
+
+
+@test_router.post("/db-write")
+async def db_write(session: DbSession) -> dict[str, bool]:
+    await session.execute(text("INSERT INTO price_series (symbol, source) VALUES ('RACE', 'test')"))
+    return {"ok": True}
 
 
 @test_router.get("/db-slow")

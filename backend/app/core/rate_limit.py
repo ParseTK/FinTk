@@ -1,11 +1,13 @@
-"""Client-side rate limiting for calls to a data provider.
+"""Rate limiting, in both directions.
 
-SEC EDGAR allows 10 requests per second per user and blocks clients that exceed it, so we space our
-own calls out instead of finding out the hard way.
+- AsyncRateLimiter spaces our own calls to a data provider (SEC EDGAR blocks clients above 10
+  requests per second, so we find out the easy way).
+- KeyedRateLimiter limits how often one client can hit an endpoint such as sign-in.
 """
 
 import asyncio
 import time
+from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 
 
@@ -38,3 +40,46 @@ class AsyncRateLimiter:
         delay = start - now
         if delay > 0:
             await self._sleep(delay)
+
+
+class KeyedRateLimiter:
+    """At most ``limit`` hits per ``window_seconds`` for each key (for example a client address).
+
+    Fixed windows: simple, O(1) per hit, and good enough to blunt brute force. Memory is bounded:
+    past ``max_keys`` the least recently used key is forgotten, so an attacker rotating through
+    addresses cannot grow the table without limit. State is per process, so with several instances
+    the effective limit is multiplied by the instance count; move it to shared storage if that
+    matters.
+    """
+
+    def __init__(
+        self,
+        limit: int,
+        window_seconds: float = 60.0,
+        *,
+        max_keys: int = 10_000,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if limit < 1 or window_seconds <= 0 or max_keys < 1:
+            msg = "limit, window_seconds and max_keys must be positive"
+            raise ValueError(msg)
+        self._limit = limit
+        self._window = window_seconds
+        self._max_keys = max_keys
+        self._clock = clock
+        self._windows: OrderedDict[str, tuple[float, int]] = OrderedDict()
+
+    def hit(self, key: str) -> float | None:
+        """Count one request. None if allowed, else the seconds until the window resets."""
+        now = self._clock()
+        started, count = self._windows.get(key, (now, 0))
+        if now - started >= self._window:
+            started, count = now, 0
+        if count >= self._limit:
+            self._windows.move_to_end(key)
+            return max(self._window - (now - started), 0.0)
+        self._windows[key] = (started, count + 1)
+        self._windows.move_to_end(key)
+        while len(self._windows) > self._max_keys:
+            self._windows.popitem(last=False)
+        return None
