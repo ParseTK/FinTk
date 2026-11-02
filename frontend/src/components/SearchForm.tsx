@@ -36,7 +36,7 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
   const large = size === "lg";
 
   return (
-    <form action="/search" role="search" className="w-full max-w-2xl">
+    <form action="/search" role="search" className="@container w-full max-w-2xl">
       <label htmlFor={inputId} className="sr-only">
         Search companies
       </label>
@@ -52,7 +52,7 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
           name="q"
           type="search"
           defaultValue={defaultValue}
-          placeholder="Search a company or ticker"
+          placeholder="Search companies or tickers"
           maxLength={64}
           autoComplete="off"
           enterKeyHint="search"
@@ -62,7 +62,7 @@ export function SearchForm({ defaultValue = "", size = "md" }: SearchFormProps) 
         />
         <kbd
           aria-hidden="true"
-          className="border-border text-fg-muted hidden rounded-md border px-2 py-0.5 text-xs font-medium sm:block"
+          className="border-border text-fg-muted hidden rounded-md border px-2 py-0.5 text-xs font-medium @lg:block"
         >
           /
         </kbd>
