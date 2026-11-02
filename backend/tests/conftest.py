@@ -49,7 +49,11 @@ class IsolatedSettings(Settings):
 
 
 def make_settings(**overrides: object) -> IsolatedSettings:
-    values: dict[str, object] = {"environment": "test", **overrides}
+    values: dict[str, object] = {
+        "environment": "test",
+        "sec_contact_email": "ops@example.test",  # not a real address
+        **overrides,
+    }
     return IsolatedSettings(**values)  # pyright: ignore[reportArgumentType]
 
 

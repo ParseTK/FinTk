@@ -42,6 +42,8 @@ class ErrorResponse(BaseModel):
 ERROR_RESPONSES: dict[int | str, dict[str, object]] = {
     422: {"model": ErrorResponse, "description": "The request was not valid."},
     500: {"model": ErrorResponse, "description": "Unexpected server error."},
+    502: {"model": ErrorResponse, "description": "A data provider failed."},
+    503: {"model": ErrorResponse, "description": "The service is unavailable."},
 }
 
 
@@ -87,6 +89,14 @@ class UpstreamError(AppError):
     status_code = 502
     code = "upstream_error"
     default_message = "A data provider is not responding. Please try again shortly."
+
+
+class UnavailableError(AppError):
+    """A capability is not configured or is switched off on this server."""
+
+    status_code = 503
+    code = "unavailable"
+    default_message = "This service is temporarily unavailable."
 
 
 def error_response(

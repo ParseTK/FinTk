@@ -19,6 +19,14 @@ Then open <http://localhost:8000/docs> (interactive docs, off in production).
 | `GET /healthz` | Liveness: is the process up. Never touches dependencies. |
 | `GET /readyz` | Readiness: runs the registered dependency checks, 503 with the failing names if one fails. |
 | `GET /api/v1/meta` | Service name, version and environment. |
+| `GET /api/v1/companies/search?q=` | Find companies by name or ticker (SEC directory). |
+| `GET /api/v1/companies/{ticker}` | Company profile. |
+| `GET /api/v1/companies/{ticker}/filings` | Recent SEC filings, optional `form` and `limit`. |
+| `GET /api/v1/companies/{ticker}/financials` | Annual statements from SEC XBRL, `years` back. |
+| `GET /api/v1/companies/{ticker}/prices/monthly` | Monthly closes. **Sample data** (labelled `source: sample`) until a price provider is added. |
+
+Company data needs `VIRELLO_SEC_CONTACT_EMAIL`: SEC asks every client to identify itself. Without it
+the company routes return 503 (and production refuses to start).
 
 ## Quality gates
 
@@ -38,7 +46,11 @@ app/
   main.py          application factory (create_app) and the app uvicorn serves
   core/            config, errors, logging, middleware, request context (no business logic)
   api/             routers: health at the root, everything else under /api/v1
-tests/             pytest, httpx AsyncClient; test-only routes exercise every error path
+  services/        use cases; depend on provider interfaces only
+  providers/       data sources behind interfaces (base.py): SEC EDGAR, sample prices
+  domain/          provider-independent models (money is Decimal)
+  schemas/         API response models, kept apart from the domain
+tests/             pytest, httpx AsyncClient; SEC calls are mocked with recorded fixtures
 ```
 
 Conventions:
