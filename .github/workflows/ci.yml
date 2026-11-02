@@ -35,6 +35,30 @@ jobs:
       # Fail on high/critical advisories in production dependencies only.
       - run: npm audit --omit=dev --audit-level=high
 
+  backend:
+    # Always runs (it is quick) so the check is reported on every PR and can be required.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      # The Python version comes from backend/.python-version, and the lockfile must be up to date.
+      - run: uv sync --locked
+      - run: uv run ruff format --check
+      - run: uv run ruff check
+      - run: uv run pyright
+      - run: uv run pytest
+      # Fail on any known vulnerability in the production dependencies.
+      - run: |
+          uv export --locked --no-dev --no-emit-project --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
+          uv run pip-audit -r "$RUNNER_TEMP/requirements.txt" --no-deps --disable-pip
+
   secrets:
     runs-on: ubuntu-latest
     timeout-minutes: 10
