@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.api import health
+from app.api.health import ReadinessCheck
 from app.api.v1 import router as v1_router
 from app.core.config import Settings, get_settings
 from app.core.errors import ERROR_RESPONSES, install_error_handlers
@@ -22,6 +23,7 @@ from app.core.middleware import (
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
+from app.db.engine import Database
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client
 from app.services.companies import CompanyService
@@ -30,11 +32,21 @@ _DOCS_PATHS = ("/docs", "/openapi.json")
 
 
 def _lifespan(settings: Settings):
-    """Builds the SEC-backed company service once, if none was injected, and closes its client."""
+    """Builds long-lived resources lazily, only for what is configured and not injected.
+
+    The SEC client and the database engine are created once per process and closed on shutdown.
+    Neither opens a connection until it is first used.
+    """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         client: httpx.AsyncClient | None = None
+        owned_database: Database | None = None
+        if app.state.database is None and settings.database_url is not None:
+            owned_database = Database.from_settings(settings)
+            app.state.database = owned_database
+            checks: dict[str, ReadinessCheck] = app.state.readiness_checks
+            checks["database"] = owned_database.ping
         if app.state.company_service is None and settings.sec_contact_email:
             client = build_http_client(settings.sec_contact_email)
             sec = SecProvider(client)
@@ -44,6 +56,8 @@ def _lifespan(settings: Settings):
         finally:
             if client is not None:
                 await client.aclose()
+            if owned_database is not None:
+                await owned_database.dispose()
 
     return lifespan
 
@@ -53,6 +67,7 @@ def create_app(
     *,
     extra_routers: Sequence[APIRouter] = (),
     company_service: CompanyService | None = None,
+    database: Database | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     if settings.is_production and not settings.sec_contact_email and company_service is None:
@@ -70,8 +85,12 @@ def create_app(
         lifespan=_lifespan(settings),
     )
     app.state.settings = settings
-    app.state.readiness_checks = {}
+    readiness_checks: dict[str, ReadinessCheck] = {}
+    app.state.readiness_checks = readiness_checks
     app.state.company_service = company_service
+    app.state.database = database
+    if database is not None:
+        readiness_checks["database"] = database.ping
 
     install_error_handlers(app)
     app.include_router(health.router, responses=ERROR_RESPONSES)
