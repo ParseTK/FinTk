@@ -3,9 +3,9 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { formatMoney } from "@/lib/format";
-import { PauseIcon, PlayIcon } from "../icons";
-import { Change } from "../ui/Change";
-import { IconButton } from "../ui/IconButton";
+import { PauseIcon, PlayIcon } from "@/components/ui/icons";
+import { Change } from "@/components/ui/Change";
+import { IconButton } from "@/components/ui/IconButton";
 
 // Fictional companies with made-up numbers, so no invented price is ever attached to a real firm.
 const SAMPLE = [

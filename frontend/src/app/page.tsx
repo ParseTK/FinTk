@@ -1,7 +1,7 @@
-import { Feature } from "@/components/Feature";
-import { Hero } from "@/components/Hero";
-import { FeatureGrid } from "@/components/home/FeatureGrid";
-import { MarketTicker } from "@/components/home/MarketTicker";
+import { Feature } from "@/components/ui/Feature";
+import { Hero } from "@/features/home";
+import { FeatureGrid } from "@/features/home";
+import { MarketTicker } from "@/features/home";
 
 export default function HomePage() {
   return (

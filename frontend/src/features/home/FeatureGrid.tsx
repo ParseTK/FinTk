@@ -1,8 +1,8 @@
 import type { ComponentType } from "react";
-import { BookmarkIcon, DocumentIcon, TrendIcon } from "../icons";
-import { Container } from "../layout/Container";
-import { Card } from "../ui/Card";
-import { LinkButton } from "../ui/LinkButton";
+import { BookmarkIcon, DocumentIcon, TrendIcon } from "@/components/ui/icons";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { LinkButton } from "@/components/ui/LinkButton";
 
 interface Feature {
   title: string;

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { contrastRatio } from "@/lib/contrast";
-import { ACCENTS } from "@/lib/preferences";
+import { ACCENTS } from "@/features/appearance";
 
 // Vitest and CI both run from the frontend/ directory.
 const css = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8").replace(

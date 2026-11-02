@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { LogoMark } from "@/components/Logo";
-import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/icons";
-import { Container } from "@/components/layout/Container";
+import { LogoMark } from "@/features/shell";
+import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/ui/icons";
+import { Container } from "@/components/ui/Container";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";

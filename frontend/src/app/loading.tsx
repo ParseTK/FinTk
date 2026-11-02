@@ -1,4 +1,4 @@
-import { Container } from "@/components/layout/Container";
+import { Container } from "@/components/ui/Container";
 import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
 
 export default function Loading() {

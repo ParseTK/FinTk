@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
-import { Container } from "./Container";
+import { Container } from "@/components/ui/Container";
 import { Footer } from "./Footer";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";

@@ -1,10 +1,10 @@
 "use client";
 
 import { useId } from "react";
-import type { NavItem } from "@/lib/navigation";
+import type { NavItem } from "./navigation";
 import { useDisclosure } from "@/lib/useDisclosure";
-import { MenuIcon } from "../icons";
-import { IconButton } from "../ui/IconButton";
+import { MenuIcon } from "@/components/ui/icons";
+import { IconButton } from "@/components/ui/IconButton";
 import { NavLink } from "./NavLink";
 
 /** Disclosure menu for small screens. Shown by the Navbar only when there are many links. */

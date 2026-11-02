@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { CompanyCard } from "@/components/CompanyCard";
-import { Container } from "@/components/layout/Container";
-import { PortfolioList } from "@/components/portfolio/PortfolioList";
-import { SearchBox } from "@/components/SearchBox";
+import { CompanyCard } from "@/features/search";
+import { Container } from "@/components/ui/Container";
+import { PortfolioList } from "@/features/portfolio";
+import { SearchBox } from "@/features/search";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { searchCompanies } from "@/lib/fmp";
+import { searchCompanies } from "@/features/market-data";
 
 export const metadata: Metadata = { title: "Search" };
 
