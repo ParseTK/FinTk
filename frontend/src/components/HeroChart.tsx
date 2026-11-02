@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { formatMoney, formatPercent } from "@/lib/format";
 import { Change } from "./ui/Change";
@@ -76,6 +77,7 @@ export function HeroChart({ className }: { className?: string }) {
   const [hovering, setHovering] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
+  const idle = active === null;
   const current = active ?? LAST;
   const { point, change } = pointInfo(current);
   const x = xAt(current);
@@ -215,11 +217,18 @@ export function HeroChart({ className }: { className?: string }) {
             style={{ transform: `translate(${x}px, ${y}px)` }}
             className="transition-transform duration-200 ease-out"
           >
+            {/* The marker blinks softly only while idle; scrubbing keeps it solid and still. */}
+            {idle && (
+              <circle
+                r="14"
+                className="animate-ring fill-brand origin-center [transform-box:fill-box]"
+              />
+            )}
             <circle
-              r="14"
-              className="animate-ring fill-brand origin-center [transform-box:fill-box]"
+              r="6.5"
+              className={clsx("fill-brand stroke-surface-raised", idle && "animate-blink")}
+              strokeWidth="3"
             />
-            <circle r="6.5" className="fill-brand stroke-surface-raised" strokeWidth="3" />
           </g>
         </svg>
       </div>

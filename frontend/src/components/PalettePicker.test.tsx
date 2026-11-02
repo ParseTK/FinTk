@@ -10,6 +10,7 @@ afterEach(() => {
   root.classList.remove("dark");
   delete root.dataset.accent;
   delete root.dataset.font;
+  delete root.dataset.motion;
 });
 
 const openButton = () => screen.getByRole("button", { name: "Appearance" });
@@ -83,6 +84,28 @@ describe("PalettePicker", () => {
     expect(localStorage.getItem(STORAGE_KEYS.font)).toBe("plex");
     expect(screen.getByRole("button", { name: /Violet/, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Blue/, pressed: false })).toBeInTheDocument();
+  });
+
+  it("offers a Motion setting that follows the device until chosen", async () => {
+    const user = userEvent.setup();
+    render(<PalettePicker />);
+    await user.click(openButton());
+
+    expect(screen.getByRole("group", { name: /motion/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Full", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reduced", pressed: false })).toBeInTheDocument();
+  });
+
+  it("applies and saves Reduced motion", async () => {
+    const user = userEvent.setup();
+    render(<PalettePicker />);
+    await user.click(openButton());
+
+    await user.click(screen.getByRole("button", { name: "Reduced" }));
+
+    expect(document.documentElement.dataset.motion).toBe("reduced");
+    expect(localStorage.getItem(STORAGE_KEYS.motion)).toBe("reduced");
+    expect(screen.getByRole("button", { name: "Reduced", pressed: true })).toBeInTheDocument();
   });
 
   it("closes on Escape and returns focus to the button", async () => {

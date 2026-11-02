@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { prefersReducedMotion, staggerDelay, withViewTransition } from "./motion";
+import { isMotionOff, staggerDelay, withViewTransition } from "./motion";
 
 function stubReducedMotion(reduce: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
@@ -14,12 +14,24 @@ afterEach(() => {
   delete (document as unknown as Record<string, unknown>).startViewTransition;
 });
 
-describe("prefersReducedMotion", () => {
-  it("reflects the media query", () => {
+describe("isMotionOff", () => {
+  afterEach(() => delete document.documentElement.dataset.motion);
+
+  it("the palette choice beats the device setting, in both directions", () => {
     stubReducedMotion(true);
-    expect(prefersReducedMotion()).toBe(true);
+    document.documentElement.dataset.motion = "full";
+    expect(isMotionOff()).toBe(false);
+
     stubReducedMotion(false);
-    expect(prefersReducedMotion()).toBe(false);
+    document.documentElement.dataset.motion = "reduced";
+    expect(isMotionOff()).toBe(true);
+  });
+
+  it("falls back to the media query when nothing is chosen", () => {
+    stubReducedMotion(true);
+    expect(isMotionOff()).toBe(true);
+    stubReducedMotion(false);
+    expect(isMotionOff()).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { prefersReducedMotion } from "@/lib/motion";
+import { isMotionOff } from "@/lib/motion";
 import { SearchIcon } from "./icons";
 
 interface SearchFormProps {
@@ -28,7 +28,7 @@ function useRotatingPlaceholder(paused: boolean) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    if (paused || index === -1 || prefersReducedMotion()) return;
+    if (paused || index === -1 || isMotionOff()) return;
     const id = setTimeout(() => {
       setIndex((current) => (current + 1 >= EXAMPLES.length ? -1 : current + 1));
     }, ROTATE_MS);
