@@ -22,6 +22,23 @@ npm run dev
 
 The API lives in `backend/` (`uv sync`, then `uv run uvicorn app.main:app --reload`); see its README.
 
+### Local database
+
+The API stores data in Postgres 17. A compose file runs one for development:
+
+```bash
+cp .env.example .env              # set POSTGRES_PASSWORD (there is deliberately no default)
+docker compose up -d --wait       # Postgres on 127.0.0.1:5433, plus an empty virello_test database
+cd backend
+# put the two URLs from .env.example into backend/.env, then:
+uv run alembic upgrade head
+uv run pytest                     # the database tests run against it
+docker compose down               # stop it; add -v to also delete the data
+```
+
+The container listens on localhost only, is memory-capped, and keeps its data in a named volume.
+Use `127.0.0.1` rather than `localhost` in the URLs (the port is IPv4 only).
+
 Frontend checks run in CI and locally: `npm run format:check`, `lint`, `typecheck`, `test`, `build`.
 
 ## Project structure

@@ -59,6 +59,8 @@ def make_settings(**overrides: object) -> IsolatedSettings:
     values: dict[str, object] = {
         "environment": "test",
         "sec_contact_email": "ops@example.test",  # not a real address
+        # Never inherit a developer's real database from the environment: tests opt in explicitly.
+        "database_url": None,
         **overrides,
     }
     return IsolatedSettings(**values)  # pyright: ignore[reportArgumentType]
