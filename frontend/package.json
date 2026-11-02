@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "new:component": "node scripts/new-component.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

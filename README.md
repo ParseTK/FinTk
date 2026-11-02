@@ -29,7 +29,7 @@ The frontend is organized by feature, with one-way dependencies that ESLint enfo
 ```
 src/
   app/             routes only (thin pages that compose features)
-  components/ui/   generic building blocks (Button, Card, Field, icons)
+  components/ui/   generic building blocks, one folder per component (Button/, Card/, Field/ ...)
   features/        one folder per feature, each with a public index.ts
     appearance/    palette picker and preferences
     home/          hero, chart, ticker, feature cards
@@ -43,6 +43,10 @@ src/
 Dependencies point one way: `app` -> `features` -> `components/ui` -> `lib`. Features reach each
 other only through a feature's `index.ts`, and nothing imports from `app`. Tests live next to the
 code they cover.
+
+To add a UI component, run `npm run new:component -- Name` (in `frontend/`). It creates
+`components/ui/Name/` with the component, a test that includes an accessibility check, and the
+`index.ts` that other code imports from.
 
 ## Workflow
 
