@@ -31,3 +31,11 @@ export function PaletteIcon({ className = "size-5" }: { className?: string }) {
     </svg>
   );
 }
+
+export function MenuIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}

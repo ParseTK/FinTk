@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "../ui/Button";
 import { usePortfolio } from "./PortfolioProvider";
 
 export function PortfolioToggleButton({ symbol }: { symbol: string }) {
@@ -7,14 +8,14 @@ export function PortfolioToggleButton({ symbol }: { symbol: string }) {
   const inPortfolio = has(symbol);
 
   return (
-    <button
-      type="button"
+    <Button
+      variant={inPortfolio ? "secondary" : "primary"}
       aria-pressed={inPortfolio}
       aria-label={`${inPortfolio ? "Remove" : "Add"} ${symbol} ${inPortfolio ? "from" : "to"} portfolio`}
       onClick={() => (inPortfolio ? remove(symbol) : add(symbol))}
-      className="bg-brand text-on-accent aria-pressed:bg-fg-muted rounded-lg px-6 py-2 font-medium transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2"
     >
+      {inPortfolio && <span aria-hidden="true">&#10003;</span>}
       {inPortfolio ? "In portfolio" : "Add to portfolio"}
-    </button>
+    </Button>
   );
 }

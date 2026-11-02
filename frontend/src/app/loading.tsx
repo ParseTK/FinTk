@@ -1,7 +1,14 @@
+import { Container } from "@/components/layout/Container";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
+
 export default function Loading() {
   return (
-    <p role="status" className="text-fg-muted px-6 py-16 text-center">
-      Loading...
-    </p>
+    <Container className="space-y-6 py-12">
+      <p role="status" className="sr-only">
+        Loading
+      </p>
+      <Skeleton className="h-10 w-1/2" />
+      <SkeletonText lines={4} />
+    </Container>
   );
 }
