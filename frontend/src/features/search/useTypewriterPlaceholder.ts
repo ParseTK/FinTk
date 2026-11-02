@@ -22,7 +22,8 @@ export const PLACEHOLDER_WORDS = [
   "Adobe",
 ] as const;
 
-const START_DELAY_MS = 1200;
+/** Waits for the page to settle: constantly repainting text would otherwise count as the page's Largest Contentful Paint. */
+export const START_DELAY_MS = 3500;
 const TYPE_MS = 80;
 const HOLD_MS = 1700;
 const DELETE_MS = 40;

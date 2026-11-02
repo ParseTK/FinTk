@@ -31,7 +31,7 @@ export function Hero() {
             drift && "parallax-page [--parallax-from:0px] [--parallax-to:150px]",
           )}
         >
-          <div className="animate-fade-in bg-brand/20 size-[34rem] rounded-full blur-3xl" />
+          <div className="animate-fade-in size-[34rem] rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_34%,transparent),transparent)]" />
         </div>
         <div
           className={clsx(

@@ -210,13 +210,12 @@
       transform: translateY(var(--parallax-to, -24px));
     }
   }
+  /* Transform only, no fade: text must never be half-transparent while it scrolls in. */
   @keyframes reveal-up {
     from {
-      opacity: 0;
       transform: translateY(28px);
     }
     to {
-      opacity: 1;
       transform: none;
     }
   }

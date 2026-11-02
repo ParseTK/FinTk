@@ -44,13 +44,13 @@ describe("SearchForm typewriter placeholder", () => {
     render(<SearchForm />);
     expect(placeholder()).toBe(PLACEHOLDER_FALLBACK);
 
-    advance(1200);
+    advance(3500);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX);
   });
 
   it("types a company name one letter at a time", () => {
     render(<SearchForm />);
-    advance(1200 + 400);
+    advance(3500 + 400);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX + "A");
 
     advance(80);
@@ -62,7 +62,7 @@ describe("SearchForm typewriter placeholder", () => {
 
   it("holds the finished word, then deletes it letter by letter", () => {
     render(<SearchForm />);
-    advance(1200 + 400 + 80 * 4); // "Apple" fully typed
+    advance(3500 + 400 + 80 * 4); // "Apple" fully typed
     advance(1000);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX + "Apple"); // still holding
 
@@ -75,7 +75,7 @@ describe("SearchForm typewriter placeholder", () => {
 
   it("moves on to a different word and keeps looping", () => {
     render(<SearchForm />);
-    advance(1200 + 400 + 80 * 4 + 1700 + 40 * 5 + 400 + 80); // Apple done, Tesla typing
+    advance(3500 + 400 + 80 * 4 + 1700 + 40 * 5 + 400 + 80); // Apple done, Tesla typing
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX + "Te");
   });
 
@@ -98,7 +98,7 @@ describe("SearchForm typewriter placeholder", () => {
 
   it("stops on the plain hint while the field is focused, and restarts when it is left", () => {
     render(<SearchForm />);
-    advance(1200 + 400 + 80 * 2);
+    advance(3500 + 400 + 80 * 2);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX + "App");
 
     act(() => input().focus());
@@ -107,7 +107,7 @@ describe("SearchForm typewriter placeholder", () => {
     expect(placeholder()).toBe(PLACEHOLDER_FALLBACK);
 
     act(() => input().blur());
-    advance(1200);
+    advance(3500);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX);
   });
 
@@ -134,7 +134,7 @@ describe("SearchForm typewriter placeholder", () => {
   it("stops mid-run when Motion is switched to Reduced", () => {
     document.documentElement.dataset.motion = "full";
     render(<SearchForm />);
-    advance(1200 + 400 + 80 * 2);
+    advance(3500 + 400 + 80 * 2);
     expect(placeholder()).toBe(PLACEHOLDER_PREFIX + "App");
 
     document.documentElement.dataset.motion = "reduced";
@@ -146,7 +146,7 @@ describe("SearchForm typewriter placeholder", () => {
 
   it("keeps a constant accessible label while the placeholder changes", () => {
     render(<SearchForm />);
-    advance(1200 + 400 + 80 * 3);
+    advance(3500 + 400 + 80 * 3);
     expect(screen.getByRole("searchbox", { name: "Search companies" })).toBeInTheDocument();
   });
 });

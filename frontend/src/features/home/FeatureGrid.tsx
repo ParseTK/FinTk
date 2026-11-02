@@ -70,7 +70,7 @@ export function FeatureGrid() {
       >
         <div
           className={clsx(
-            "bg-brand/15 absolute inset-x-0 top-1/4 mx-auto h-96 max-w-4xl rounded-full blur-3xl",
+            "absolute inset-x-0 top-1/4 mx-auto h-96 max-w-4xl rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_24%,transparent),transparent)]",
             animated && "parallax [--parallax-from:-120px] [--parallax-to:120px]",
           )}
         />
