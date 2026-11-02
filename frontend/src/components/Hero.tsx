@@ -1,4 +1,5 @@
 import { HeroChart } from "./HeroChart";
+import { TickerChips } from "./home/TickerChips";
 import { SearchForm } from "./SearchForm";
 
 /** Entrance stagger: headline, copy, search, then the chart. Each step is a CSS delay. */
@@ -35,8 +36,13 @@ export function Hero() {
           <p className="animate-fade-up text-fg-muted text-xl lg:max-w-md" style={delay(120)}>
             Research public companies from primary filings and financials, without the noise.
           </p>
-          <div className="animate-fade-up flex justify-center md:justify-start" style={delay(240)}>
-            <SearchForm size="lg" />
+          <div className="animate-fade-up space-y-4" style={delay(240)}>
+            <div className="flex justify-center md:justify-start">
+              <SearchForm size="lg" />
+            </div>
+            <div className="flex justify-center md:justify-start">
+              <TickerChips />
+            </div>
           </div>
         </div>
         <div
