@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: hsl(215 98% 51%);
+  --color-brand-dark: hsl(214 59% 40%);
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
