@@ -46,6 +46,25 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # A real Postgres, the same major version as production. The database tests run against it
+    # and fail (never skip) when it is missing. These credentials belong to a throwaway container
+    # that only exists for this job.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: virello
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+          POSTGRES_DB: virello_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U virello -d virello_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VIRELLO_TEST_DATABASE_URL: postgresql+asyncpg://virello:ci-only-not-a-secret@localhost:5432/virello_test
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

@@ -1,13 +1,20 @@
-from collections.abc import AsyncIterator, Awaitable, Callable
+import os
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from pathlib import Path
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi import APIRouter, FastAPI
 from httpx import ASGITransport, AsyncClient
 from pydantic import BaseModel, ConfigDict, Field
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import text
 
-from app.core.config import Settings
+from app.api.deps import DbSession
+from app.core.config import Settings, get_settings
 from app.core.errors import ConflictError, NotFoundError
+from app.db.engine import Database
 from app.main import create_app
 
 
@@ -94,3 +101,75 @@ async def make_client() -> AsyncIterator[ClientFactory]:
     yield factory
     for http in opened:
         await http.aclose()
+
+
+# -- Real Postgres ---------------------------------------------------------------------------------
+#
+# Database tests run against a real Postgres (VIRELLO_TEST_DATABASE_URL), never a fake: SQLite would
+# not catch Postgres-specific behaviour (NUMERIC, ON CONFLICT, timeouts). Locally they skip when no
+# database is configured; in CI a missing database is a failure, so they can never be skipped there.
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+
+
+class TestDatabaseSettings(BaseSettings):
+    __test__ = False  # not a test class, despite the name
+
+    model_config = SettingsConfigDict(env_prefix="VIRELLO_", env_file=".env", extra="ignore")
+
+    test_database_url: str | None = None
+
+
+@pytest.fixture(scope="session")
+def test_database_url() -> str:
+    url = TestDatabaseSettings().test_database_url
+    if url is None:
+        if os.environ.get("CI"):
+            pytest.fail("VIRELLO_TEST_DATABASE_URL must be set in CI: database tests may not skip.")
+        pytest.skip("VIRELLO_TEST_DATABASE_URL is not set")
+    assert url.rsplit("/", 1)[-1].endswith("_test"), "refusing to run tests on a non-test database"
+    return url
+
+
+def alembic_config() -> Config:
+    config = Config(str(BACKEND_DIR / "alembic.ini"))
+    config.set_main_option("script_location", str(BACKEND_DIR / "migrations"))
+    return config
+
+
+@pytest.fixture(scope="session")
+def migrated_database(test_database_url: str) -> Iterator[str]:
+    """The test database with every migration applied, so the tests exercise the migrations too."""
+    previous = os.environ.get("VIRELLO_DATABASE_URL")
+    os.environ["VIRELLO_DATABASE_URL"] = test_database_url
+    get_settings.cache_clear()
+    try:
+        command.downgrade(alembic_config(), "base")
+        command.upgrade(alembic_config(), "head")
+        yield test_database_url
+    finally:
+        if previous is None:
+            os.environ.pop("VIRELLO_DATABASE_URL", None)
+        else:
+            os.environ["VIRELLO_DATABASE_URL"] = previous
+        get_settings.cache_clear()
+
+
+@pytest.fixture
+async def database(migrated_database: str) -> AsyncIterator[Database]:
+    """A Database on the migrated test schema, emptied after every test."""
+    db = Database.from_settings(make_settings(database_url=migrated_database))
+    yield db
+    async with db.session() as session:
+        await session.execute(text("TRUNCATE price_series CASCADE"))
+    await db.dispose()
+
+
+@test_router.get("/db")
+async def db_roundtrip(session: DbSession) -> dict[str, int]:
+    return {"value": (await session.execute(text("SELECT 1"))).scalar_one()}
+
+
+@test_router.get("/db-slow")
+async def db_slow(session: DbSession) -> None:
+    await session.execute(text("SELECT pg_sleep(5)"))

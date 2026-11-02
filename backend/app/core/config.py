@@ -9,7 +9,7 @@ from functools import lru_cache
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
-from pydantic import field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
@@ -38,6 +38,29 @@ class Settings(BaseSettings):
     # SEC EDGAR requires every automated client to identify itself with a contact. Only ever read
     # from the environment, never committed.
     sec_contact_email: str | None = None
+
+    # Postgres connection URL, e.g. postgresql+asyncpg://user:pass@host:5432/db. Held as a secret so
+    # it never shows up in a repr, log line or traceback. Unset means "no database": the app still
+    # starts and the data routes that need it answer 503.
+    database_url: SecretStr | None = None
+
+    # Connection pool. Bounded on purpose: a burst of requests queues for a connection (and then
+    # fails fast with 503) instead of opening unbounded connections that overwhelm the database.
+    db_pool_size: int = Field(default=5, ge=1, le=50)
+    db_max_overflow: int = Field(default=5, ge=0, le=50)
+    db_pool_timeout_seconds: float = Field(default=5.0, gt=0, le=60)
+    db_pool_recycle_seconds: int = Field(default=1800, ge=60)
+    # Server-side limits so one bad query or a forgotten transaction cannot hold the database.
+    db_statement_timeout_ms: int = Field(default=5000, ge=100, le=120_000)
+    db_idle_in_transaction_timeout_ms: int = Field(default=10_000, ge=100, le=120_000)
+
+    @field_validator("database_url")
+    @classmethod
+    def _validate_database_url(cls, url: SecretStr | None) -> SecretStr | None:
+        if url is not None and not url.get_secret_value().startswith("postgresql+asyncpg://"):
+            msg = "database_url must start with postgresql+asyncpg:// (the async driver)"
+            raise ValueError(msg)
+        return url
 
     @field_validator("cors_origins", mode="before")
     @classmethod
