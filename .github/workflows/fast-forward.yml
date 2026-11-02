@@ -1,0 +1,54 @@
+name: "Release: fast-forward"
+
+# One-click release. Moves main to exactly dev's commit (no merge commit, no extra PR), after
+# checking that the required checks passed on that commit. Afterwards main and dev are the same
+# commit, so dev is never "behind".
+#
+#   release  main <- dev   (the normal case)
+#   sync     dev  <- main  (only needed if something landed on main directly)
+#
+# The push needs an identity that may move main without a pull request, which the built-in
+# GITHUB_TOKEN cannot do. It uses the RELEASE_TOKEN secret instead (a fine-grained personal access
+# token, scoped to this repository only). See "Releasing" in the README.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "release = fast-forward main to dev. sync = fast-forward dev to main."
+        type: choice
+        options: [release, sync]
+        default: release
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: fast-forward
+  cancel-in-progress: false
+
+jobs:
+  fast-forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Require the release token
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          if [ -z "$RELEASE_TOKEN" ]; then
+            echo "::error::The RELEASE_TOKEN secret is not set. See 'Releasing' in the README."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Pushing with this token (not GITHUB_TOKEN) lets the push start CI on main afterwards.
+          token: ${{ secrets.RELEASE_TOKEN }}
+      - name: Fast-forward
+        env:
+          ACTION: ${{ inputs.action }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bash .github/scripts/fast-forward.sh
