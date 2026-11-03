@@ -140,6 +140,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{ticker}/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A company's recent SEC 8-K events */
+        get: operations["get_company_news_api_v1_companies__ticker__news_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/{ticker}/prices/monthly": {
         parameters: {
             query?: never;
@@ -218,6 +235,23 @@ export interface paths {
         };
         /** Service information */
         get: operations["meta_api_v1_meta_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Official market-wide announcements */
+        get: operations["get_market_news_api_v1_news_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -401,6 +435,15 @@ export interface components {
         BatchLotsResponse: {
             /** Lots */
             lots: components["schemas"]["LotResponse"][];
+        };
+        /** CompanyNewsResponse */
+        CompanyNewsResponse: {
+            /** Basis */
+            basis: string;
+            /** Items */
+            items: components["schemas"]["NewsItemResponse"][];
+            /** Ticker */
+            ticker: string;
         };
         /** CompanyProfileResponse */
         CompanyProfileResponse: {
@@ -624,6 +667,15 @@ export interface components {
             /** Year To Date */
             year_to_date: string | null;
         };
+        /** MarketNewsResponse */
+        MarketNewsResponse: {
+            /** Basis */
+            basis: string;
+            /** Items */
+            items: components["schemas"]["NewsItemResponse"][];
+            /** Unavailable */
+            unavailable: string[];
+        };
         /** MarketOverviewResponse */
         MarketOverviewResponse: {
             /** Basis */
@@ -699,6 +751,27 @@ export interface components {
              * @description Price paid per share, in US dollars.
              */
             unit_cost: string;
+        };
+        /** NewsItemResponse */
+        NewsItemResponse: {
+            /** Detail */
+            detail: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "filing" | "press_release";
+            /**
+             * Published
+             * Format: date
+             */
+            published: string;
+            /** Source */
+            source: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
         };
         /** PortfolioResponse */
         PortfolioResponse: {
@@ -1471,6 +1544,75 @@ export interface operations {
             };
         };
     };
+    get_company_news_api_v1_companies__ticker__news_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                ticker: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyNewsResponse"];
+                };
+            };
+            /** @description No such company. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_monthly_prices_api_v1_companies__ticker__prices_monthly_get: {
         parameters: {
             query?: never;
@@ -1825,6 +1967,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_market_news_api_v1_news_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketNewsResponse"];
                 };
             };
             /** @description The request was not valid. */

@@ -11,6 +11,7 @@ import {
   getKeyFilings,
   getFinancials,
 } from "@/features/market-data";
+import { CompanyEventsSection, CompanyEventsSkeleton } from "@/features/news";
 import { SeasonalitySection, SeasonalitySectionSkeleton } from "@/features/seasonality";
 import { getWatchlistState, WatchlistToggle } from "@/features/watchlist";
 import { isEnabled } from "@/lib/flags";
@@ -94,6 +95,12 @@ export default async function CompanyPage({ params }: Props) {
         <Feature flag="seasonality">
           <Suspense fallback={<SeasonalitySectionSkeleton />}>
             <SeasonalitySection symbol={company.ticker} />
+          </Suspense>
+        </Feature>
+
+        <Feature flag="news">
+          <Suspense fallback={<CompanyEventsSkeleton />}>
+            <CompanyEventsSection symbol={company.ticker} />
           </Suspense>
         </Feature>
 

@@ -6,7 +6,7 @@ No I/O, so they are tested directly against recorded fixtures.
 from collections.abc import Mapping, Sequence
 from datetime import date
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, cast
 
 from app.domain.models import (
     AnnualValue,
@@ -79,6 +79,21 @@ def parse_profile(payload: Json, company: CompanyRef) -> CompanyProfile:
     )
 
 
+def _column(recent: Json, name: str, index: int) -> object:
+    """One cell of a ``filings.recent`` column, or None if the column is absent or short."""
+    column = recent.get(name)
+    if isinstance(column, list) and index < len(cast(list[object], column)):
+        return cast(list[object], column)[index]
+    return None
+
+
+def _items(value: object) -> tuple[str, ...]:
+    """Form 8-K item numbers from the comma separated column, e.g. "2.02,9.01"."""
+    if not isinstance(value, str):
+        return ()
+    return tuple(part for part in (piece.strip() for piece in value.split(",")) if part)
+
+
 def filing_url(cik: str, accession_number: str, primary_document: str) -> str:
     folder = accession_number.replace("-", "")
     return f"https://www.sec.gov/Archives/edgar/data/{int(cik)}/{folder}/{primary_document}"
@@ -105,6 +120,7 @@ def parse_filings(payload: Json, cik: str, form: str | None, limit: int) -> list
                 report_date=_date(recent["reportDate"][i]),
                 description=_text(recent["primaryDocDescription"][i]),
                 url=filing_url(cik, accession, primary),
+                items=_items(_column(recent, "items", i)),
             )
         )
         if len(results) >= limit:
@@ -141,6 +157,7 @@ def parse_recent_filings(payload: Json, cik: str) -> tuple[Filing, ...]:
                 report_date=_date(recent["reportDate"][i]),
                 description=_text(recent["primaryDocDescription"][i]),
                 url=filing_url(cik, accession, primary),
+                items=_items(_column(recent, "items", i)),
             )
         )
     return tuple(kept)

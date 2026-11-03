@@ -68,6 +68,32 @@
         "title": "BatchLotsResponse",
         "type": "object"
       },
+      "CompanyNewsResponse": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "ticker": {
+            "title": "Ticker",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "basis",
+          "items"
+        ],
+        "title": "CompanyNewsResponse",
+        "type": "object"
+      },
       "CompanyProfileResponse": {
         "properties": {
           "category": {
@@ -677,6 +703,35 @@
         "title": "MarketFiguresResponse",
         "type": "object"
       },
+      "MarketNewsResponse": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unavailable": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "basis",
+          "items",
+          "unavailable"
+        ],
+        "title": "MarketNewsResponse",
+        "type": "object"
+      },
       "MarketOverviewResponse": {
         "properties": {
           "basis": {
@@ -878,6 +933,56 @@
           "symbol"
         ],
         "title": "NewLotInput",
+        "type": "object"
+      },
+      "NewsItemResponse": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "kind": {
+            "enum": [
+              "filing",
+              "press_release"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "published": {
+            "format": "date",
+            "title": "Published",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "kind",
+          "title",
+          "published",
+          "url",
+          "detail"
+        ],
+        "title": "NewsItemResponse",
         "type": "object"
       },
       "PortfolioResponse": {
@@ -2144,6 +2249,102 @@
         ]
       }
     },
+    "/api/v1/companies/{ticker}/news": {
+      "get": {
+        "operationId": "get_company_news_api_v1_companies__ticker__news_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "ticker",
+            "required": true,
+            "schema": {
+              "maxLength": 10,
+              "minLength": 1,
+              "title": "Ticker",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyNewsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "No such company."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "A company's recent SEC 8-K events",
+        "tags": [
+          "news"
+        ]
+      }
+    },
     "/api/v1/companies/{ticker}/prices/monthly": {
       "get": {
         "operationId": "get_monthly_prices_api_v1_companies__ticker__prices_monthly_get",
@@ -2588,6 +2789,81 @@
         "summary": "Service information",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/news": {
+      "get": {
+        "operationId": "get_market_news_api_v1_news_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketNewsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Official market-wide announcements",
+        "tags": [
+          "news"
         ]
       }
     },

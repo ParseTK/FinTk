@@ -43,3 +43,19 @@ describe("Navbar markets flag", () => {
     expect(screen.getByRole("link", { name: "Markets" })).toHaveAttribute("href", "/markets");
   });
 });
+
+describe("Navbar with several flagged pages", () => {
+  it("moves the links into the phone menu once there are more than two", () => {
+    vi.stubEnv("FEATURE_MARKETS", "true");
+    vi.stubEnv("FEATURE_NEWS", "true");
+    render(<Navbar />);
+    expect(screen.getByRole("button", { name: "Menu" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "News" })[0]).toHaveAttribute("href", "/news");
+  });
+
+  it("has no News link and no menu while its flag is off", () => {
+    render(<Navbar />);
+    expect(screen.queryByRole("link", { name: "News" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Menu" })).not.toBeInTheDocument();
+  });
+});

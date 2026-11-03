@@ -41,6 +41,7 @@ class Filing:
     report_date: date | None
     description: str | None
     url: str
+    items: tuple[str, ...] = ()  # Form 8-K item numbers, e.g. ("2.02", "9.01"); empty otherwise
 
 
 @dataclass(frozen=True, slots=True)

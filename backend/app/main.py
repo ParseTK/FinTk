@@ -27,12 +27,14 @@ from app.core.middleware import (
 from app.core.rate_limit import KeyedRateLimiter, SlidingWindowBudget
 from app.db.engine import Database
 from app.providers.base import PriceProvider
+from app.providers.feeds import FeedProvider
 from app.providers.sample_prices import SamplePriceProvider
-from app.providers.sec.client import SecProvider, build_http_client
+from app.providers.sec.client import SecProvider, build_http_client, build_user_agent
 from app.providers.twelvedata.client import TwelveDataProvider
 from app.providers.twelvedata.client import build_http_client as build_price_client
 from app.services.companies import CompanyService
 from app.services.markets import MarketService
+from app.services.news import NewsService
 from app.services.prices import StoredPriceProvider
 
 _DOCS_PATHS = ("/docs", "/openapi.json")
@@ -51,6 +53,7 @@ def _lifespan(settings: Settings):
         price_client: httpx.AsyncClient | None = None
         owned_database: Database | None = None
         auth_client: httpx.AsyncClient | None = None
+        feed_client: httpx.AsyncClient | None = None
         if not app.state.oauth_providers and settings.enabled_providers:
             auth_client = httpx.AsyncClient(follow_redirects=False)
             app.state.oauth_providers = build_oauth_providers(settings, auth_client)
@@ -78,6 +81,17 @@ def _lifespan(settings: Settings):
             sec = SecProvider(client)
             latest = prices if isinstance(prices, StoredPriceProvider) else None
             app.state.company_service = CompanyService(sec, sec, sec, prices, latest)
+        if app.state.news_service is None:
+            feed_client = httpx.AsyncClient(
+                headers={
+                    "User-Agent": build_user_agent(settings.sec_contact_email or "no contact set"),
+                    "Accept": "application/rss+xml, application/xml",
+                },
+                follow_redirects=False,
+            )
+            app.state.news_service = NewsService(
+                FeedProvider(feed_client), app.state.company_service
+            )
         try:
             yield
         finally:
@@ -89,6 +103,8 @@ def _lifespan(settings: Settings):
                 await owned_database.dispose()
             if auth_client is not None:
                 await auth_client.aclose()
+            if feed_client is not None:
+                await feed_client.aclose()
 
     return lifespan
 
@@ -99,6 +115,7 @@ def create_app(
     extra_routers: Sequence[APIRouter] = (),
     company_service: CompanyService | None = None,
     market_service: MarketService | None = None,
+    news_service: NewsService | None = None,
     database: Database | None = None,
     oauth_providers: Mapping[str, OAuthProvider] | None = None,
 ) -> FastAPI:
@@ -122,6 +139,7 @@ def create_app(
     app.state.readiness_checks = readiness_checks
     app.state.company_service = company_service
     app.state.market_service = market_service
+    app.state.news_service = news_service
     app.state.database = database
     app.state.oauth_providers = dict(oauth_providers or {})
     app.state.auth_limiter = KeyedRateLimiter(settings.auth_requests_per_minute)

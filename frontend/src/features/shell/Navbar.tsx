@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { Suspense } from "react";
-import { COLLAPSE_AFTER, NAV_ITEMS } from "./navigation";
+import { COLLAPSE_AFTER } from "./navigation";
+import { navItems } from "./navItems";
 import { Feature } from "@/components/ui/Feature";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
@@ -10,7 +11,8 @@ import { PalettePicker } from "@/features/appearance";
 import { AccountMenu } from "@/features/auth";
 
 export function Navbar() {
-  const collapse = NAV_ITEMS.length > COLLAPSE_AFTER;
+  const items = navItems();
+  const collapse = items.length > COLLAPSE_AFTER;
 
   return (
     <header className="w-full px-4 py-4 sm:px-6 lg:px-8">
@@ -22,16 +24,13 @@ export function Navbar() {
           <div
             className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}
           >
-            {NAV_ITEMS.map(({ href, label }) => (
+            {items.map(({ href, label }) => (
               <NavLink key={href} href={href}>
                 {label}
               </NavLink>
             ))}
-            <Feature flag="markets">
-              <NavLink href="/markets">Markets</NavLink>
-            </Feature>
           </div>
-          {collapse && <MobileMenu items={NAV_ITEMS} />}
+          {collapse && <MobileMenu items={items} />}
           <Feature flag="auth">
             {/* Streams in after the rest of the header, in a box the same size, so asking the API
                 who is signed in never delays the page or makes the header jump. */}
