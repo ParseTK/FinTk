@@ -4,6 +4,7 @@ import { NAV_ITEMS, type NavItem } from "./navigation";
 /** Links for pages that are still behind a feature flag; each shows only while its flag is on. */
 const FLAGGED_ITEMS: ReadonlyArray<NavItem & { flag: FlagName }> = [
   { href: "/markets", label: "Markets", flag: "markets" },
+  { href: "/crypto", label: "Crypto", flag: "crypto" },
   { href: "/news", label: "News", flag: "news" },
 ];
 
