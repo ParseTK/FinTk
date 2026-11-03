@@ -12,7 +12,13 @@ from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
-from app.domain.portfolio import Holding, Lot, WatchlistEntry
+from app.domain.portfolio import (
+    Holding,
+    Lot,
+    PortfolioValuation,
+    Valuation,
+    WatchlistEntry,
+)
 
 Symbol = Annotated[str, StringConstraints(pattern=r"^[A-Za-z]{1,6}([.-][A-Za-z]{1,2})?$")]
 # NUMERIC(20, 6): up to 14 digits before the point, 6 after. A purchase price is NUMERIC(18, 6).
@@ -96,6 +102,28 @@ class LotsResponse(BaseModel):
     lots: list[LotResponse]
 
 
+class HoldingValuationResponse(BaseModel):
+    """Worth at the latest month-end close held, not a live quote."""
+
+    model_config = ConfigDict(frozen=True)
+
+    price: Decimal = Field(description="Closing price of the latest month held.")
+    as_of: date = Field(description="Last day of that month.")
+    market_value: Decimal = Field(description="Shares times price, to cents.")
+    gain: Decimal = Field(description="Market value minus total paid, to cents.")
+    gain_percent: Decimal = Field(description="Gain as a percentage of total paid.")
+
+    @classmethod
+    def from_domain(cls, valuation: Valuation) -> Self:
+        return cls(
+            price=valuation.price,
+            as_of=valuation.as_of,
+            market_value=valuation.market_value,
+            gain=valuation.gain,
+            gain_percent=valuation.gain_percent,
+        )
+
+
 class HoldingResponse(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -105,6 +133,9 @@ class HoldingResponse(BaseModel):
     average_cost: Decimal = Field(description="Total paid divided by shares, six decimals.")
     cost_basis: Decimal = Field(description="Total paid, to cents.")
     lots: int
+    valuation: HoldingValuationResponse | None = Field(
+        default=None, description="Null when no price is held for this company yet."
+    )
 
     @classmethod
     def from_domain(cls, holding: Holding, name: str | None) -> Self:
@@ -115,12 +146,42 @@ class HoldingResponse(BaseModel):
             average_cost=holding.average_cost,
             cost_basis=holding.cost_basis,
             lots=holding.lots,
+            valuation=HoldingValuationResponse.from_domain(holding.valuation)
+            if holding.valuation
+            else None,
+        )
+
+
+class PortfolioValuationResponse(BaseModel):
+    """Totals over the holdings that have a price. Others are left out and not guessed."""
+
+    model_config = ConfigDict(frozen=True)
+
+    market_value: Decimal
+    gain: Decimal
+    gain_percent: Decimal
+    holdings_valued: int
+    as_of: date = Field(description="Oldest month-end among the valued holdings.")
+    source: str
+
+    @classmethod
+    def from_domain(cls, valuation: PortfolioValuation) -> Self:
+        return cls(
+            market_value=valuation.market_value,
+            gain=valuation.gain,
+            gain_percent=valuation.gain_percent,
+            holdings_valued=valuation.holdings_valued,
+            as_of=valuation.as_of,
+            source=valuation.source,
         )
 
 
 class PortfolioResponse(BaseModel):
     holdings: list[HoldingResponse]
     total_cost_basis: Decimal
+    valuation: PortfolioValuationResponse | None = Field(
+        default=None, description="Null until at least one holding has a price."
+    )
     currency: str = "USD"
 
 

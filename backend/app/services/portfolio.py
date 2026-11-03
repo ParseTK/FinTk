@@ -11,7 +11,7 @@ Rules that live here (not in routes or SQL):
 
 import uuid
 from collections.abc import Awaitable, Callable, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
@@ -28,7 +28,10 @@ from app.domain.portfolio import (
     Holding,
     Lot,
     NewLot,
+    PortfolioValuation,
     WatchlistEntry,
+    value_holding,
+    value_portfolio,
 )
 from app.repositories.portfolio import LotRepository, WatchlistRepository
 from app.services.companies import CompanyService, is_valid_ticker
@@ -45,6 +48,7 @@ class Portfolio:
     holdings: list[Holding]
     total_cost_basis: Decimal
     names: dict[str, str]
+    valuation: PortfolioValuation | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,10 +108,28 @@ class PortfolioService:
 
     async def portfolio(self, user_id: uuid.UUID) -> Portfolio:
         totals = await self._lots.totals(user_id)
-        holdings = [Holding.from_totals(t) for t in totals]
+        # Worth is best effort: with no stored prices, or if they cannot be had, the portfolio is
+        # still returned with its cost figures and no valuation.
+        closes = (
+            await self._companies.latest_prices(t.symbol for t in totals)
+            if self._companies is not None
+            else {}
+        )
+        holdings = [
+            replace(
+                Holding.from_totals(t),
+                valuation=value_holding(t, closes[t.symbol]) if t.symbol in closes else None,
+            )
+            for t in totals
+        ]
         # Summed exactly, rounded once: adding rounded per-symbol figures would drift by cents.
         total = sum((t.cost for t in totals), Decimal(0)).quantize(TWO_PLACES)
-        return Portfolio(holdings, total, await self._names(h.symbol for h in holdings))
+        return Portfolio(
+            holdings,
+            total,
+            await self._names(h.symbol for h in holdings),
+            value_portfolio(totals, closes),
+        )
 
     async def lots(self, user_id: uuid.UUID, ticker: str | None = None) -> list[Lot]:
         symbol = None

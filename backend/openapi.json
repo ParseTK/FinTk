@@ -394,6 +394,17 @@
           "symbol": {
             "title": "Symbol",
             "type": "string"
+          },
+          "valuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HoldingValuationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when no price is held for this company yet."
           }
         },
         "required": [
@@ -405,6 +416,46 @@
           "lots"
         ],
         "title": "HoldingResponse",
+        "type": "object"
+      },
+      "HoldingValuationResponse": {
+        "description": "Worth at the latest month-end close held, not a live quote.",
+        "properties": {
+          "as_of": {
+            "description": "Last day of that month.",
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "gain": {
+            "description": "Market value minus total paid, to cents.",
+            "title": "Gain",
+            "type": "string"
+          },
+          "gain_percent": {
+            "description": "Gain as a percentage of total paid.",
+            "title": "Gain Percent",
+            "type": "string"
+          },
+          "market_value": {
+            "description": "Shares times price, to cents.",
+            "title": "Market Value",
+            "type": "string"
+          },
+          "price": {
+            "description": "Closing price of the latest month held.",
+            "title": "Price",
+            "type": "string"
+          }
+        },
+        "required": [
+          "price",
+          "as_of",
+          "market_value",
+          "gain",
+          "gain_percent"
+        ],
+        "title": "HoldingValuationResponse",
         "type": "object"
       },
       "LotInput": {
@@ -674,6 +725,17 @@
           "total_cost_basis": {
             "title": "Total Cost Basis",
             "type": "string"
+          },
+          "valuation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PortfolioValuationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null until at least one holding has a price."
           }
         },
         "required": [
@@ -681,6 +743,47 @@
           "total_cost_basis"
         ],
         "title": "PortfolioResponse",
+        "type": "object"
+      },
+      "PortfolioValuationResponse": {
+        "description": "Totals over the holdings that have a price. Others are left out and not guessed.",
+        "properties": {
+          "as_of": {
+            "description": "Oldest month-end among the valued holdings.",
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "gain": {
+            "title": "Gain",
+            "type": "string"
+          },
+          "gain_percent": {
+            "title": "Gain Percent",
+            "type": "string"
+          },
+          "holdings_valued": {
+            "title": "Holdings Valued",
+            "type": "integer"
+          },
+          "market_value": {
+            "title": "Market Value",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "market_value",
+          "gain",
+          "gain_percent",
+          "holdings_valued",
+          "as_of",
+          "source"
+        ],
+        "title": "PortfolioValuationResponse",
         "type": "object"
       },
       "ReadinessResponse": {

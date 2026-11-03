@@ -11,6 +11,7 @@ from app.core.config import Settings
 from app.db.engine import Database
 from app.domain.accounts import ExternalProfile
 from app.main import create_app
+from app.providers.base import LatestPriceSource, PriceProvider
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider
 from app.repositories.accounts import AccountRepository, SessionRepository
@@ -25,14 +26,16 @@ ORIGIN = (
 )
 
 
-def company_service() -> CompanyService:
+def company_service(
+    prices: PriceProvider | None = None, latest: LatestPriceSource | None = None
+) -> CompanyService:
     """Real company service over the recorded SEC fixtures: AAPL, MSFT, BRK-B and a few more."""
     sec = SecProvider(
         httpx.AsyncClient(transport=httpx.MockTransport(Upstream())),
         limiter=NoWait(),  # pyright: ignore[reportArgumentType]
         retry_delay=0,
     )
-    return CompanyService(sec, sec, sec, SamplePriceProvider())
+    return CompanyService(sec, sec, sec, prices or SamplePriceProvider(), latest)
 
 
 def build_app(
@@ -40,12 +43,13 @@ def build_app(
     settings: Settings | None = None,
     *,
     with_companies: bool = True,
+    companies: CompanyService | None = None,
 ) -> FastAPI:
     return create_app(
         settings or make_settings(),
         extra_routers=[routes_for_tests],
         database=database,
-        company_service=company_service() if with_companies else None,
+        company_service=companies or (company_service() if with_companies else None),
     )
 
 
@@ -97,9 +101,11 @@ class World:
     bob: Person
 
 
-async def make_world(database: Database, **settings_overrides: object) -> World:
+async def make_world(
+    database: Database, companies: CompanyService | None = None, **settings_overrides: object
+) -> World:
     """An app with two different signed-in people, for tests about who can see what."""
-    app = build_app(database, make_settings(**settings_overrides))
+    app = build_app(database, make_settings(**settings_overrides), companies=companies)
     return World(
         app=app,
         alice=await sign_in_person(app, database, "alice@example.com"),

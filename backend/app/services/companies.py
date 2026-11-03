@@ -1,5 +1,6 @@
 """Company use cases. Knows about providers through their interfaces only."""
 
+import logging
 import re
 from collections.abc import Iterable
 
@@ -8,6 +9,7 @@ from app.domain.models import (
     CompanyProfile,
     CompanyRef,
     Filing,
+    LatestClose,
     MetricSeries,
     PriceHistory,
 )
@@ -16,8 +18,11 @@ from app.providers.base import (
     CompanyDirectory,
     FilingsProvider,
     FundamentalsProvider,
+    LatestPriceSource,
     PriceProvider,
 )
+
+logger = logging.getLogger(__name__)
 
 TICKER_PATTERN = re.compile(r"^[A-Za-z]{1,6}([.-][A-Za-z]{1,2})?$")
 
@@ -33,11 +38,13 @@ class CompanyService:
         filings: FilingsProvider,
         fundamentals: FundamentalsProvider,
         prices: PriceProvider,
+        latest: LatestPriceSource | None = None,
     ) -> None:
         self._directory = directory
         self._filings = filings
         self._fundamentals = fundamentals
         self._prices = prices
+        self._latest = latest
 
     async def search(self, query: str, limit: int) -> list[CompanyRef]:
         return await self._directory.search(query, limit)
@@ -57,6 +64,17 @@ class CompanyService:
 
     async def seasonality(self, ticker: str) -> Seasonality:
         return build_seasonality(await self.monthly_prices(ticker))
+
+    async def latest_prices(self, symbols: Iterable[str]) -> dict[str, LatestClose]:
+        """Newest stored close per symbol, best effort: with no price store, or if it fails, the
+        answer is simply empty (a value is a nice-to-have, never a reason to fail a page)."""
+        if self._latest is None:
+            return {}
+        try:
+            return await self._latest.latest_closes(symbols)
+        except AppError:
+            logger.warning("latest prices unavailable", exc_info=True)
+            return {}
 
     async def names(self, symbols: Iterable[str]) -> dict[str, str]:
         """Company names for display, best effort: a symbol that cannot be looked up (or a

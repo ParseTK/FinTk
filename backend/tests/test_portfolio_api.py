@@ -122,6 +122,7 @@ async def test_holdings_are_sorted_and_empty_means_zero(world: World) -> None:
     assert (await world.alice.get(PORTFOLIO)).json() == {
         "holdings": [],
         "total_cost_basis": "0.00",
+        "valuation": None,  # no prices held: cost figures only, never a guessed value
         "currency": "USD",
     }
     await add(world.alice, symbol="MSFT")

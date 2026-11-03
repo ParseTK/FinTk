@@ -13,6 +13,7 @@ from app.schemas.portfolio import (
     LotsResponse,
     NewLotInput,
     PortfolioResponse,
+    PortfolioValuationResponse,
 )
 
 router = APIRouter(
@@ -39,6 +40,9 @@ async def get_portfolio(auth: CurrentAuth, service: PortfolioServiceDep) -> Port
             for h in portfolio.holdings
         ],
         total_cost_basis=portfolio.total_cost_basis,
+        valuation=PortfolioValuationResponse.from_domain(portfolio.valuation)
+        if portfolio.valuation
+        else None,
     )
 
 

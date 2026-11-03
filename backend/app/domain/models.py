@@ -71,3 +71,13 @@ class PriceHistory:
     symbol: str
     source: str  # where the numbers came from, shown to the user ("sample" until a real provider)
     prices: tuple[MonthlyPrice, ...]  # oldest first
+
+
+@dataclass(frozen=True, slots=True)
+class LatestClose:
+    """The newest stored month-end close of a symbol."""
+
+    symbol: str
+    month_end: date
+    close: Decimal
+    source: str
