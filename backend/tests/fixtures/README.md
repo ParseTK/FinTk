@@ -10,3 +10,11 @@ run the real parsing code against genuine data instead of invented JSON.
 | `companyfacts_aapl.json` | `data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json` | the concepts the API reads; 10-K, 10-K/A and 10-Q rows from 2018 on |
 
 Captured 2026-11-02. Apple's published results are the check: FY2024 revenue is 391,035 million USD.
+
+# Crypto fixtures (synthetic)
+
+`cmc_listings.json`, `cmc_global.json` and `cmc_fear_greed.json` are **invented**, not recorded from
+CoinMarketCap. The coins are fictional (Example Gold, Example Silver, Example Tiny) and the numbers are
+made up. They are shaped like the documented response so the parsers can be tested. Real responses are
+deliberately not committed: the provider's licence allows its data only inside our product, so copying
+real data into a public repository would store it where it may not be stored.

@@ -31,6 +31,24 @@
         "title": "AnnualValueResponse",
         "type": "object"
       },
+      "AttributionResponse": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "url"
+        ],
+        "title": "AttributionResponse",
+        "type": "object"
+      },
       "BatchLotsInput": {
         "additionalProperties": false,
         "description": "Several purchases saved together: all of them, or none.",
@@ -224,6 +242,143 @@
         "title": "CompanySummary",
         "type": "object"
       },
+      "CryptoAssetResponse": {
+        "properties": {
+          "change_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 24H"
+          },
+          "change_7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 7D"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "volume_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volume 24H"
+          }
+        },
+        "required": [
+          "rank",
+          "name",
+          "symbol",
+          "slug",
+          "price",
+          "change_24h",
+          "change_7d",
+          "market_cap",
+          "volume_24h"
+        ],
+        "title": "CryptoAssetResponse",
+        "type": "object"
+      },
+      "CryptoOverviewResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/CryptoAssetResponse"
+            },
+            "title": "Assets",
+            "type": "array"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "fear_greed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FearGreedResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketTotalsResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unavailable": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "assets",
+          "totals",
+          "fear_greed",
+          "unavailable"
+        ],
+        "title": "CryptoOverviewResponse",
+        "type": "object"
+      },
       "ErrorBody": {
         "properties": {
           "code": {
@@ -311,6 +466,24 @@
           "error"
         ],
         "title": "ErrorResponse",
+        "type": "object"
+      },
+      "FearGreedResponse": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ],
+        "title": "FearGreedResponse",
         "type": "object"
       },
       "FilingResponse": {
@@ -794,6 +967,62 @@
           "figures"
         ],
         "title": "MarketRowResponse",
+        "type": "object"
+      },
+      "MarketTotalsResponse": {
+        "properties": {
+          "btc_dominance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Btc Dominance"
+          },
+          "eth_dominance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eth Dominance"
+          },
+          "total_market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Market Cap"
+          },
+          "total_volume_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Volume 24H"
+          }
+        },
+        "required": [
+          "total_market_cap",
+          "total_volume_24h",
+          "btc_dominance",
+          "eth_dominance"
+        ],
+        "title": "MarketTotalsResponse",
         "type": "object"
       },
       "MetaResponse": {
@@ -2514,6 +2743,68 @@
         "summary": "Return of each calendar month, year by year",
         "tags": [
           "companies"
+        ]
+      }
+    },
+    "/api/v1/crypto/overview": {
+      "get": {
+        "description": "For our own website only: requires the internal token. The response carries the attribution that must be shown with the data.",
+        "operationId": "get_overview_api_v1_crypto_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Top coins by market capitalization, with market totals and Fear and Greed",
+        "tags": [
+          "crypto"
         ]
       }
     },

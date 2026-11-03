@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from datetime import date
 from typing import Protocol
 
+from app.domain.crypto import CryptoListings, FearGreed, MarketTotals
 from app.domain.models import (
     CompanyProfile,
     CompanyRef,
@@ -40,6 +41,23 @@ class PriceProvider(Protocol):
         """Completed months, oldest first. With ``since``, a provider may return only the months
         from that one on (it must include it, so a restated month is corrected)."""
         ...
+
+
+class CryptoProvider(Protocol):
+    """Cryptocurrency market data. Each call may spend a quota, so callers cache the answers."""
+
+    @property
+    def source(self) -> str:
+        """Where the numbers come from, shown to users together with the required attribution."""
+        ...
+
+    async def listings(self, limit: int) -> CryptoListings:
+        """The top ``limit`` coins by market capitalization, ordered by rank."""
+        ...
+
+    async def market_totals(self) -> MarketTotals: ...
+
+    async def fear_greed(self) -> FearGreed: ...
 
 
 class LatestPriceSource(Protocol):
