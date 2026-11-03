@@ -28,7 +28,7 @@ beforeEach(() => {
   );
 });
 
-const toggle = () => screen.getByRole("button", { name: /^(Add purchases|Close)$/ });
+const toggle = () => screen.getByRole("button", { name: /^(Add record|Close)$/ });
 const renderPanel = () =>
   render(<AddPurchasePanel csrfToken="csrf-1" heading={<h1>Portfolio</h1>} />);
 
@@ -64,10 +64,10 @@ describe("opening and closing", () => {
     expect(screen.getByRole("heading", { name: "Portfolio" })).toBeInTheDocument();
   });
 
-  it("is titled for what it does: recording one or several purchases", async () => {
+  it("is titled for what it does: adding one or several records", async () => {
     renderPanel();
     await open();
-    expect(screen.getByRole("heading", { name: "Record what you bought" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "New records" })).toBeInTheDocument();
     expect(screen.getByText(/saved together, or not at all/)).toBeInTheDocument();
     expect(screen.queryByText(/^Add a purchase$/)).not.toBeInTheDocument();
   });
@@ -118,9 +118,9 @@ describe("rows", () => {
     await open();
     expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
     expect(screen.getAllByRole("group")).toHaveLength(2);
-    await userEvent.click(screen.getByRole("button", { name: /^Remove\s+purchase\s+2$/ }));
+    await userEvent.click(screen.getByRole("button", { name: "Remove record 2" }));
     expect(screen.getAllByRole("group")).toHaveLength(1);
     expect(screen.queryByRole("button", { name: /^Remove/ })).not.toBeInTheDocument();
   });
@@ -128,7 +128,7 @@ describe("rows", () => {
   it("stops offering rows at the limit and says why", async () => {
     renderPanel();
     await open();
-    const add = screen.getByRole("button", { name: "Add another row" });
+    const add = screen.getByRole("button", { name: "Add another record" });
     for (let i = 1; i < MAX_ROWS; i++) await userEvent.click(add);
     expect(screen.getAllByRole("group")).toHaveLength(MAX_ROWS);
     expect(add).toBeDisabled();
@@ -138,18 +138,18 @@ describe("rows", () => {
   it("names each row for assistive technology", async () => {
     renderPanel();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
-    expect(screen.getByRole("group", { name: /^Purchase\s+2$/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
+    expect(screen.getByRole("group", { name: "Record 2" })).toBeInTheDocument();
   });
 
   it("counts the rows it will save in the button", async () => {
     renderPanel();
     await open();
-    expect(screen.getByRole("button", { name: "Save purchase" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
+    expect(screen.getByRole("button", { name: "Save record" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
     await fillRow(0, { symbol: "AAPL" });
     await fillRow(1, { symbol: "MSFT" });
-    expect(screen.getByRole("button", { name: "Save 2 purchases" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save 2 records" })).toBeInTheDocument();
   });
 });
 
@@ -158,12 +158,12 @@ describe("saving", () => {
     sendJson.mockResolvedValue(ok());
     renderPanel();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
     await fillRow(0, { symbol: " aapl ", shares: " 10.5 ", cost: "187.12" });
     await fillRow(2, { symbol: "msft", shares: "2", cost: "300", date: "2024-05-31" }); // row 1 blank
 
-    await userEvent.click(screen.getByRole("button", { name: "Save 2 purchases" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save 2 records" }));
 
     expect(sendJson).toHaveBeenCalledTimes(1);
     expect(sendJson).toHaveBeenCalledWith("POST", "/api/v1/portfolio/lots/batch", "csrf-1", {
@@ -182,9 +182,9 @@ describe("saving", () => {
     renderPanel();
     await open();
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
-    await userEvent.click(screen.getByRole("button", { name: "Save purchase" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save record" }));
 
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Added 1 purchase."));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Added 1 record."));
     expect(toggle()).toHaveAttribute("aria-expanded", "false");
     expect(toggle()).toHaveFocus();
     expect(refresh).toHaveBeenCalledTimes(1);
@@ -197,18 +197,18 @@ describe("saving", () => {
     sendJson.mockResolvedValue(ok());
     renderPanel();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
     await fillRow(1, { symbol: "KO", shares: "1", cost: "2" });
-    await userEvent.click(screen.getByRole("button", { name: "Save 2 purchases" }));
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Added 2 purchases."));
+    await userEvent.click(screen.getByRole("button", { name: "Save 2 records" }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Added 2 records."));
   });
 
   it("asks for what is missing without calling the server", async () => {
     renderPanel();
     await open();
     await fillRow(0, { symbol: "AAPL" });
-    await userEvent.click(screen.getByRole("button", { name: "Save purchase" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save record" }));
 
     expect(sendJson).not.toHaveBeenCalled();
     expect(screen.getByText(/Enter a number of shares/)).toBeInTheDocument();
@@ -220,9 +220,9 @@ describe("saving", () => {
   it("will not save an empty form", async () => {
     renderPanel();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "Save purchase" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save record" }));
     expect(sendJson).not.toHaveBeenCalled();
-    expect(screen.getByRole("alert")).toHaveTextContent("Add at least one purchase.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Add at least one record.");
   });
 
   it("marks a server problem on the right row, keeps everything typed and stays open", async () => {
@@ -233,17 +233,17 @@ describe("saving", () => {
     );
     renderPanel();
     await open();
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
-    await userEvent.click(screen.getByRole("button", { name: "Add another row" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
+    await userEvent.click(screen.getByRole("button", { name: "Add another record" }));
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
     await fillRow(2, { symbol: "NOPEX", shares: "3", cost: "4" }); // row 1 is blank and skipped
-    await userEvent.click(screen.getByRole("button", { name: "Save 2 purchases" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save 2 records" }));
 
-    const third = screen.getByRole("group", { name: /^Purchase\s+3$/ });
+    const third = screen.getByRole("group", { name: "Record 3" });
     expect(within(third).getByText(/could not find a company/)).toBeInTheDocument();
     expect(within(third).getByLabelText("Ticker symbol")).toBeInvalid();
     expect(
-      within(screen.getByRole("group", { name: /^Purchase\s+1$/ })).queryByText(/could not find/),
+      within(screen.getByRole("group", { name: "Record 1" })).queryByText(/could not find/),
     ).not.toBeInTheDocument();
     expect(within(third).getByLabelText("Shares")).toHaveValue("3");
     expect(screen.getByRole("alert")).toHaveTextContent("Nothing was saved.");
@@ -259,7 +259,7 @@ describe("saving", () => {
     renderPanel();
     await open();
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
-    await userEvent.click(screen.getByRole("button", { name: "Save purchase" }));
+    await userEvent.click(screen.getByRole("button", { name: "Save record" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(message);
     expect(screen.getByLabelText("Ticker symbol")).toHaveValue("AAPL");
   });
@@ -269,7 +269,7 @@ describe("saving", () => {
     renderPanel();
     await open();
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
-    const save = () => userEvent.click(screen.getByRole("button", { name: "Save purchase" }));
+    const save = () => userEvent.click(screen.getByRole("button", { name: "Save record" }));
 
     await save();
     await save();
@@ -287,7 +287,7 @@ describe("saving", () => {
     renderPanel();
     await open();
     await fillRow(0, { symbol: "AAPL", shares: "1", cost: "2" });
-    const save = screen.getByRole("button", { name: "Save purchase" });
+    const save = screen.getByRole("button", { name: "Save record" });
     await userEvent.click(save);
     await userEvent.click(save);
     expect(sendJson).toHaveBeenCalledTimes(1);

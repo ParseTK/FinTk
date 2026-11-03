@@ -88,7 +88,7 @@ describe("HoldingCard", () => {
     expect(within(body).getByText("Average cost").nextElementSibling).toHaveTextContent("$100.00");
     expect(within(body).getByText("Total paid").nextElementSibling).toHaveTextContent("$1,000.00");
     expect(within(body).getByText("Latest price").nextElementSibling).toHaveTextContent("$94.08");
-    expect(within(body).getByRole("heading", { name: "Purchases (2)" })).toBeInTheDocument();
+    expect(within(body).getByRole("heading", { name: "Records (2)" })).toBeInTheDocument();
     expect(within(body).getAllByRole("listitem")).toHaveLength(2);
     expect(within(body).getByRole("link", { name: "View KO company page" })).toHaveAttribute(
       "href",
@@ -125,12 +125,12 @@ describe("HoldingCard", () => {
     expect(header()).not.toHaveTextContent("$940.80");
   });
 
-  it("says plainly that a single purchase is one purchase", async () => {
+  it("says plainly that a single record is one record", async () => {
     render(
       <HoldingCard holding={holding({ lots: 1 })} lots={[lots[0]!]} csrfToken="c" showValue />,
     );
     await userEvent.click(header());
-    expect(screen.getByRole("heading", { name: "Purchase" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Record" })).toBeInTheDocument();
   });
 
   it("has no accessibility violations, closed or open", async () => {
@@ -160,7 +160,7 @@ describe("HoldingsCards", () => {
     );
     await userEvent.click(apple);
     const body = document.getElementById(apple.getAttribute("aria-controls")!)!;
-    expect(within(body).getByRole("heading", { name: "Purchase" })).toBeInTheDocument();
+    expect(within(body).getByRole("heading", { name: "Record" })).toBeInTheDocument();
     expect(within(body).getAllByRole("listitem")).toHaveLength(1);
   });
 

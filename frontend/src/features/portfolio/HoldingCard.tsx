@@ -3,9 +3,9 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { useId, useState } from "react";
-import { Change } from "@/components/ui/Change";
 import { ChevronDownIcon } from "@/components/ui/icons";
 import { formatMoney, formatPrice, formatQuote, formatShares, PLACEHOLDER } from "@/lib/format";
+import { GainChip } from "./GainChip";
 import { PurchaseItem } from "./PurchaseItem";
 import type { Holding, Lot } from "./types";
 
@@ -21,11 +21,14 @@ export function HoldingCard({
   lots,
   csrfToken,
   showValue,
+  color,
 }: {
   holding: Holding;
   lots: Lot[];
   csrfToken: string;
   showValue: boolean;
+  /** The color of this company's slice in the allocation bar, as a dot beside its name. */
+  color?: string;
 }) {
   const [open, setOpen] = useState(false);
   const id = useId();
@@ -42,11 +45,18 @@ export function HoldingCard({
           onClick={() => setOpen((value) => !value)}
           className="flex w-full items-start justify-between gap-3 rounded-xl p-4 text-left"
         >
-          <span className="min-w-0">
-            <span className="block text-lg font-semibold">{holding.symbol}</span>
-            {holding.name && (
-              <span className="text-fg-muted block truncate text-sm">{holding.name}</span>
-            )}
+          <span className="flex min-w-0 items-start gap-2.5">
+            <span
+              aria-hidden="true"
+              className="mt-2 size-2.5 shrink-0 rounded-full"
+              style={{ background: color ?? "var(--border-strong)" }}
+            />
+            <span className="min-w-0">
+              <span className="block text-lg font-semibold">{holding.symbol}</span>
+              {holding.name && (
+                <span className="text-fg-muted block truncate text-sm">{holding.name}</span>
+              )}
+            </span>
           </span>
           <span className="flex shrink-0 items-start gap-2">
             <span className="block text-right">
@@ -55,12 +65,12 @@ export function HoldingCard({
                   <span className="block text-lg font-semibold tabular-nums">
                     {formatMoney(valuation.market_value)}
                   </span>
-                  <span className="flex items-start justify-end gap-1 text-sm">
-                    <Change value={valuation.gain} kind="money" />
-                    <span className="text-xs leading-none">
-                      (<Change value={valuation.gain_percent} arrow={false} />)
-                    </span>
-                  </span>
+                  <GainChip
+                    gain={valuation.gain}
+                    percent={valuation.gain_percent}
+                    size="sm"
+                    className="mt-1 -mr-2"
+                  />
                 </>
               ) : (
                 <>
@@ -108,7 +118,7 @@ export function HoldingCard({
             </Link>
             <div>
               <h4 className="text-fg-muted text-sm font-semibold">
-                {lots.length === 1 ? "Purchase" : `Purchases (${lots.length})`}
+                {lots.length === 1 ? "Record" : `Records (${lots.length})`}
               </h4>
               <ul className="divide-border divide-y">
                 {lots.map((lot) => (

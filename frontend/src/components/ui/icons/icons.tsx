@@ -56,6 +56,14 @@ export function PlayIcon({ className = "size-4" }: { className?: string }) {
   );
 }
 
+export function CheckIcon({ className = "size-4" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
 export function PlusIcon({ className = "size-4" }: { className?: string }) {
   return (
     <svg {...base} className={className}>

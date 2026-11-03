@@ -23,6 +23,15 @@
   --loss: #b91c1c;
   --focus: #1d4ed8;
   --on-accent: #ffffff; /* text on solid brand / gain / loss / fg-muted fills */
+  /* Chart series, in fixed order. Validated with the data-viz palette checker against these
+     surfaces (adjacent color-blind separation and normal-vision floor pass in both themes). They do
+     not follow the accent on purpose: slices must stay distinguishable whatever accent is chosen. */
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+  --chart-3: #1baf7a;
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+  --chart-other: #94a3b8;
 }
 
 .dark {
@@ -37,6 +46,12 @@
   --loss: #f87171;
   --focus: #93c5fd;
   --on-accent: #020617;
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-other: #64748b;
 }
 
 [data-accent="violet"] {
@@ -119,6 +134,8 @@
   --animate-ping-dot: ping-dot 0.9s var(--ease-out-expo) 0.9s both;
   --animate-ray: ray 0.6s var(--ease-out-expo) both;
   --animate-bulb: bulb 0.8s var(--ease-spring) both;
+  /* A bar growing from its left edge, once. */
+  --animate-grow-x: grow-x 0.9s var(--ease-out-expo) 0.1s both;
 
   @keyframes lens-scan {
     0% {
@@ -216,6 +233,14 @@
     }
     to {
       stroke-dashoffset: 0;
+    }
+  }
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: none;
     }
   }
   @keyframes rise {
@@ -394,6 +419,12 @@
   --color-loss: var(--loss);
   --color-focus: var(--focus);
   --color-on-accent: var(--on-accent);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-other: var(--chart-other);
   --font-sans: var(--font-active);
 }
 
