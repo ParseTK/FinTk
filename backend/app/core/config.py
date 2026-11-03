@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     twelve_data_calls_per_minute: int = Field(default=7, ge=1, le=600)
     twelve_data_calls_per_day: int = Field(default=700, ge=1, le=100_000)
 
+    # Shared secret that proves a request comes from our own website server. Routes that return a
+    # data vendor's content (the licence allows it only as part of our product, never on a
+    # standalone basis) require it, so the API cannot be used as a public feed of that data. Unset
+    # is allowed in development only; production fails closed.
+    # Generate one with: openssl rand -base64 48
+    internal_api_token: SecretStr | None = None
+
     # Postgres connection URL, e.g. postgresql+asyncpg://user:pass@host:5432/db. Held as a secret so
     # it never shows up in a repr, log line or traceback. Unset means "no database": the app still
     # starts and the data routes that need it answer 503.
@@ -97,6 +104,14 @@ class Settings(BaseSettings):
             msg = "secret_key must be at least 32 characters (try: openssl rand -base64 48)"
             raise ValueError(msg)
         return key
+
+    @field_validator("internal_api_token")
+    @classmethod
+    def _validate_internal_api_token(cls, token: SecretStr | None) -> SecretStr | None:
+        if token is not None and len(token.get_secret_value()) < 32:
+            msg = "internal_api_token must be at least 32 characters (try: openssl rand -base64 48)"
+            raise ValueError(msg)
+        return token
 
     @field_validator("public_url")
     @classmethod
