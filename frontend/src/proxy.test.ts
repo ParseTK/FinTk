@@ -9,7 +9,7 @@ const passesThrough = (response: Response) => response.headers.get("x-middleware
 afterEach(() => vi.unstubAllEnvs());
 
 describe("pages behind a flag", () => {
-  it.each(["/design", "/design/colors", "/sign-in", "/account", "/markets"])(
+  it.each(["/design", "/design/colors", "/sign-in", "/account", "/markets", "/news"])(
     "%s is a real 404 while its flag is off",
     async (path) => {
       expect(rewrittenTo(await proxy(request(path)))).toBe(
@@ -193,5 +193,14 @@ describe("the markets page", () => {
     expect(rewrittenTo(await proxy(request("/markets")))).toContain("/not-found-disabled");
     vi.stubEnv("FEATURE_MARKETS", "true");
     expect(passesThrough(await proxy(request("/markets")))).toBe(true);
+  });
+});
+
+describe("the news page", () => {
+  it("opens with its own flag, and the markets flag does not open it", async () => {
+    vi.stubEnv("FEATURE_MARKETS", "true");
+    expect(rewrittenTo(await proxy(request("/news")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_NEWS", "true");
+    expect(passesThrough(await proxy(request("/news")))).toBe(true);
   });
 });
