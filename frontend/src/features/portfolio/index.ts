@@ -2,6 +2,7 @@
 export { AddPurchaseForm } from "./AddPurchaseForm";
 export { AddPurchasePanel } from "./AddPurchasePanel";
 export { getLots, getPortfolio } from "./data";
+export { HoldingsCards } from "./HoldingsCards";
 export { HoldingsTable } from "./HoldingsTable";
 export { PortfolioList } from "./PortfolioList";
 export { PortfolioProvider, usePortfolio } from "./PortfolioProvider";

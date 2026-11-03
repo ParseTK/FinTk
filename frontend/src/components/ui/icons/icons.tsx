@@ -71,3 +71,11 @@ export function CloseIcon({ className = "size-4" }: { className?: string }) {
     </svg>
   );
 }
+
+export function ChevronDownIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}

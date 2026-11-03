@@ -9,6 +9,7 @@ import {
   AddPurchasePanel,
   getLots,
   getPortfolio,
+  HoldingsCards,
   HoldingsTable,
   PortfolioSummary,
   PurchasesSection,
@@ -58,7 +59,25 @@ export default async function PortfolioPage() {
                   Holdings
                 </h2>
                 {showValue && <PortfolioSummary portfolio={portfolio} />}
-                <HoldingsTable portfolio={portfolio} showValue={showValue} />
+                {v2 ? (
+                  <>
+                    {/* Phones get collapsed cards (purchases live inside them); wider screens
+                        keep the table and the purchases section below it. */}
+                    <div className="md:hidden">
+                      <HoldingsCards
+                        portfolio={portfolio}
+                        lots={lots}
+                        csrfToken={csrfToken}
+                        showValue={showValue}
+                      />
+                    </div>
+                    <div className="hidden md:block">
+                      <HoldingsTable portfolio={portfolio} showValue={showValue} />
+                    </div>
+                  </>
+                ) : (
+                  <HoldingsTable portfolio={portfolio} showValue={showValue} />
+                )}
               </Card>
             )}
 
@@ -69,7 +88,11 @@ export default async function PortfolioPage() {
             )}
 
             {portfolio.holdings.length > 0 && (
-              <Card as="section" aria-labelledby="purchases-heading" className="space-y-3">
+              <Card
+                as="section"
+                aria-labelledby="purchases-heading"
+                className={v2 ? "hidden space-y-3 md:block" : "space-y-3"}
+              >
                 <h2 id="purchases-heading" className="text-xl font-semibold">
                   Your purchases
                 </h2>
