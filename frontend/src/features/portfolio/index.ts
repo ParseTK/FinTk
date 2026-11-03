@@ -4,6 +4,7 @@ export { getLots, getPortfolio } from "./data";
 export { HoldingsTable } from "./HoldingsTable";
 export { PortfolioList } from "./PortfolioList";
 export { PortfolioProvider, usePortfolio } from "./PortfolioProvider";
+export { PortfolioSummary } from "./PortfolioSummary";
 export { PortfolioToggleButton } from "./PortfolioToggleButton";
 export { PurchasesSection } from "./PurchasesSection";
 export type { Holding, Lot, Portfolio } from "./types";

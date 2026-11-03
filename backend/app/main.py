@@ -72,7 +72,8 @@ def _lifespan(settings: Settings):
                     ),
                     app.state.database,
                 )
-            app.state.company_service = CompanyService(sec, sec, sec, prices)
+            latest = prices if isinstance(prices, StoredPriceProvider) else None
+            app.state.company_service = CompanyService(sec, sec, sec, prices, latest)
         try:
             yield
         finally:

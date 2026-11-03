@@ -471,6 +471,40 @@ export interface components {
             shares: string;
             /** Symbol */
             symbol: string;
+            /** @description Null when no price is held for this company yet. */
+            valuation?: components["schemas"]["HoldingValuationResponse"] | null;
+        };
+        /**
+         * HoldingValuationResponse
+         * @description Worth at the latest month-end close held, not a live quote.
+         */
+        HoldingValuationResponse: {
+            /**
+             * As Of
+             * Format: date
+             * @description Last day of that month.
+             */
+            as_of: string;
+            /**
+             * Gain
+             * @description Market value minus total paid, to cents.
+             */
+            gain: string;
+            /**
+             * Gain Percent
+             * @description Gain as a percentage of total paid.
+             */
+            gain_percent: string;
+            /**
+             * Market Value
+             * @description Shares times price, to cents.
+             */
+            market_value: string;
+            /**
+             * Price
+             * @description Closing price of the latest month held.
+             */
+            price: string;
         };
         /**
          * LotInput
@@ -588,6 +622,30 @@ export interface components {
             holdings: components["schemas"]["HoldingResponse"][];
             /** Total Cost Basis */
             total_cost_basis: string;
+            /** @description Null until at least one holding has a price. */
+            valuation?: components["schemas"]["PortfolioValuationResponse"] | null;
+        };
+        /**
+         * PortfolioValuationResponse
+         * @description Totals over the holdings that have a price. Others are left out and not guessed.
+         */
+        PortfolioValuationResponse: {
+            /**
+             * As Of
+             * Format: date
+             * @description Oldest month-end among the valued holdings.
+             */
+            as_of: string;
+            /** Gain */
+            gain: string;
+            /** Gain Percent */
+            gain_percent: string;
+            /** Holdings Valued */
+            holdings_valued: number;
+            /** Market Value */
+            market_value: string;
+            /** Source */
+            source: string;
         };
         /** ReadinessResponse */
         ReadinessResponse: {

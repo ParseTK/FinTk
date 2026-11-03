@@ -1,8 +1,22 @@
 import Link from "next/link";
-import { formatMoney, formatPrice, formatShares } from "@/lib/format";
+import { Change } from "@/components/ui/Change";
+import { formatMoney, formatPrice, formatShares, PLACEHOLDER } from "@/lib/format";
 import type { Portfolio } from "./types";
 
-export function HoldingsTable({ portfolio }: { portfolio: Portfolio }) {
+/**
+ * One row per company. With `showValue`, and when at least one holding has a price, three more
+ * columns show the latest month-end price, what the holding is worth and the gain or loss. A
+ * holding without a price shows dashes there rather than a guess.
+ */
+export function HoldingsTable({
+  portfolio,
+  showValue = false,
+}: {
+  portfolio: Portfolio;
+  showValue?: boolean;
+}) {
+  const valued = showValue && portfolio.holdings.some((holding) => holding.valuation);
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm tabular-nums">
@@ -23,6 +37,19 @@ export function HoldingsTable({ portfolio }: { portfolio: Portfolio }) {
             <th scope="col" className="px-2 py-2 text-right font-semibold">
               Total cost
             </th>
+            {valued && (
+              <>
+                <th scope="col" className="px-2 py-2 text-right font-semibold">
+                  Latest price
+                </th>
+                <th scope="col" className="px-2 py-2 text-right font-semibold">
+                  Value
+                </th>
+                <th scope="col" className="px-2 py-2 text-right font-semibold">
+                  Gain or loss
+                </th>
+              </>
+            )}
             <th scope="col" className="py-2 pl-2 text-right font-semibold">
               Purchases
             </th>
@@ -45,6 +72,28 @@ export function HoldingsTable({ portfolio }: { portfolio: Portfolio }) {
               <td className="px-2 py-3 text-right">{formatShares(holding.shares)}</td>
               <td className="px-2 py-3 text-right">{formatPrice(holding.average_cost)}</td>
               <td className="px-2 py-3 text-right">{formatMoney(holding.cost_basis)}</td>
+              {valued && (
+                <>
+                  <td className="px-2 py-3 text-right">
+                    {holding.valuation ? formatPrice(holding.valuation.price) : PLACEHOLDER}
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    {holding.valuation ? formatMoney(holding.valuation.market_value) : PLACEHOLDER}
+                  </td>
+                  <td className="px-2 py-3 text-right">
+                    {holding.valuation ? (
+                      <>
+                        <Change value={holding.valuation.gain} kind="money" />
+                        <span className="block text-xs">
+                          <Change value={holding.valuation.gain_percent} />
+                        </span>
+                      </>
+                    ) : (
+                      PLACEHOLDER
+                    )}
+                  </td>
+                </>
+              )}
               <td className="py-3 pl-2 text-right">{holding.lots}</td>
             </tr>
           ))}
@@ -57,7 +106,7 @@ export function HoldingsTable({ portfolio }: { portfolio: Portfolio }) {
             <td className="px-2 py-3 text-right font-semibold">
               {formatMoney(portfolio.total_cost_basis)}
             </td>
-            <td />
+            <td colSpan={valued ? 4 : 1} />
           </tr>
         </tfoot>
       </table>
