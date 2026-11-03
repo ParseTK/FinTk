@@ -118,3 +118,52 @@ class UserSession(Base):
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # idle (sliding) limit
     absolute_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # hard limit
+
+
+# -- Watchlist and portfolio ------------------------------------------------------------------
+#
+# Every row belongs to one user and goes with them when the account is deleted (ON DELETE CASCADE).
+
+
+class WatchlistItem(Base):
+    __tablename__ = "watchlist_item"
+
+    # The primary key doubles as the "is it already there" check, so adding twice is a no-op, and
+    # as the index for "everything this user watches".
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
+    )
+    symbol: Mapped[str] = mapped_column(String(SYMBOL_LENGTH), primary_key=True)
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class HoldingLot(Base):
+    """One purchase: some shares at one price per share (US dollars).
+
+    A holding is the sum of its lots, and its average cost is computed from them, never typed.
+    NUMERIC, not float: money is exact. Six decimals allow fractional shares and split-adjusted
+    prices.
+    """
+
+    __tablename__ = "holding_lot"
+    __table_args__ = (
+        CheckConstraint("shares > 0", name="shares_positive"),
+        CheckConstraint("unit_cost > 0", name="unit_cost_positive"),
+        # One row per (user, client key): a repeated submit with the same Idempotency-Key finds the
+        # lot it already created instead of making a second one. NULL keys are never compared.
+        UniqueConstraint("user_id", "client_key"),
+        # Serves "my holdings" (group by symbol) and "the lots of one symbol".
+        Index("ix_holding_lot_user_id_symbol", "user_id", "symbol"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user_account.id", ondelete="CASCADE"))
+    symbol: Mapped[str] = mapped_column(String(SYMBOL_LENGTH))
+    shares: Mapped[Decimal] = mapped_column(Numeric(20, 6))
+    unit_cost: Mapped[Decimal] = mapped_column(Numeric(18, 6))
+    acquired_on: Mapped[date | None] = mapped_column(Date)
+    client_key: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

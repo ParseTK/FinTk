@@ -92,6 +92,12 @@ class RateLimitedError(AppError):
     default_message = "Too many requests. Please slow down and try again shortly."
 
 
+class LimitReachedError(AppError):
+    status_code = 409
+    code = "limit_reached"
+    default_message = "You have reached the limit for this."
+
+
 class UnauthorizedError(AppError):
     status_code = 401
     code = "unauthorized"

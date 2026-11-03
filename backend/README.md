@@ -97,6 +97,39 @@ Register the OAuth apps (free, no card) and put the ids and secrets in `backend/
 GitHub allows one callback URL per app, so use a separate app per environment. Without credentials the
 tests still cover the whole flow against a fake provider (`tests/fake_idp.py`).
 
+## Watchlist and portfolio
+
+Signed-in only. All amounts are US dollars, exact decimals, and travel as **strings** (never JSON
+numbers: `0.1` as a float is not `0.1`).
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/watchlist` | My watchlist, sorted, with company names. |
+| `PUT /api/v1/watchlist/{symbol}` | Add (201 new, 200 if already there). |
+| `DELETE /api/v1/watchlist/{symbol}` | Remove (204, also when it was not there). |
+| `GET /api/v1/portfolio` | Holdings: one row per company, computed from its purchases, plus the total. |
+| `GET /api/v1/portfolio/lots?symbol=` | My purchases. |
+| `POST /api/v1/portfolio/lots` | Record a purchase (optional `Idempotency-Key` header). |
+| `PUT /api/v1/portfolio/lots/{id}` | Replace a purchase (the company cannot change). |
+| `DELETE /api/v1/portfolio/lots/{id}` | Delete a purchase. |
+
+How it is kept correct and safe:
+
+- **Average cost is computed, not typed:** a holding is the sum of its purchases. The database adds
+  exactly (`NUMERIC`); the total is summed exactly and rounded to cents once, so rounded parts
+  never drift.
+- **Ownership on every id:** a purchase is only handed out after `require_owner`, and every
+  statement also filters by `user_id`. Someone else's purchase and a missing one are the same 404.
+- **Writes** need a session, the CSRF token and a trusted `Origin`, and are limited per person
+  (`VIRELLO_WRITES_PER_MINUTE`). Request bodies reject unknown fields, floats and anything that
+  would not fit the column.
+- **Bounded storage:** 200 watchlist items and 500 purchases per person by default. The limits are
+  checked under the person's row lock, so simultaneous requests cannot slip past them.
+- **Safe to repeat:** adding or removing twice is a no-op, and a purchase created twice with the
+  same `Idempotency-Key` returns the original (a different body with the same key is a 409).
+- Symbols are checked against the SEC directory before they are saved.
+- Lists are bounded by those caps, so they are returned whole rather than paged.
+
 ## Quality gates
 
 CI runs exactly these, and so should you before opening a PR:

@@ -79,6 +79,11 @@ class Settings(BaseSettings):
     # is used instead, so a client cannot choose its own rate-limit bucket by sending the header.
     trust_proxy_hops: int = Field(default=0, ge=0, le=5)
 
+    # --- Per-user limits (space and abuse bounds) ------------------------------------------
+    watchlist_max_items: int = Field(default=200, ge=1, le=2000)
+    portfolio_max_lots: int = Field(default=500, ge=1, le=5000)
+    writes_per_minute: int = Field(default=60, ge=1, le=1200)  # per signed-in user
+
     @field_validator("secret_key")
     @classmethod
     def _validate_secret_key(cls, key: SecretStr | None) -> SecretStr | None:
