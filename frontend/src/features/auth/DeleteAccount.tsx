@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 import { goTo } from "./navigate";
-import { sendWithCsrf } from "./request";
+import { sendWithCsrf } from "@/lib/apiRequest";
 
 type Step = "idle" | "confirming" | "deleting" | "failed";
 
@@ -62,11 +63,11 @@ export function DeleteAccount({ csrfToken }: { csrfToken: string }) {
         </div>
       )}
 
-      <p role="alert" className="text-loss text-sm" hidden={step !== "failed"}>
+      <LiveMessage>
         {step === "failed"
           ? "We could not delete your account. Reload the page and try again."
           : ""}
-      </p>
+      </LiveMessage>
     </section>
   );
 }

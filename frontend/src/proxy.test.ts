@@ -78,3 +78,46 @@ describe("forwarding sign-in calls to the API", () => {
     expect(isForwardedApiPath("/api/v1/companies/search")).toBe(false);
   });
 });
+
+describe("watchlist and portfolio paths", () => {
+  it.each(["/watchlist", "/portfolio"])("%s is a real 404 while the auth flag is off", (path) => {
+    expect(rewrittenTo(proxy(request(path)))).toContain("/not-found-disabled");
+  });
+
+  it.each(["/watchlist", "/portfolio"])("%s is reachable once the flag is on", (path) => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    expect(passesThrough(proxy(request(path)))).toBe(true);
+  });
+
+  it.each([
+    "/api/v1/watchlist",
+    "/api/v1/watchlist/AAPL",
+    "/api/v1/portfolio",
+    "/api/v1/portfolio/lots",
+    "/api/v1/portfolio/lots/2f6ac1d6-0d0e-4c52-a3e6-0f0f2f9f3b11?x=1",
+  ])("forwards %s to the API when the flag is on", (path) => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("API_URL", "https://api.virello.example");
+    expect(rewrittenTo(proxy(request(path)))).toBe(`https://api.virello.example${path}`);
+  });
+
+  it.each(["/api/v1/watchlist", "/api/v1/portfolio/lots"])(
+    "does not forward %s while the flag is off",
+    (path) => {
+      expect(rewrittenTo(proxy(request(path)))).toContain("/not-found-disabled");
+    },
+  );
+
+  it.each([
+    "/api/v1/watchlistx",
+    "/api/v1/portfolioish",
+    "/api/v1/portfolio/../companies/AAPL",
+    "/api/v1/watchlist/%2e%2e/companies/AAPL",
+    "/api/v1/watchlist/%2E%2E/%2E%2E/healthz",
+  ])("never forwards the look-alike or traversal path %s", (path) => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    const target = rewrittenTo(proxy(request(path)));
+    expect(target).toContain("/not-found-disabled");
+    expect(target).not.toContain("8000");
+  });
+});

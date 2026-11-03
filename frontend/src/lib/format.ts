@@ -123,3 +123,25 @@ export function formatFiscalYearEnd(value: string | null | undefined): string | 
     timeZone: "UTC",
   }).format(new Date(Date.UTC(2000, month - 1, day)));
 }
+
+/** A share count: up to six decimals, with trailing zeros dropped ("12.500000" -> "12.5"). */
+export function formatShares(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
+
+/** A price per share in dollars: at least cents, up to six decimals when the price needs them. */
+export function formatPrice(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
