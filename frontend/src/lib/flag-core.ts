@@ -35,6 +35,11 @@ export const FLAGS = {
     description:
       "The /markets page and its nav link: index and sector performance from month-end closes (ETF proxies).",
   },
+  ratios: {
+    default: false,
+    description:
+      "A Ratios card on the company page (margins, growth, return on equity and similar) worked out from the company's SEC filings.",
+  },
   crypto: {
     default: false,
     description:

@@ -601,6 +601,8 @@ export interface components {
         FinancialsResponse: {
             /** Metrics */
             metrics: components["schemas"]["MetricSeriesResponse"][];
+            /** Ratios */
+            ratios: components["schemas"]["RatioSeriesResponse"][];
             /** Source */
             source: string;
             /** Ticker */
@@ -889,6 +891,32 @@ export interface components {
             market_value: string;
             /** Source */
             source: string;
+        };
+        /** RatioSeriesResponse */
+        RatioSeriesResponse: {
+            /** Formula */
+            formula: string;
+            /** Label */
+            label: string;
+            /** Ratio */
+            ratio: string;
+            /**
+             * Unit
+             * @enum {string}
+             */
+            unit: "percent" | "times";
+            /** Values */
+            values: components["schemas"]["RatioValueResponse"][];
+        };
+        /** RatioValueResponse */
+        RatioValueResponse: {
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /** Value */
+            value: string | null;
         };
         /** ReadinessResponse */
         ReadinessResponse: {

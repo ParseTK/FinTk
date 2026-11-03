@@ -13,6 +13,7 @@ from app.domain.models import (
     MetricSeries,
     PriceHistory,
 )
+from app.domain.ratios import RatioSeries, compute_ratios
 from app.domain.seasonality import Seasonality, build_seasonality
 from app.providers.base import (
     CompanyDirectory,
@@ -57,6 +58,11 @@ class CompanyService:
 
     async def financials(self, ticker: str, years: int) -> list[MetricSeries]:
         return await self._fundamentals.annual_metrics(await self.resolve(ticker), years)
+
+    @staticmethod
+    def ratios(metrics: list[MetricSeries]) -> list[RatioSeries]:
+        """Ratios worked out from the annual figures (pure arithmetic, no provider call)."""
+        return compute_ratios(metrics)
 
     async def monthly_prices(self, ticker: str) -> PriceHistory:
         company = await self.resolve(ticker)

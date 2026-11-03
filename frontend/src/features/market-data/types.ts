@@ -7,3 +7,4 @@ export type CompanyProfile = Schemas["CompanyProfileResponse"];
 export type Filing = Schemas["FilingResponse"];
 export type MetricSeries = Schemas["MetricSeriesResponse"];
 export type Financials = Schemas["FinancialsResponse"];
+export type RatioSeries = Schemas["RatioSeriesResponse"];

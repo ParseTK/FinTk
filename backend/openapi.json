@@ -565,6 +565,13 @@
             "title": "Metrics",
             "type": "array"
           },
+          "ratios": {
+            "items": {
+              "$ref": "#/components/schemas/RatioSeriesResponse"
+            },
+            "title": "Ratios",
+            "type": "array"
+          },
           "source": {
             "title": "Source",
             "type": "string"
@@ -577,7 +584,8 @@
         "required": [
           "ticker",
           "source",
-          "metrics"
+          "metrics",
+          "ratios"
         ],
         "title": "FinancialsResponse",
         "type": "object"
@@ -1290,6 +1298,72 @@
           "source"
         ],
         "title": "PortfolioValuationResponse",
+        "type": "object"
+      },
+      "RatioSeriesResponse": {
+        "properties": {
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "ratio": {
+            "title": "Ratio",
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "percent",
+              "times"
+            ],
+            "title": "Unit",
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/RatioValueResponse"
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ratio",
+          "label",
+          "formula",
+          "unit",
+          "values"
+        ],
+        "title": "RatioSeriesResponse",
+        "type": "object"
+      },
+      "RatioValueResponse": {
+        "properties": {
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "period_end",
+          "value"
+        ],
+        "title": "RatioValueResponse",
         "type": "object"
       },
       "ReadinessResponse": {

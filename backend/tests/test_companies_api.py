@@ -102,6 +102,34 @@ async def test_financials_send_money_as_strings(api: httpx.AsyncClient) -> None:
     assert response.headers["cache-control"] == "public, max-age=3600"
 
 
+async def test_financials_include_ratios_with_their_formulas(api: httpx.AsyncClient) -> None:
+    body = (await api.get("/api/v1/companies/AAPL/financials", params={"years": 3})).json()
+
+    ratios = {r["ratio"]: r for r in body["ratios"]}
+    margin = ratios["gross_margin"]
+    assert margin["label"] == "Gross margin"
+    assert margin["formula"] == "gross profit / revenue"
+    assert margin["unit"] == "percent"
+    # Exact decimal strings, newest first, on the same fiscal years as the metrics.
+    assert margin["values"][0] == {"period_end": "2025-09-27", "value": "46.91"}
+    assert isinstance(margin["values"][0]["value"], str)
+    assert [v["period_end"] for v in margin["values"]] == [
+        v["period_end"] for v in body["metrics"][0]["values"]
+    ]
+    assert ratios["liabilities_to_equity"]["unit"] == "times"
+    # The oldest year has no earlier year to grow from: null, never a guess.
+    assert ratios["revenue_growth"]["values"][-1]["value"] is None
+
+
+async def test_the_existing_financials_fields_are_unchanged_by_adding_ratios(
+    api: httpx.AsyncClient,
+) -> None:
+    """v1 only changes additively: every field that existed before is still there."""
+    body = (await api.get("/api/v1/companies/AAPL/financials", params={"years": 2})).json()
+    assert {"ticker", "source", "metrics"} <= set(body)
+    assert {"metric", "unit", "values"} == set(body["metrics"][0])
+
+
 async def test_sample_prices_are_labelled_and_deterministic(api: httpx.AsyncClient) -> None:
     first = (await api.get("/api/v1/companies/AAPL/prices/monthly")).json()
     second = (await api.get("/api/v1/companies/AAPL/prices/monthly")).json()
