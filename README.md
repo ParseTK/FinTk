@@ -22,6 +22,8 @@ npm run dev
 
 The API lives in `backend/` (`uv sync`, then `uv run uvicorn app.main:app --reload`); see its README.
 
+With [just](https://github.com/casey/just) installed, `just` lists shortcuts for the above: `just api`, `just web`, `just test`, `just lint`, `just migrate`, `just gen-api` (regenerate the API contract and the typed client).
+
 ### Sign-in (off by default)
 
 Sign-in with Google or GitHub is behind the `auth` feature flag. With the flag off, `/sign-in`,
