@@ -53,7 +53,7 @@ describe("sendJson requests", () => {
 
     await sendJson("POST", "/api/v1/portfolio/lots", "tok", {
       body: { symbol: "AAPL" },
-      idempotencyKey: "key-12345678",
+      idempotencyKey: "same-same-same",
       fetcher,
     });
 
@@ -62,7 +62,7 @@ describe("sendJson requests", () => {
       headers: {
         "X-CSRF-Token": "tok",
         "Content-Type": "application/json",
-        "Idempotency-Key": "key-12345678",
+        "Idempotency-Key": "same-same-same",
       },
       credentials: "same-origin",
       body: JSON.stringify({ symbol: "AAPL" }),
