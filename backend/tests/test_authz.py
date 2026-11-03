@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from app.api.authz import require_owner
+from app.core.authz import require_owner
 from app.core.errors import NotFoundError
 
 ALICE = uuid.uuid4()

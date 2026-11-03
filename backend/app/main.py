@@ -100,6 +100,7 @@ def create_app(
     app.state.database = database
     app.state.oauth_providers = dict(oauth_providers or {})
     app.state.auth_limiter = KeyedRateLimiter(settings.auth_requests_per_minute)
+    app.state.write_limiter = KeyedRateLimiter(settings.writes_per_minute)
     if database is not None:
         readiness_checks["database"] = database.ping
 

@@ -1,7 +1,7 @@
 """Authentication, CSRF and rate-limit dependencies for routers.
 
 Authentication answers "who is this?". Authorization ("may they touch this object?") is separate:
-see ``app.api.authz``. Both are required on every endpoint that returns or changes user data.
+see ``app.core.authz``. Both are required on every endpoint that returns or changes user data.
 """
 
 from datetime import timedelta
@@ -113,5 +113,21 @@ async def limit_auth_requests(request: Request) -> None:
         raise RateLimitedError(headers={"Retry-After": str(max(1, round(retry_after)))})
 
 
+async def write_access(
+    request: Request, context: Annotated[AuthContext, Depends(verify_csrf)]
+) -> AuthContext:
+    """Signed in, CSRF-verified and under the per-user write limit: the guard for every write.
+
+    Per user, not per address: one person on a shared network should not be blocked by another,
+    and one account cannot hammer the database from many addresses.
+    """
+    limiter: KeyedRateLimiter = request.app.state.write_limiter
+    retry_after = limiter.hit(str(context.user.id))
+    if retry_after is not None:
+        raise RateLimitedError(headers={"Retry-After": str(max(1, round(retry_after)))})
+    return context
+
+
 CurrentAuth = Annotated[AuthContext, Depends(require_auth)]
+WriteAuth = Annotated[AuthContext, Depends(write_access)]
 CsrfProtectedAuth = Annotated[AuthContext, Depends(verify_csrf)]
