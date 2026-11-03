@@ -113,6 +113,33 @@ async def test_sample_prices_are_labelled_and_deterministic(api: httpx.AsyncClie
     assert isinstance(first["prices"][0]["close"], str)
 
 
+async def test_seasonality_is_a_year_by_month_grid_with_exact_string_percentages(
+    api: httpx.AsyncClient,
+) -> None:
+    response = await api.get("/api/v1/companies/AAPL/seasonality")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "public, max-age=3600"
+    assert body["source"] == "sample"  # labelled so the page can say it is not market data
+    assert body["start"] == {"year": 2000, "month": 1}
+    assert "dividends not included" in body["basis"]
+    first_year = body["years"][0]
+    assert first_year["year"] == 2000
+    assert len(first_year["returns"]) == 12
+    assert first_year["returns"][0] is None  # no return for the very first month of data
+    assert isinstance(first_year["returns"][1], str)
+    assert [m["month"] for m in body["months"]] == list(range(1, 13))
+    january = body["months"][0]
+    assert isinstance(january["average"], str)
+    assert january["count"] == len(body["years"]) - 1  # January 2000 has no return
+    assert isinstance(january["best"]["percent"], str)
+
+
+async def test_seasonality_for_an_unknown_company_is_a_404(api: httpx.AsyncClient) -> None:
+    assert (await api.get("/api/v1/companies/NOPE1/seasonality")).status_code == 404
+
+
 async def test_an_upstream_failure_is_a_502_in_the_standard_error_shape(
     api: httpx.AsyncClient, upstream: Upstream
 ) -> None:

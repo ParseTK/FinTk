@@ -1,6 +1,7 @@
 """Persistence for monthly price history. The only place that knows the price tables' SQL."""
 
 from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
 from datetime import date, datetime
 from itertools import batched
 
@@ -16,9 +17,34 @@ from app.domain.models import MonthlyPrice as MonthlyPriceValue
 BATCH_SIZE = 1000
 
 
+@dataclass(frozen=True, slots=True)
+class SeriesInfo:
+    """What we know about a stored series without reading its months."""
+
+    source: str
+    refreshed_at: datetime
+    latest_month: date | None  # None for a series the provider had no months for
+
+
 class PriceRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def info(self, symbol: str) -> SeriesInfo | None:
+        """Source, last refresh and newest month in one round trip. None if never stored."""
+        newest = (
+            select(func.max(MonthlyPrice.month_end))
+            .where(MonthlyPrice.symbol == PriceSeries.symbol)
+            .scalar_subquery()
+        )
+        row = (
+            await self._session.execute(
+                select(PriceSeries.source, PriceSeries.refreshed_at, newest).where(
+                    PriceSeries.symbol == symbol
+                )
+            )
+        ).one_or_none()
+        return None if row is None else SeriesInfo(row[0], row[1], row[2])
 
     async def refreshed_at(self, symbol: str) -> datetime | None:
         """When the series was last refreshed, or None if we have never stored it."""

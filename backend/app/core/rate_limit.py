@@ -2,12 +2,13 @@
 
 - AsyncRateLimiter spaces our own calls to a data provider (SEC EDGAR blocks clients above 10
   requests per second, so we find out the easy way).
+- SlidingWindowBudget keeps us inside a provider's published quota without ever queueing.
 - KeyedRateLimiter limits how often one client can hit an endpoint such as sign-in.
 """
 
 import asyncio
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from collections.abc import Awaitable, Callable
 
 
@@ -40,6 +41,42 @@ class AsyncRateLimiter:
         delay = start - now
         if delay > 0:
             await self._sleep(delay)
+
+
+class SlidingWindowBudget:
+    """A call budget: at most ``limit`` calls in any ``window_seconds``, refused when spent.
+
+    For a provider's published quota (for example 8 per minute and 800 per day). Unlike
+    AsyncRateLimiter it never makes a caller wait, because a request that waits minutes for a quota
+    slot is worse than one that is told to come back. Unlike a fixed window it cannot be fooled by a
+    burst straddling the boundary: it remembers when each of the last ``limit`` calls happened.
+    State is per process; with several instances, divide the limit between them.
+    """
+
+    def __init__(
+        self,
+        limit: int,
+        window_seconds: float,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if limit < 1 or window_seconds <= 0:
+            msg = "limit and window_seconds must be positive"
+            raise ValueError(msg)
+        self._limit = limit
+        self._window = window_seconds
+        self._clock = clock
+        self._calls: deque[float] = deque()
+
+    def take(self) -> float | None:
+        """Spend one call. None if allowed, else the seconds until a call becomes available."""
+        now = self._clock()
+        while self._calls and now - self._calls[0] >= self._window:
+            self._calls.popleft()
+        if len(self._calls) >= self._limit:
+            return max(self._window - (now - self._calls[0]), 0.0)
+        self._calls.append(now)
+        return None
 
 
 class KeyedRateLimiter:

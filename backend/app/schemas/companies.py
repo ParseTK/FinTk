@@ -12,6 +12,11 @@ from app.domain.models import (
     MetricSeries,
     PriceHistory,
 )
+from app.domain.seasonality import Seasonality
+
+PRICE_RETURN_BASIS = (
+    "Month-to-month change in the closing price, split-adjusted, dividends not included."
+)
 
 
 class ApiModel(BaseModel):
@@ -134,5 +139,74 @@ class MonthlyPricesResponse(ApiModel):
             source=history.source,
             prices=[
                 MonthlyPriceResponse(month_end=p.month_end, close=p.close) for p in history.prices
+            ],
+        )
+
+
+class YearMonth(ApiModel):
+    year: int
+    month: int
+
+
+class SeasonalityYear(ApiModel):
+    year: int
+    # Twelve entries, January first. Percent points as strings (for example "-3.84"); null where
+    # the month has no return (before the data starts, after it ends, or next to a gap).
+    returns: list[Decimal | None]
+
+
+class SeasonalityBest(ApiModel):
+    year: int
+    percent: Decimal
+
+
+class SeasonalityMonth(ApiModel):
+    month: int
+    count: int
+    average: Decimal
+    median: Decimal
+    positive: int
+    win_rate: Decimal
+    best: SeasonalityBest
+    worst: SeasonalityBest
+
+
+class SeasonalityResponse(ApiModel):
+    symbol: str
+    source: str
+    basis: str  # what the numbers mean, shown with them
+    start: YearMonth | None  # the first month of price data: the first return is the month after
+    end: YearMonth | None
+    years: list[SeasonalityYear]  # oldest first
+    months: list[SeasonalityMonth]  # calendar order, only months with data
+
+    @classmethod
+    def from_domain(cls, result: Seasonality) -> "SeasonalityResponse":
+        by_year: dict[int, list[Decimal | None]] = {}
+        for item in result.returns:
+            by_year.setdefault(item.year, [None] * 12)[item.month - 1] = item.percent
+        return cls(
+            symbol=result.symbol,
+            source=result.source,
+            basis=PRICE_RETURN_BASIS,
+            start=YearMonth(year=result.first_month[0], month=result.first_month[1])
+            if result.first_month
+            else None,
+            end=YearMonth(year=result.last_month[0], month=result.last_month[1])
+            if result.last_month
+            else None,
+            years=[SeasonalityYear(year=y, returns=by_year[y]) for y in sorted(by_year)],
+            months=[
+                SeasonalityMonth(
+                    month=s.month,
+                    count=s.count,
+                    average=s.average,
+                    median=s.median,
+                    positive=s.positive,
+                    win_rate=s.win_rate,
+                    best=SeasonalityBest(year=s.best.year, percent=s.best.percent),
+                    worst=SeasonalityBest(year=s.worst.year, percent=s.worst.percent),
+                )
+                for s in result.stats
             ],
         )

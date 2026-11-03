@@ -11,6 +11,7 @@ from app.domain.models import (
     MetricSeries,
     PriceHistory,
 )
+from app.domain.seasonality import Seasonality, build_seasonality
 from app.providers.base import (
     CompanyDirectory,
     FilingsProvider,
@@ -53,6 +54,9 @@ class CompanyService:
     async def monthly_prices(self, ticker: str) -> PriceHistory:
         company = await self.resolve(ticker)
         return await self._prices.monthly_history(company.ticker)
+
+    async def seasonality(self, ticker: str) -> Seasonality:
+        return build_seasonality(await self.monthly_prices(ticker))
 
     async def names(self, symbols: Iterable[str]) -> dict[str, str]:
         """Company names for display, best effort: a symbol that cannot be looked up (or a

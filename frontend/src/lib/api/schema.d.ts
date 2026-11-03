@@ -147,8 +147,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Monthly closing prices (sample data for now) */
+        /** Monthly closing prices */
         get: operations["get_monthly_prices_api_v1_companies__ticker__prices_monthly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{ticker}/seasonality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return of each calendar month, year by year */
+        get: operations["get_seasonality_api_v1_companies__ticker__seasonality_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -590,6 +607,52 @@ export interface components {
             /** Results */
             results: components["schemas"]["CompanySummary"][];
         };
+        /** SeasonalityBest */
+        SeasonalityBest: {
+            /** Percent */
+            percent: string;
+            /** Year */
+            year: number;
+        };
+        /** SeasonalityMonth */
+        SeasonalityMonth: {
+            /** Average */
+            average: string;
+            best: components["schemas"]["SeasonalityBest"];
+            /** Count */
+            count: number;
+            /** Median */
+            median: string;
+            /** Month */
+            month: number;
+            /** Positive */
+            positive: number;
+            /** Win Rate */
+            win_rate: string;
+            worst: components["schemas"]["SeasonalityBest"];
+        };
+        /** SeasonalityResponse */
+        SeasonalityResponse: {
+            /** Basis */
+            basis: string;
+            end: components["schemas"]["YearMonth"] | null;
+            /** Months */
+            months: components["schemas"]["SeasonalityMonth"][];
+            /** Source */
+            source: string;
+            start: components["schemas"]["YearMonth"] | null;
+            /** Symbol */
+            symbol: string;
+            /** Years */
+            years: components["schemas"]["SeasonalityYear"][];
+        };
+        /** SeasonalityYear */
+        SeasonalityYear: {
+            /** Returns */
+            returns: (string | null)[];
+            /** Year */
+            year: number;
+        };
         /**
          * SessionResponse
          * @description Everything the UI needs at page load, in one request.
@@ -631,6 +694,13 @@ export interface components {
         WatchlistResponse: {
             /** Items */
             items: components["schemas"]["WatchlistItemResponse"][];
+        };
+        /** YearMonth */
+        YearMonth: {
+            /** Month */
+            month: number;
+            /** Year */
+            year: number;
         };
     };
     responses: never;
@@ -1273,6 +1343,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MonthlyPricesResponse"];
+                };
+            };
+            /** @description No such company. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_seasonality_api_v1_companies__ticker__seasonality_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Ticker symbol, e.g. AAPL or BRK-B. */
+                ticker: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeasonalityResponse"];
                 };
             };
             /** @description No such company. */
