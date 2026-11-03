@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { TextField } from "@/components/ui/Field";
 import { sendJson } from "@/lib/apiRequest";
+import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 import { formatDate, formatMoney, formatPrice, formatShares } from "@/lib/format";
 import type { Lot } from "./types";
 
@@ -20,6 +21,8 @@ export function PurchaseItem({ lot, csrfToken }: { lot: Lot; csrfToken: string }
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState("");
   const [busy, setBusy] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
+  const focusInvalid = useFocusFirstInvalid(form);
 
   const path = `/api/v1/portfolio/lots/${encodeURIComponent(lot.id)}`;
   const label = `${formatShares(lot.shares)} ${lot.symbol}`;
@@ -41,6 +44,7 @@ export function PurchaseItem({ lot, csrfToken }: { lot: Lot; csrfToken: string }
     setErrors(result.fields);
     if (result.kind !== "invalid" || Object.keys(result.fields).length === 0)
       setProblem(result.message);
+    if (Object.keys(result.fields).length > 0) focusInvalid();
   }
 
   async function remove() {
@@ -60,6 +64,7 @@ export function PurchaseItem({ lot, csrfToken }: { lot: Lot; csrfToken: string }
     return (
       <li className="py-4">
         <form
+          ref={form}
           onSubmit={save}
           noValidate
           aria-label={`Edit purchase of ${label}`}

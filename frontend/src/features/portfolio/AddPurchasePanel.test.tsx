@@ -215,6 +215,8 @@ describe("saving", () => {
     expect(screen.getByText(/Enter the price you paid/)).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Nothing was saved.");
     expect(screen.getByLabelText("Shares")).toBeInvalid();
+    // Keyboard focus goes to the first field that needs fixing, not left on the Save button.
+    expect(screen.getByLabelText("Shares")).toHaveFocus();
   });
 
   it("will not save an empty form", async () => {
@@ -242,6 +244,8 @@ describe("saving", () => {
     const third = screen.getByRole("group", { name: "Record 3" });
     expect(within(third).getByText(/could not find a company/)).toBeInTheDocument();
     expect(within(third).getByLabelText("Ticker symbol")).toBeInvalid();
+    // After a server rejection focus lands on the field the server complained about.
+    expect(within(third).getByLabelText("Ticker symbol")).toHaveFocus();
     expect(
       within(screen.getByRole("group", { name: "Record 1" })).queryByText(/could not find/),
     ).not.toBeInTheDocument();
@@ -291,7 +295,8 @@ describe("saving", () => {
     await userEvent.click(save);
     await userEvent.click(save);
     expect(sendJson).toHaveBeenCalledTimes(1);
-    expect(save).toBeDisabled();
+    expect(save).toHaveAttribute("aria-disabled", "true");
+    expect(save).toHaveFocus(); // busy, but focus is not thrown away
     finish(ok());
     await waitFor(() => expect(refresh).toHaveBeenCalled());
   });

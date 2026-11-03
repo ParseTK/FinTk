@@ -21,3 +21,10 @@ export function contrastRatio(a: string, b: string): number {
   const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
   return (light! + 0.05) / (dark! + 0.05);
 }
+
+/** `foreground` laid over `background` at `alpha` (0 to 1), as hex: what a translucent tint really looks like. */
+export function blend(foreground: string, background: string, alpha: number): string {
+  const [f, b] = [hexToRgb(foreground), hexToRgb(background)];
+  const mixed = f.map((value, i) => Math.round(value * alpha + b[i]! * (1 - alpha)));
+  return "#" + mixed.map((value) => value.toString(16).padStart(2, "0")).join("");
+}

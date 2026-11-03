@@ -156,6 +156,14 @@ describe("AccountMenuView", () => {
     await expectNoA11yViolations(container);
   });
 
+  it("draws the initials as decoration, so the visible label does not clash with the name", () => {
+    render(<AccountMenuView user={user} csrfToken="c" />);
+    const button = screen.getByRole("button", { name: "Account menu" });
+    // No text node inside the button: the letters come from CSS (WCAG 2.5.3 Label in Name).
+    expect(button).toBeEmptyDOMElement();
+    expect(button).toHaveAttribute("data-initials", initials(user));
+  });
+
   it("links to the watchlist, the portfolio and the account, in that order", async () => {
     render(<AccountMenuView user={user} csrfToken="c" />);
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));

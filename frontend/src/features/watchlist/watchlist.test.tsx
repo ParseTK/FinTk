@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
@@ -90,6 +90,25 @@ describe("WatchlistToggle", () => {
       "aria-pressed",
       "false",
     );
+  });
+
+  it("keeps keyboard focus on the button while it saves and after it answers", async () => {
+    let finish: (value: unknown) => void = () => {};
+    sendJson.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    render(<WatchlistToggle symbol="AAPL" watched={false} csrfToken="csrf-1" />);
+    const button = screen.getByRole("button", { name: "Watch AAPL" });
+    button.focus();
+    await userEvent.keyboard("{Enter}");
+
+    // Busy: told so, but never disabled, which would drop focus to the top of the page.
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(button).toHaveFocus();
+    await userEvent.keyboard("{Enter}"); // a second press while busy is ignored
+    expect(sendJson).toHaveBeenCalledTimes(1);
+
+    finish({ ok: true, data: {}, created: true });
+    await waitFor(() => expect(button).toHaveAttribute("aria-pressed", "true"));
+    expect(button).toHaveFocus();
   });
 
   it("clears an old message on the next try", async () => {

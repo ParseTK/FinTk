@@ -35,10 +35,12 @@ export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: st
         aria-expanded={open}
         aria-controls={panelId}
         onClick={toggle}
-        className="bg-brand text-on-accent flex size-9 items-center justify-center rounded-full text-sm font-semibold hover:opacity-90"
-      >
-        <span aria-hidden="true">{initials(user)}</span>
-      </button>
+        // The initials are drawn by CSS from this attribute, so they are decoration and not a text
+        // label. As real text they would be a visible label that the name "Account menu" does not
+        // contain, which fails WCAG 2.5.3 (Label in Name) for people who speak "click AL".
+        data-initials={initials(user)}
+        className="bg-brand text-on-accent flex size-9 items-center justify-center rounded-full text-sm font-semibold before:content-[attr(data-initials)] hover:opacity-90"
+      ></button>
 
       {open && (
         <div

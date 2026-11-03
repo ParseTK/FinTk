@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { TextField } from "@/components/ui/Field";
 import { sendJson } from "@/lib/apiRequest";
+import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 
 interface Fields {
   symbol: string;
@@ -26,6 +27,8 @@ export function AddPurchaseForm({ csrfToken }: { csrfToken: string }) {
   const [problem, setProblem] = useState("");
   const [added, setAdded] = useState("");
   const [busy, setBusy] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
+  const focusInvalid = useFocusFirstInvalid(form);
 
   // One key per distinct request. Submitting the same content again (a double click, a retry after
   // a dropped connection) reuses the key, so the server returns the first purchase instead of
@@ -69,6 +72,7 @@ export function AddPurchaseForm({ csrfToken }: { csrfToken: string }) {
             : result.message,
         );
       }
+      if (Object.keys(result.fields).length > 0) focusInvalid();
       return;
     }
     setAdded(`Added ${body.shares} shares of ${body.symbol}.`);
@@ -78,7 +82,13 @@ export function AddPurchaseForm({ csrfToken }: { csrfToken: string }) {
   }
 
   return (
-    <form onSubmit={submit} noValidate aria-labelledby="add-purchase-heading" className="space-y-4">
+    <form
+      ref={form}
+      onSubmit={submit}
+      noValidate
+      aria-labelledby="add-purchase-heading"
+      className="space-y-4"
+    >
       <h2 id="add-purchase-heading" className="text-xl font-semibold">
         Add a purchase
       </h2>

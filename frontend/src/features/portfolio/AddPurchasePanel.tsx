@@ -10,6 +10,7 @@ import { CheckIcon, CloseIcon, PlusIcon } from "@/components/ui/icons";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
 import { sendJson } from "@/lib/apiRequest";
+import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 
 /** The most rows one Save sends. The API refuses more, so the form stops offering them here. */
 export const MAX_ROWS = 10;
@@ -80,6 +81,7 @@ export function AddPurchasePanel({
 
   const toggle = useRef<HTMLButtonElement>(null);
   const form = useRef<HTMLFormElement>(null);
+  const focusInvalid = useFocusFirstInvalid(form);
 
   // One key per distinct batch: submitting identical content again (a double click, a retry after
   // a dropped connection) reuses the key so the server returns the first result instead of adding
@@ -132,6 +134,7 @@ export function AddPurchasePanel({
     setRowErrors(local);
     if (Object.keys(local).length > 0) {
       setProblem("Fill in the highlighted fields. Nothing was saved.");
+      focusInvalid();
       return;
     }
 
@@ -168,6 +171,7 @@ export function AddPurchasePanel({
             : result.message
           : result.message,
       );
+      if (Object.keys(byId).length > 0) focusInvalid();
       return;
     }
 

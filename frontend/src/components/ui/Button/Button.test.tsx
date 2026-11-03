@@ -32,11 +32,70 @@ describe("Button", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it("is disabled and busy while loading, and keeps its name", () => {
+  it("is busy and unavailable while loading, and keeps its name", () => {
     render(<Button loading>Save</Button>);
     const button = screen.getByRole("button", { name: "Save" });
-    expect(button).toBeDisabled();
     expect(button).toHaveAttribute("aria-busy", "true");
+    expect(button).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("is not given the disabled attribute while loading, so it can keep keyboard focus", () => {
+    const { rerender } = render(<Button>Save</Button>);
+    const button = screen.getByRole("button", { name: "Save" });
+    button.focus();
+    expect(button).toHaveFocus();
+
+    rerender(<Button loading>Save</Button>);
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveFocus();
+
+    rerender(<Button>Save</Button>);
+    expect(button).toHaveFocus();
+    expect(button).not.toHaveAttribute("aria-disabled");
+  });
+
+  it("ignores presses while loading, for the keyboard as well as the mouse", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(
+      <Button loading onClick={onClick}>
+        Save
+      </Button>,
+    );
+    const button = screen.getByRole("button", { name: "Save" });
+    button.focus();
+    await user.keyboard("{Enter}");
+    await user.keyboard(" ");
+    await user.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("does not submit its form while loading", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <input aria-label="name" />
+        <Button type="submit" loading>
+          Save
+        </Button>
+      </form>,
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.type(screen.getByLabelText("name"), "x{Enter}"); // implicit submission
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("still submits when it is not loading", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn((event: { preventDefault: () => void }) => event.preventDefault());
+    render(
+      <form onSubmit={onSubmit}>
+        <Button type="submit">Save</Button>
+      </form>,
+    );
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
   it("applies variant and size styles", () => {
