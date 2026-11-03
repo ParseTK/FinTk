@@ -1,13 +1,12 @@
 import "server-only";
 import { publicApi as api } from "@/lib/api/client";
+import { isValidTicker } from "@/lib/ticker";
 import type { CompanyProfile, CompanySummary, Filing, Financials } from "./types";
-
-const TICKER_PATTERN = /^[A-Za-z]{1,6}([.-][A-Za-z]{1,2})?$/;
 
 /** The API could not be reached or answered with an error. Pages show their error screen. */
 export class UpstreamError extends Error {}
 
-export const isValidTicker = (value: string) => TICKER_PATTERN.test(value);
+export { isValidTicker };
 
 /** Unwraps an openapi-fetch result: data, null for a 404, otherwise an UpstreamError. */
 async function unwrap<T>(
