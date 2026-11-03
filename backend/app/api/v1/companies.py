@@ -11,6 +11,7 @@ from app.schemas.companies import (
     FinancialsResponse,
     MetricSeriesResponse,
     MonthlyPricesResponse,
+    RatioSeriesResponse,
     SearchResponse,
     SeasonalityResponse,
 )
@@ -90,6 +91,7 @@ async def get_financials(
         ticker=ticker.upper(),
         source=SEC_SOURCE,
         metrics=[MetricSeriesResponse.from_domain(m) for m in metrics],
+        ratios=[RatioSeriesResponse.from_domain(r) for r in service.ratios(metrics)],
     )
 
 

@@ -2,6 +2,7 @@
 
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -12,6 +13,7 @@ from app.domain.models import (
     MetricSeries,
     PriceHistory,
 )
+from app.domain.ratios import RatioSeries
 from app.domain.seasonality import Seasonality
 
 PRICE_RETURN_BASIS = (
@@ -116,10 +118,37 @@ class MetricSeriesResponse(ApiModel):
         )
 
 
+class RatioValueResponse(ApiModel):
+    period_end: date
+    value: Decimal | None  # None: not available (missing input, or a divisor that is not positive)
+
+
+class RatioSeriesResponse(ApiModel):
+    ratio: str  # stable key, for example "gross_margin"
+    label: str
+    formula: str  # plain words, so the number can be checked
+    unit: Literal["percent", "times"]  # percent points, or a plain multiple
+    values: list[RatioValueResponse]  # newest first, the same fiscal years as the metrics
+
+    @classmethod
+    def from_domain(cls, series: RatioSeries) -> "RatioSeriesResponse":
+        return cls(
+            ratio=series.ratio,
+            label=series.label,
+            formula=series.formula,
+            unit=series.unit,
+            values=[
+                RatioValueResponse(period_end=v.period_end, value=v.value) for v in series.values
+            ],
+        )
+
+
 class FinancialsResponse(ApiModel):
     ticker: str
     source: str
     metrics: list[MetricSeriesResponse]
+    # Worked out by us from the figures above. Added without changing anything else in v1.
+    ratios: list[RatioSeriesResponse]
 
 
 class MonthlyPriceResponse(ApiModel):

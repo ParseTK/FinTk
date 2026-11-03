@@ -10,6 +10,7 @@ import {
   getCompanyProfile,
   getKeyFilings,
   getFinancials,
+  RatiosSection,
 } from "@/features/market-data";
 import { CompanyEventsSection, CompanyEventsSkeleton } from "@/features/news";
 import { SeasonalitySection, SeasonalitySectionSkeleton } from "@/features/seasonality";
@@ -91,6 +92,8 @@ export default async function CompanyPage({ params }: Props) {
             <p className="text-fg-muted">No annual financial data is available for this company.</p>
           )}
         </Card>
+
+        <RatiosSection financials={financials} />
 
         <Feature flag="seasonality">
           <Suspense fallback={<SeasonalitySectionSkeleton />}>

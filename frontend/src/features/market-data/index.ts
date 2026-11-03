@@ -9,4 +9,13 @@ export {
 } from "./companies";
 export { FilingsList } from "./FilingsList";
 export { FinancialsTable } from "./FinancialsTable";
-export type { CompanyProfile, CompanySummary, Filing, Financials, MetricSeries } from "./types";
+export { RatiosSection } from "./RatiosSection";
+export { RatiosTable } from "./RatiosTable";
+export type {
+  CompanyProfile,
+  CompanySummary,
+  Filing,
+  Financials,
+  MetricSeries,
+  RatioSeries,
+} from "./types";

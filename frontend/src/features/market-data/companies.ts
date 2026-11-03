@@ -44,7 +44,9 @@ export async function getCompanyProfile(ticker: string): Promise<CompanyProfile 
   });
 }
 
-export async function getFinancials(ticker: string, years = 5): Promise<Financials | null> {
+// Six years are fetched although five are shown: the oldest year shown needs the year before it
+// to have growth figures.
+export async function getFinancials(ticker: string, years = 6): Promise<Financials | null> {
   if (!isValidTicker(ticker)) return null;
   return unwrap(
     api.GET("/api/v1/companies/{ticker}/financials", {

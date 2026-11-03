@@ -1,14 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
+import type { Financials } from "./types";
 
 vi.mock("server-only", () => ({}));
 
 const { FilingsList, FinancialsTable } = await import("./index");
 
-const financials = {
+const financials: Financials = {
   ticker: "AAPL",
   source: "SEC EDGAR",
+  ratios: [],
   metrics: [
     {
       metric: "revenue",
