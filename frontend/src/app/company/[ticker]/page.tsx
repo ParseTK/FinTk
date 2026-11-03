@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { Container } from "@/components/ui/Container";
 import { Card } from "@/components/ui/Card";
+import { Feature } from "@/components/ui/Feature";
 import {
   FilingsList,
   FinancialsTable,
@@ -9,6 +11,7 @@ import {
   getKeyFilings,
   getFinancials,
 } from "@/features/market-data";
+import { SeasonalitySection, SeasonalitySectionSkeleton } from "@/features/seasonality";
 import { getWatchlistState, WatchlistToggle } from "@/features/watchlist";
 import { isEnabled } from "@/lib/flags";
 import { formatFiscalYearEnd } from "@/lib/format";
@@ -37,8 +40,9 @@ export default async function CompanyPage({ params }: Props) {
     ["Fiscal year ends", formatFiscalYearEnd(company.fiscal_year_end)],
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
 
+  // The returns grid needs about 850px, so the page widens while that section is on.
   return (
-    <Container size="narrow" className="py-8">
+    <Container size={isEnabled("seasonality") ? "default" : "narrow"} className="py-8">
       <article className="space-y-6">
         <header className="space-y-1">
           <h1 className="text-3xl font-bold">
@@ -86,6 +90,12 @@ export default async function CompanyPage({ params }: Props) {
             <p className="text-fg-muted">No annual financial data is available for this company.</p>
           )}
         </Card>
+
+        <Feature flag="seasonality">
+          <Suspense fallback={<SeasonalitySectionSkeleton />}>
+            <SeasonalitySection symbol={company.ticker} />
+          </Suspense>
+        </Feature>
 
         <Card as="section" aria-labelledby="filings-heading" className="space-y-3">
           <h2 id="filings-heading" className="text-xl font-semibold">

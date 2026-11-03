@@ -25,6 +25,11 @@ export const FLAGS = {
     description:
       "Portfolio value, gain or loss and latest prices (needs a price provider key on the API).",
   },
+  seasonality: {
+    default: false,
+    description:
+      "Month-by-year returns on the company page (price history comes from the API; sample data is labelled).",
+  },
   news: {
     default: false,
     description: "News section and nav link (not built yet).",
