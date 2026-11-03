@@ -7,6 +7,7 @@ import { getSession } from "@/features/auth";
 import {
   AddPurchaseForm,
   AddPurchasePanel,
+  AllocationChart,
   getLots,
   getPortfolio,
   HoldingsTable,
@@ -57,7 +58,14 @@ export default async function PortfolioPage() {
                 <h2 id="holdings-heading" className="text-xl font-semibold">
                   Holdings
                 </h2>
-                {showValue && <PortfolioSummary portfolio={portfolio} />}
+                {v2 ? (
+                  <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
+                    {showValue && <PortfolioSummary portfolio={portfolio} />}
+                    <AllocationChart holdings={portfolio.holdings} />
+                  </div>
+                ) : (
+                  showValue && <PortfolioSummary portfolio={portfolio} />
+                )}
                 <HoldingsTable portfolio={portfolio} showValue={showValue} />
               </Card>
             )}
