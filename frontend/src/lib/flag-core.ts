@@ -20,6 +20,11 @@ export const FLAGS = {
     description:
       "Sign in with Google or GitHub: header menu, /sign-in, /account and the /api sign-in proxy. Off: none of it is reachable.",
   },
+  portfolio_v2: {
+    default: false,
+    description:
+      "New portfolio page: '+ Add purchase' panel with batch rows, holdings cards on phones, allocation chart. Off: the current page.",
+  },
   valuation: {
     default: false,
     description:

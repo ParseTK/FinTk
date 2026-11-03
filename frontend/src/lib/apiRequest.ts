@@ -60,6 +60,8 @@ export interface Failure {
   message: string;
   /** Per-field messages for `invalid`, keyed by the API field name. */
   fields: Record<string, string>;
+  /** For a batch: the same per-field messages, by row (0-based index in the request). */
+  rows: Record<number, Record<string, string>>;
 }
 
 export interface Success<T> {
@@ -92,13 +94,24 @@ function failure(
   kind: FailureKind,
   message?: string,
   fields: Record<string, string> = {},
+  rows: Record<number, Record<string, string>> = {},
 ): Failure {
   const text = message ?? (kind === "invalid" ? "Check the highlighted fields." : MESSAGES[kind]);
-  return { ok: false, kind, message: text, fields };
+  return { ok: false, kind, message: text, fields, rows };
 }
 
+/** What to say about a problem the API located. Its own `type` wins where we know a better line. */
+const TYPE_MESSAGES: Record<string, string> = {
+  unknown_symbol: "We could not find a company with that ticker.",
+  future_date: "The purchase date cannot be in the future.",
+};
+
 type ErrorBody = {
-  error?: { code?: string; message?: string; details?: { loc?: unknown[] }[] };
+  error?: {
+    code?: string;
+    message?: string;
+    details?: { loc?: unknown[]; type?: string }[];
+  };
 };
 
 async function readError(response: Response): Promise<ErrorBody["error"]> {
@@ -156,12 +169,18 @@ export async function sendJson<T = unknown>(
       return failure(error?.code === "limit_reached" ? "limit" : "conflict", authored);
     case 422: {
       const fields: Record<string, string> = {};
+      const rows: Record<number, Record<string, string>> = {};
       for (const detail of error?.details ?? []) {
-        const name = detail.loc?.at(-1);
-        if (typeof name === "string" && name in FIELD_MESSAGES)
-          fields[name] = FIELD_MESSAGES[name]!;
+        const loc = detail.loc ?? [];
+        const name = loc.at(-1);
+        if (typeof name !== "string" || !(name in FIELD_MESSAGES)) continue;
+        const text = (detail.type && TYPE_MESSAGES[detail.type]) || FIELD_MESSAGES[name]!;
+        fields[name] = text;
+        // A batch locates the problem as ["body", "lots", <row>, <field>].
+        const row = loc.at(-2);
+        if (typeof row === "number" && loc.at(-3) === "lots") (rows[row] ??= {})[name] = text;
       }
-      return failure("invalid", undefined, fields);
+      return failure("invalid", undefined, fields, rows);
     }
     case 429:
       return failure("rate-limited");
