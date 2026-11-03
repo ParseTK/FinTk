@@ -7,6 +7,8 @@ export interface ChangeProps {
   kind?: "percent" | "money";
   currency?: string;
   digits?: number;
+  /** Show the up/down arrow. Turn off when another Change beside it already shows one. */
+  arrow?: boolean;
   className?: string;
 }
 
@@ -14,7 +16,14 @@ export interface ChangeProps {
  * A gain or loss. Direction is shown three ways, never by color alone: a +/- sign, an arrow, and
  * the number itself. Zero and missing values are neutral.
  */
-export function Change({ value, kind = "percent", currency, digits, className }: ChangeProps) {
+export function Change({
+  value,
+  kind = "percent",
+  currency,
+  digits,
+  arrow = true,
+  className,
+}: ChangeProps) {
   const positive = isPositive(value);
   const negative = isNegative(value);
   const text =
@@ -32,7 +41,7 @@ export function Change({ value, kind = "percent", currency, digits, className }:
         className,
       )}
     >
-      {(positive || negative) && <span aria-hidden="true">{positive ? "▲" : "▼"}</span>}
+      {arrow && (positive || negative) && <span aria-hidden="true">{positive ? "▲" : "▼"}</span>}
       <span>{text}</span>
     </span>
   );

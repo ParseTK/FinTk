@@ -17,24 +17,25 @@ export function PortfolioSummary({ portfolio }: { portfolio: Portfolio }) {
     <div className="space-y-2">
       <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div>
+          <dt className="text-fg-muted text-sm">Paid</dt>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {formatMoney(portfolio.total_cost_basis)}
+          </dd>
+        </div>
+        <div>
           <dt className="text-fg-muted text-sm">Value</dt>
           <dd className="text-2xl font-semibold tabular-nums">
             {formatMoney(valuation.market_value)}
           </dd>
         </div>
-        <div>
+        <div className="col-span-2 sm:col-span-1">
           <dt className="text-fg-muted text-sm">Gain or loss</dt>
-          <dd className="text-2xl font-semibold">
+          <dd className="flex items-start gap-1.5 text-2xl font-semibold">
             <Change value={valuation.gain} kind="money" />
-            <span className="block text-base">
-              <Change value={valuation.gain_percent} />
+            {/* The percentage rides in the top-right corner of the amount, small, like a superscript. */}
+            <span className="pt-0.5 text-xs leading-none">
+              (<Change value={valuation.gain_percent} arrow={false} />)
             </span>
-          </dd>
-        </div>
-        <div>
-          <dt className="text-fg-muted text-sm">Paid</dt>
-          <dd className="text-2xl font-semibold tabular-nums">
-            {formatMoney(portfolio.total_cost_basis)}
           </dd>
         </div>
       </dl>

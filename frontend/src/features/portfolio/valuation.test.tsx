@@ -77,7 +77,7 @@ describe("HoldingsTable with values", () => {
     const apple = screen.getByRole("row", { name: /AAPL/ });
     expect(within(apple).getByText("-$120.00")).toBeInTheDocument();
     expect(within(apple).getByText("-6.00%")).toBeInTheDocument();
-    expect(within(apple).getAllByText("▼").length).toBeGreaterThan(0);
+    expect(within(apple).getAllByText("▼")).toHaveLength(1); // one arrow, not one per figure
   });
 
   it("is unchanged when the flag is off, even if the API sent values", () => {
@@ -99,7 +99,11 @@ describe("PortfolioSummary", () => {
     const { container } = render(<PortfolioSummary portfolio={portfolio()} />);
 
     expect(screen.getByText("Value").nextElementSibling).toHaveTextContent("$1,882.50");
-    expect(screen.getByText("Gain or loss").nextElementSibling).toHaveTextContent("+$232.50");
+    // One line, one arrow: the percentage sits beside the amount instead of repeating the arrow.
+    const gain = screen.getByText("Gain or loss").nextElementSibling;
+    expect(gain).toHaveTextContent("+$232.50");
+    expect(gain).toHaveTextContent("(+14.09%)");
+    expect(gain?.textContent?.match(/▲/g)).toHaveLength(1);
     expect(screen.getByText("Paid").nextElementSibling).toHaveTextContent("$2,150.00");
     expect(screen.getByText(/Twelve Data/)).toBeInTheDocument();
     expect(screen.getByText(/Oct 2026/)).toBeInTheDocument();
@@ -124,5 +128,16 @@ describe("PortfolioSummary", () => {
   it("renders nothing without a valuation", () => {
     const { container } = render(<PortfolioSummary portfolio={portfolio({ valuation: null })} />);
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("HoldingsTable latest price", () => {
+  it("hides provider floating-point noise", () => {
+    const noisy = portfolio();
+    noisy.holdings[0]!.valuation = { ...valued, price: "94.080002" };
+    render(<HoldingsTable portfolio={noisy} showValue />);
+    const apple = screen.getByRole("row", { name: /AAPL/ });
+    expect(within(apple).getByText("$94.08")).toBeInTheDocument();
+    expect(within(apple).queryByText("$94.080002")).not.toBeInTheDocument();
   });
 });

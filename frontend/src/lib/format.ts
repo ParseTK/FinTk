@@ -145,3 +145,15 @@ export function formatPrice(value: Numeric, locale: string = DEFAULT_LOCALE): st
     maximumFractionDigits: 6,
   }).format(parsed);
 }
+
+/**
+ * A market price for display. From one dollar up, cents are enough and hide the floating-point
+ * noise some providers send ("94.080002" -> "$94.08"); below a dollar the extra decimals matter.
+ */
+export function formatQuote(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return Math.abs(Number(parsed)) >= 1
+    ? formatMoney(value, { locale })
+    : formatPrice(value, locale);
+}
