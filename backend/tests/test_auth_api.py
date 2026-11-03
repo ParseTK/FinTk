@@ -456,9 +456,7 @@ async def test_a_forged_forwarded_for_header_cannot_dodge_the_limit_unless_a_pro
 async def test_behind_a_trusted_proxy_clients_are_told_apart_by_the_proxy_appended_address(
     database: Database, idp: FakeIdentityProviders
 ) -> None:
-    app = build(
-        sign_in_settings(auth_requests_per_minute=1, trust_proxy_headers=True), database, idp
-    )
+    app = build(sign_in_settings(auth_requests_per_minute=1, trust_proxy_hops=1), database, idp)
     async with http(app) as c:
         # The rightmost entry is what our own proxy appended; the left one is client-controlled.
         first = await c.get(
@@ -471,6 +469,43 @@ async def test_behind_a_trusted_proxy_clients_are_told_apart_by_the_proxy_append
             f"{AUTH}/github/login", headers={"X-Forwarded-For": "1.1.1.1, 10.0.0.2"}
         )
     assert (first.status_code, spoofed.status_code, other.status_code) == (302, 429, 302)
+
+
+async def test_with_two_trusted_proxies_the_client_is_the_second_entry_from_the_right(
+    database: Database, idp: FakeIdentityProviders
+) -> None:
+    app = build(sign_in_settings(auth_requests_per_minute=1, trust_proxy_hops=2), database, idp)
+    async with http(app) as c:
+        # chain: [spoofed by the client, real client, address the second proxy saw]
+        first = await c.get(
+            f"{AUTH}/github/login", headers={"X-Forwarded-For": "9.9.9.1, 1.1.1.1, 10.0.0.1"}
+        )
+        same_client = await c.get(
+            f"{AUTH}/github/login", headers={"X-Forwarded-For": "9.9.9.2, 1.1.1.1, 10.0.0.1"}
+        )
+        other_client = await c.get(
+            f"{AUTH}/github/login", headers={"X-Forwarded-For": "9.9.9.1, 2.2.2.2, 10.0.0.1"}
+        )
+    assert (first.status_code, same_client.status_code, other_client.status_code) == (302, 429, 302)
+
+
+async def test_a_header_with_too_few_entries_is_not_believed(
+    database: Database, idp: FakeIdentityProviders
+) -> None:
+    # Two trusted proxies are configured, but the request carries one entry: it skipped a proxy
+    # (or was sent directly), so the claimed address is ignored and the socket address is used.
+    app = build(sign_in_settings(auth_requests_per_minute=1, trust_proxy_hops=2), database, idp)
+    async with http(app) as c:
+        first = await c.get(f"{AUTH}/github/login", headers={"X-Forwarded-For": "1.1.1.1"})
+        second = await c.get(f"{AUTH}/github/login", headers={"X-Forwarded-For": "2.2.2.2"})
+        no_header = await c.get(f"{AUTH}/github/login")
+    assert (first.status_code, second.status_code, no_header.status_code) == (302, 429, 429)
+
+
+@pytest.mark.parametrize("value", [-1, 6, 100])
+def test_the_hop_count_is_bounded(value: int) -> None:
+    with pytest.raises(ValueError, match="trust_proxy_hops"):
+        make_settings(trust_proxy_hops=value)
 
 
 async def test_codes_tokens_and_secrets_never_reach_the_logs(

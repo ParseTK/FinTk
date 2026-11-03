@@ -4,4 +4,4 @@ coverage
 package-lock.json
 .next-*
 
-src/features/market-data/api/schema.d.ts
+src/lib/api/schema.d.ts

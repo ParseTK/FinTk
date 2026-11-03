@@ -71,10 +71,13 @@ class Settings(BaseSettings):
     session_idle_days: int = Field(default=30, ge=1, le=90)  # sliding: each visit extends it
     session_max_days: int = Field(default=90, ge=1, le=365)  # absolute: forces a fresh sign-in
     auth_requests_per_minute: int = Field(default=20, ge=1, le=600)  # per client, login endpoints
-    # Behind the Next.js proxy every request arrives from the proxy's address. Turn this on only
-    # when a proxy you control sets X-Forwarded-For; otherwise clients could spoof their address
-    # and dodge the rate limit.
-    trust_proxy_headers: bool = False
+    # How many proxies you control sit in front of this service and each append the address they
+    # saw to X-Forwarded-For (for example one load balancer: 1). The client address is then the
+    # Nth entry from the right; entries further left are client-supplied and ignored. 0 means do
+    # not read the header at all (every request then appears to come from the nearest proxy). If the
+    # header holds fewer entries than expected, the request skipped a proxy and the socket address
+    # is used instead, so a client cannot choose its own rate-limit bucket by sending the header.
+    trust_proxy_hops: int = Field(default=0, ge=0, le=5)
 
     @field_validator("secret_key")
     @classmethod

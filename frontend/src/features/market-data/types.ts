@@ -1,4 +1,4 @@
-import type { components } from "./schema";
+import type { components } from "@/lib/api/schema";
 
 type Schemas = components["schemas"];
 

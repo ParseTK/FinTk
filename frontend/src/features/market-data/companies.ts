@@ -1,6 +1,6 @@
 import "server-only";
-import { api } from "./api/client";
-import type { CompanyProfile, CompanySummary, Filing, Financials } from "./api/types";
+import { publicApi as api } from "@/lib/api/client";
+import type { CompanyProfile, CompanySummary, Filing, Financials } from "./types";
 
 const TICKER_PATTERN = /^[A-Za-z]{1,6}([.-][A-Za-z]{1,2})?$/;
 
