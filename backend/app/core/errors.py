@@ -86,6 +86,22 @@ class BadRequestError(AppError):
     default_message = "That request could not be understood."
 
 
+class RowsInvalidError(AppError):
+    """A batch was refused because some rows are not valid. Nothing was saved.
+
+    Carries one entry per problem, located like a validation error (``["body", "lots", 2,
+    "symbol"]``), so a client can mark the exact field of the exact row.
+    """
+
+    status_code = 422
+    code = "validation_error"
+    default_message = "Some rows could not be saved. Nothing was added."
+
+    def __init__(self, details: list[ErrorDetail]) -> None:
+        super().__init__()
+        self.details = details
+
+
 class RateLimitedError(AppError):
     status_code = 429
     code = "rate_limited"
@@ -154,7 +170,8 @@ _HTTP_CODES = {
 
 async def _app_error(_: Request, exc: Exception) -> JSONResponse:
     error = cast("AppError", exc)
-    response = error_response(error.status_code, error.code, error.message)
+    details = cast("list[ErrorDetail] | None", getattr(error, "details", None))
+    response = error_response(error.status_code, error.code, error.message, details=details)
     if error.headers:
         response.headers.update(error.headers)
     return response

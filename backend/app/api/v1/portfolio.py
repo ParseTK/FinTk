@@ -6,6 +6,8 @@ from app.api.auth_deps import CurrentAuth, WriteAuth
 from app.api.portfolio_deps import OwnedLot, PortfolioServiceDep
 from app.core.errors import ErrorResponse
 from app.schemas.portfolio import (
+    BatchLotsInput,
+    BatchLotsResponse,
     HoldingResponse,
     IdempotencyKey,
     LotInput,
@@ -15,6 +17,7 @@ from app.schemas.portfolio import (
     PortfolioResponse,
     PortfolioValuationResponse,
 )
+from app.services.portfolio import BatchRow
 
 router = APIRouter(
     prefix="/portfolio",
@@ -90,6 +93,44 @@ async def create_lot(
     )
     response.status_code = 201 if created else 200
     return LotResponse.from_domain(lot)
+
+
+@router.post(
+    "/lots/batch",
+    summary="Record several purchases at once (all or none)",
+    status_code=201,
+    responses={
+        200: {
+            "model": BatchLotsResponse,
+            "description": "Already recorded (same Idempotency-Key).",
+        },
+        409: {"model": ErrorResponse, "description": "A limit was reached, or the key was reused."},
+        422: {"model": ErrorResponse, "description": "Some rows are invalid; none were saved."},
+    },
+)
+async def create_lots(
+    body: BatchLotsInput,
+    auth: WriteAuth,
+    service: PortfolioServiceDep,
+    response: Response,
+    idempotency_key: Annotated[
+        IdempotencyKey | None,
+        Header(
+            description="Optional. Repeating the same batch with the same key returns the "
+            "original purchases instead of adding them again."
+        ),
+    ] = None,
+) -> BatchLotsResponse:
+    lots, created = await service.add_lots(
+        auth.user.id,
+        [
+            BatchRow(row.symbol, row.shares_amount, row.unit_cost_amount, row.acquired_on)
+            for row in body.lots
+        ],
+        client_key=idempotency_key,
+    )
+    response.status_code = 201 if created else 200
+    return BatchLotsResponse(lots=[LotResponse.from_domain(lot) for lot in lots])
 
 
 @router.put(

@@ -110,6 +110,7 @@ numbers: `0.1` as a float is not `0.1`).
 | `GET /api/v1/portfolio` | Holdings: one row per company, computed from its purchases, plus the total. |
 | `GET /api/v1/portfolio/lots?symbol=` | My purchases. |
 | `POST /api/v1/portfolio/lots` | Record a purchase (optional `Idempotency-Key` header). |
+| `POST /api/v1/portfolio/lots/batch` | Record up to 10 purchases at once: all or none. Every problem comes back with its row and field (422); optional `Idempotency-Key` makes a retry safe. |
 | `PUT /api/v1/portfolio/lots/{id}` | Replace a purchase (the company cannot change). |
 | `DELETE /api/v1/portfolio/lots/{id}` | Delete a purchase. |
 

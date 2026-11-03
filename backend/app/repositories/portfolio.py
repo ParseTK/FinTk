@@ -6,6 +6,7 @@ request can never read or change another user's rows.
 """
 
 import uuid
+from collections.abc import Sequence
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -120,6 +121,16 @@ class LotRepository:
             )
         )
         return _lot(row) if row else None
+
+    async def by_client_keys(self, user_id: uuid.UUID, client_keys: Sequence[str]) -> list[Lot]:
+        """The lots saved under these keys, in the order of the keys (missing ones are skipped)."""
+        rows = await self._session.scalars(
+            select(HoldingLot).where(
+                HoldingLot.user_id == user_id, HoldingLot.client_key.in_(client_keys)
+            )
+        )
+        order = {key: index for index, key in enumerate(client_keys)}
+        return [_lot(row) for row in sorted(rows, key=lambda r: order[r.client_key or ""])]
 
     async def for_user(self, user_id: uuid.UUID, symbol: str | None = None) -> list[Lot]:
         query = select(HoldingLot).where(HoldingLot.user_id == user_id)

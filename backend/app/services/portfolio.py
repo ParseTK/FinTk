@@ -9,8 +9,9 @@ Rules that live here (not in routes or SQL):
   and creating a lot twice with the same Idempotency-Key.
 """
 
+import hashlib
 import uuid
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -19,8 +20,10 @@ from app.core.authz import require_owner
 from app.core.errors import (
     BadRequestError,
     ConflictError,
+    ErrorDetail,
     LimitReachedError,
     NotFoundError,
+    RowsInvalidError,
     UnavailableError,
 )
 from app.domain.portfolio import (
@@ -41,6 +44,16 @@ LockUser = Callable[[uuid.UUID], Awaitable[bool]]
 
 def utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+@dataclass(frozen=True, slots=True)
+class BatchRow:
+    """One requested purchase in a batch, before its symbol has been checked."""
+
+    ticker: str
+    shares: Decimal
+    unit_cost: Decimal
+    acquired_on: date | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -178,6 +191,78 @@ class PortfolioService:
             raise LimitReachedError(msg)
         return await self._lots.create(user_id, new), True
 
+    async def add_lots(
+        self, user_id: uuid.UUID, rows: Sequence[BatchRow], *, client_key: str | None
+    ) -> tuple[list[Lot], bool]:
+        """Create several lots together: every one or none. Returns them in order and whether
+        they are new (False when an Idempotency-Key matched an earlier identical batch).
+
+        Every row is checked before anything is written, and all the problems are reported at
+        once, each with its row and field, so one typo does not cost the other rows. The writes
+        run in the request's single transaction, so a failure part-way leaves nothing behind.
+        """
+        symbols, problems = await self._check_rows(rows)
+        if problems:
+            raise RowsInvalidError(problems)
+        news = [
+            NewLot(
+                symbol=symbols[index],
+                shares=row.shares,
+                unit_cost=row.unit_cost,
+                acquired_on=row.acquired_on,
+                client_key=_row_key(client_key, index),
+            )
+            for index, row in enumerate(rows)
+        ]
+        await self._lock(user_id)  # serialises repeats of one batch and the cap check
+        if client_key is not None:
+            keys = [new.client_key for new in news if new.client_key is not None]
+            existing = await self._lots.by_client_keys(user_id, keys)
+            if existing:
+                if len(existing) != len(news) or not all(
+                    _same_request(lot, new) for lot, new in zip(existing, news, strict=True)
+                ):
+                    msg = "That Idempotency-Key was already used for a different request."
+                    raise ConflictError(msg)
+                return existing, False
+        have = await self._lots.count(user_id)
+        if have + len(news) > self._max_lots:
+            msg = (
+                f"These {len(news)} purchases would go over the limit of {self._max_lots} "
+                f"(you have {have})."
+            )
+            raise LimitReachedError(msg)
+        return [await self._lots.create(user_id, new) for new in news], True
+
+    async def _check_rows(
+        self, rows: Sequence[BatchRow]
+    ) -> tuple[dict[int, str], list[ErrorDetail]]:
+        """The canonical symbol of each valid row (by index) and every problem found."""
+        symbols: dict[int, str] = {}
+        problems: list[ErrorDetail] = []
+        today = self._clock().date()
+        for index, row in enumerate(rows):
+            where: list[str | int] = ["body", "lots", index]
+            try:
+                symbols[index] = await self._canonical_symbol(row.ticker)
+            except NotFoundError:
+                problems.append(
+                    ErrorDetail(
+                        loc=[*where, "symbol"],
+                        message="No company with that ticker.",
+                        type="unknown_symbol",
+                    )
+                )
+            if row.acquired_on is not None and row.acquired_on > today:
+                problems.append(
+                    ErrorDetail(
+                        loc=[*where, "acquired_on"],
+                        message="The purchase date cannot be in the future.",
+                        type="future_date",
+                    )
+                )
+        return symbols, problems
+
     async def update_lot(
         self,
         user_id: uuid.UUID,
@@ -223,6 +308,14 @@ class PortfolioService:
         if acquired_on is not None and acquired_on > self._clock().date():
             msg = "The purchase date cannot be in the future."
             raise BadRequestError(msg)
+
+
+def _row_key(batch_key: str | None, index: int) -> str | None:
+    """A stable per-row key derived from the batch's Idempotency-Key. Hashed so it always fits
+    the column and a long key plus an index can never collide with another batch's rows."""
+    if batch_key is None:
+        return None
+    return "b-" + hashlib.sha256(f"{batch_key}:{index}".encode()).hexdigest()[:62]
 
 
 def _same_request(existing: Lot, new: NewLot) -> bool:
