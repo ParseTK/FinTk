@@ -165,6 +165,39 @@ describe("sendJson results", () => {
     }
   });
 
+  it("places a batch's problems on the row they came from", async () => {
+    const result = await sendJson("POST", "/x", "t", {
+      fetcher: json(422, {
+        error: {
+          code: "validation_error",
+          details: [
+            { loc: ["body", "lots", 1, "symbol"], message: "x", type: "unknown_symbol" },
+            { loc: ["body", "lots", 2, "acquired_on"], message: "x", type: "future_date" },
+            { loc: ["body", "lots", 2, "shares"], message: "x", type: "string_pattern_mismatch" },
+            { loc: ["body", "lots"], message: "too long", type: "too_long" },
+          ],
+        },
+      }),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(Object.keys(result.rows)).toEqual(["1", "2"]);
+      expect(result.rows[1]).toEqual({ symbol: "We could not find a company with that ticker." });
+      expect(result.rows[2]?.acquired_on).toBe("The purchase date cannot be in the future.");
+      expect(result.rows[2]?.shares).toMatch(/shares above zero/);
+    }
+  });
+
+  it("has no rows for an ordinary single-purchase error", async () => {
+    const result = await sendJson("POST", "/x", "t", {
+      fetcher: json(422, {
+        error: { details: [{ loc: ["body", "shares"], message: "x", type: "x" }] },
+      }),
+    });
+    expect(result.ok === false && result.rows).toEqual({});
+  });
+
   it("survives an error response that is not JSON", async () => {
     const fetcher = vi.fn().mockResolvedValue(new Response("<html>boom</html>", { status: 502 }));
     expect(await sendJson("POST", "/x", "t", { fetcher })).toMatchObject({

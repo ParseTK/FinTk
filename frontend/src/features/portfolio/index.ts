@@ -1,5 +1,6 @@
 /** Public API of the portfolio feature. */
 export { AddPurchaseForm } from "./AddPurchaseForm";
+export { AddPurchasePanel } from "./AddPurchasePanel";
 export { getLots, getPortfolio } from "./data";
 export { HoldingsTable } from "./HoldingsTable";
 export { PortfolioList } from "./PortfolioList";
