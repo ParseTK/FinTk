@@ -724,6 +724,159 @@
         "title": "SearchResponse",
         "type": "object"
       },
+      "SeasonalityBest": {
+        "properties": {
+          "percent": {
+            "title": "Percent",
+            "type": "string"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "percent"
+        ],
+        "title": "SeasonalityBest",
+        "type": "object"
+      },
+      "SeasonalityMonth": {
+        "properties": {
+          "average": {
+            "title": "Average",
+            "type": "string"
+          },
+          "best": {
+            "$ref": "#/components/schemas/SeasonalityBest"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "median": {
+            "title": "Median",
+            "type": "string"
+          },
+          "month": {
+            "title": "Month",
+            "type": "integer"
+          },
+          "positive": {
+            "title": "Positive",
+            "type": "integer"
+          },
+          "win_rate": {
+            "title": "Win Rate",
+            "type": "string"
+          },
+          "worst": {
+            "$ref": "#/components/schemas/SeasonalityBest"
+          }
+        },
+        "required": [
+          "month",
+          "count",
+          "average",
+          "median",
+          "positive",
+          "win_rate",
+          "best",
+          "worst"
+        ],
+        "title": "SeasonalityMonth",
+        "type": "object"
+      },
+      "SeasonalityResponse": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/YearMonth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/SeasonalityMonth"
+            },
+            "title": "Months",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/YearMonth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "years": {
+            "items": {
+              "$ref": "#/components/schemas/SeasonalityYear"
+            },
+            "title": "Years",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbol",
+          "source",
+          "basis",
+          "start",
+          "end",
+          "years",
+          "months"
+        ],
+        "title": "SeasonalityResponse",
+        "type": "object"
+      },
+      "SeasonalityYear": {
+        "properties": {
+          "returns": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Returns",
+            "type": "array"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "returns"
+        ],
+        "title": "SeasonalityYear",
+        "type": "object"
+      },
       "SessionResponse": {
         "description": "Everything the UI needs at page load, in one request.",
         "properties": {
@@ -852,6 +1005,24 @@
           "items"
         ],
         "title": "WatchlistResponse",
+        "type": "object"
+      },
+      "YearMonth": {
+        "properties": {
+          "month": {
+            "title": "Month",
+            "type": "integer"
+          },
+          "year": {
+            "title": "Year",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month"
+        ],
+        "title": "YearMonth",
         "type": "object"
       }
     }
@@ -1778,7 +1949,93 @@
             "description": "The service is unavailable."
           }
         },
-        "summary": "Monthly closing prices (sample data for now)",
+        "summary": "Monthly closing prices",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
+    "/api/v1/companies/{ticker}/seasonality": {
+      "get": {
+        "operationId": "get_seasonality_api_v1_companies__ticker__seasonality_get",
+        "parameters": [
+          {
+            "description": "Ticker symbol, e.g. AAPL or BRK-B.",
+            "in": "path",
+            "name": "ticker",
+            "required": true,
+            "schema": {
+              "description": "Ticker symbol, e.g. AAPL or BRK-B.",
+              "maxLength": 10,
+              "minLength": 1,
+              "title": "Ticker",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeasonalityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "No such company."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Return of each calendar month, year by year",
         "tags": [
           "companies"
         ]

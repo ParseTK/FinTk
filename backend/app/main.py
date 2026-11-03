@@ -24,11 +24,15 @@ from app.core.middleware import (
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.core.rate_limit import KeyedRateLimiter
+from app.core.rate_limit import KeyedRateLimiter, SlidingWindowBudget
 from app.db.engine import Database
+from app.providers.base import PriceProvider
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client
+from app.providers.twelvedata.client import TwelveDataProvider
+from app.providers.twelvedata.client import build_http_client as build_price_client
 from app.services.companies import CompanyService
+from app.services.prices import StoredPriceProvider
 
 _DOCS_PATHS = ("/docs", "/openapi.json")
 
@@ -43,6 +47,7 @@ def _lifespan(settings: Settings):
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         client: httpx.AsyncClient | None = None
+        price_client: httpx.AsyncClient | None = None
         owned_database: Database | None = None
         auth_client: httpx.AsyncClient | None = None
         if not app.state.oauth_providers and settings.enabled_providers:
@@ -56,12 +61,25 @@ def _lifespan(settings: Settings):
         if app.state.company_service is None and settings.sec_contact_email:
             client = build_http_client(settings.sec_contact_email)
             sec = SecProvider(client)
-            app.state.company_service = CompanyService(sec, sec, sec, SamplePriceProvider())
+            prices: PriceProvider = SamplePriceProvider()
+            if settings.twelve_data_api_key is not None:
+                price_client = build_price_client(settings.twelve_data_api_key.get_secret_value())
+                prices = StoredPriceProvider(
+                    TwelveDataProvider(
+                        price_client,
+                        per_minute=SlidingWindowBudget(settings.twelve_data_calls_per_minute, 60),
+                        per_day=SlidingWindowBudget(settings.twelve_data_calls_per_day, 86_400),
+                    ),
+                    app.state.database,
+                )
+            app.state.company_service = CompanyService(sec, sec, sec, prices)
         try:
             yield
         finally:
             if client is not None:
                 await client.aclose()
+            if price_client is not None:
+                await price_client.aclose()
             if owned_database is not None:
                 await owned_database.dispose()
             if auth_client is not None:

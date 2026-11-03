@@ -27,10 +27,13 @@ def _month_ends(today: date) -> list[date]:
 
 
 class SamplePriceProvider:
+    source = SOURCE
+
     def __init__(self, today: Callable[[], date] = date.today) -> None:
         self._today = today
 
-    async def monthly_history(self, symbol: str) -> PriceHistory:
+    async def monthly_history(self, symbol: str, *, since: date | None = None) -> PriceHistory:
+        # Always the whole series: it is generated, so there is nothing to save by asking for less.
         seed = int.from_bytes(hashlib.sha256(symbol.upper().encode()).digest()[:8], "big")
         rng = random.Random(seed)  # noqa: S311 - reproducible sample data, not security
         price = Decimal(rng.randint(20, 200))

@@ -12,6 +12,7 @@ from app.schemas.companies import (
     MetricSeriesResponse,
     MonthlyPricesResponse,
     SearchResponse,
+    SeasonalityResponse,
 )
 from app.services.companies import CompanyService
 
@@ -92,9 +93,17 @@ async def get_financials(
     )
 
 
-@router.get("/{ticker}/prices/monthly", summary="Monthly closing prices (sample data for now)")
+@router.get("/{ticker}/prices/monthly", summary="Monthly closing prices")
 async def get_monthly_prices(
     ticker: TickerParam, service: Service, response: Response
 ) -> MonthlyPricesResponse:
     _cacheable(response, 3600)
     return MonthlyPricesResponse.from_domain(await service.monthly_prices(ticker))
+
+
+@router.get("/{ticker}/seasonality", summary="Return of each calendar month, year by year")
+async def get_seasonality(
+    ticker: TickerParam, service: Service, response: Response
+) -> SeasonalityResponse:
+    _cacheable(response, 3600)
+    return SeasonalityResponse.from_domain(await service.seasonality(ticker))

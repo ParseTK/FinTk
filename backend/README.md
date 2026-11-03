@@ -130,6 +130,12 @@ How it is kept correct and safe:
 - Symbols are checked against the SEC directory before they are saved.
 - Lists are bounded by those caps, so they are returned whole rather than paged.
 
+## Prices and seasonality
+
+`GET /api/v1/companies/{ticker}/prices/monthly` and `/seasonality` need monthly closing prices. With no key set they are generated **sample** data, and every response says `"source": "sample"`. For real data, create a free Twelve Data key (no card) and set `VIRELLO_TWELVE_DATA_API_KEY`, together with `VIRELLO_DATABASE_URL`.
+
+How the free quota is protected: a symbol's whole history is fetched **once** and stored permanently; once a month only the newest months are requested and appended; simultaneous requests share one provider call; if the provider fails, stored data is served; our own call budget (per minute and per day) refuses instead of queueing. Prices are split-adjusted closes without dividends, so the returns are price returns. Read the provider's terms before showing its data publicly.
+
 ## Quality gates
 
 CI runs exactly these, and so should you before opening a PR:

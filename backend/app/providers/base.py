@@ -1,5 +1,6 @@
 """The provider interfaces. Services depend on these, never on a concrete data source."""
 
+from datetime import date
 from typing import Protocol
 
 from app.domain.models import (
@@ -28,4 +29,12 @@ class FundamentalsProvider(Protocol):
 
 
 class PriceProvider(Protocol):
-    async def monthly_history(self, symbol: str) -> PriceHistory: ...
+    @property
+    def source(self) -> str:
+        """Where the numbers come from, shown to users ("Twelve Data", or "sample")."""
+        ...
+
+    async def monthly_history(self, symbol: str, *, since: date | None = None) -> PriceHistory:
+        """Completed months, oldest first. With ``since``, a provider may return only the months
+        from that one on (it must include it, so a restated month is corrected)."""
+        ...
