@@ -72,6 +72,19 @@ class NewLotInput(LotInput):
     symbol: Symbol
 
 
+# Rows per batch. The web form shows the same number (a constant there, because it is a UI limit
+# too); a request over it is refused by validation, never partly saved.
+MAX_BATCH_LOTS = 10
+
+
+class BatchLotsInput(BaseModel):
+    """Several purchases saved together: all of them, or none."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    lots: list[NewLotInput] = Field(min_length=1, max_length=MAX_BATCH_LOTS)
+
+
 class LotResponse(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -100,6 +113,10 @@ class LotResponse(BaseModel):
 
 class LotsResponse(BaseModel):
     lots: list[LotResponse]
+
+
+class BatchLotsResponse(LotsResponse):
+    """The saved purchases, in the order they were sent."""
 
 
 class HoldingValuationResponse(BaseModel):

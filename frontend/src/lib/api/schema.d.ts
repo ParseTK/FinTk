@@ -244,6 +244,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portfolio/lots/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record several purchases at once (all or none) */
+        post: operations["create_lots_api_v1_portfolio_lots_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portfolio/lots/{lot_id}": {
         parameters: {
             query?: never;
@@ -351,6 +368,22 @@ export interface components {
             period_end: string;
             /** Value */
             value: string;
+        };
+        /**
+         * BatchLotsInput
+         * @description Several purchases saved together: all of them, or none.
+         */
+        BatchLotsInput: {
+            /** Lots */
+            lots: components["schemas"]["NewLotInput"][];
+        };
+        /**
+         * BatchLotsResponse
+         * @description The saved purchases, in the order they were sent.
+         */
+        BatchLotsResponse: {
+            /** Lots */
+            lots: components["schemas"]["LotResponse"][];
         };
         /** CompanyProfileResponse */
         CompanyProfileResponse: {
@@ -1959,6 +1992,114 @@ export interface operations {
                 };
             };
             /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_lots_api_v1_portfolio_lots_batch_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Optional. Repeating the same batch with the same key returns the original purchases instead of adding them again. */
+                "idempotency-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchLotsInput"];
+            };
+        };
+        responses: {
+            /** @description Already recorded (same Idempotency-Key). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchLotsResponse"];
+                };
+            };
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchLotsResponse"];
+                };
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A limit was reached, or the key was reused. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Some rows are invalid; none were saved. */
             422: {
                 headers: {
                     [name: string]: unknown;

@@ -31,6 +31,43 @@
         "title": "AnnualValueResponse",
         "type": "object"
       },
+      "BatchLotsInput": {
+        "additionalProperties": false,
+        "description": "Several purchases saved together: all of them, or none.",
+        "properties": {
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/NewLotInput"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Lots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lots"
+        ],
+        "title": "BatchLotsInput",
+        "type": "object"
+      },
+      "BatchLotsResponse": {
+        "description": "The saved purchases, in the order they were sent.",
+        "properties": {
+          "lots": {
+            "items": {
+              "$ref": "#/components/schemas/LotResponse"
+            },
+            "title": "Lots",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lots"
+        ],
+        "title": "BatchLotsResponse",
+        "type": "object"
+      },
       "CompanyProfileResponse": {
         "properties": {
           "category": {
@@ -2705,6 +2742,148 @@
           }
         },
         "summary": "Record a purchase",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/v1/portfolio/lots/batch": {
+      "post": {
+        "operationId": "create_lots_api_v1_portfolio_lots_batch_post",
+        "parameters": [
+          {
+            "description": "Optional. Repeating the same batch with the same key returns the original purchases instead of adding them again.",
+            "in": "header",
+            "name": "idempotency-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Za-z0-9_-]{8,64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional. Repeating the same batch with the same key returns the original purchases instead of adding them again.",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchLotsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchLotsResponse"
+                }
+              }
+            },
+            "description": "Already recorded (same Idempotency-Key)."
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchLotsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A limit was reached, or the key was reused."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Some rows are invalid; none were saved."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Record several purchases at once (all or none)",
         "tags": [
           "portfolio"
         ]
