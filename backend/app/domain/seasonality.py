@@ -65,8 +65,8 @@ def _median(values: list[Decimal]) -> Decimal:
     return (ordered[middle - 1] + ordered[middle]) / 2
 
 
-def _one_per_month(prices: Iterable[MonthlyPrice]) -> list[tuple[int, int, Decimal]]:
-    """Oldest first, one close per calendar month (a later duplicate wins), unusable closes dropped.
+def closes_by_month(prices: Iterable[MonthlyPrice]) -> dict[tuple[int, int], Decimal]:
+    """One close per calendar month (a later duplicate wins), unusable closes dropped.
 
     Keyed by (year, month) rather than by date, so it does not matter whether a provider labels a
     month by its first day, its last day or its last trading day.
@@ -75,7 +75,14 @@ def _one_per_month(prices: Iterable[MonthlyPrice]) -> list[tuple[int, int, Decim
     for price in prices:
         if price.close > 0:
             by_month[(price.month_end.year, price.month_end.month)] = price.close
-    return [(year, month, close) for (year, month), close in sorted(by_month.items())]
+    return by_month
+
+
+def _one_per_month(prices: Iterable[MonthlyPrice]) -> list[tuple[int, int, Decimal]]:
+    """Oldest first, one close per calendar month."""
+    return [
+        (year, month, close) for (year, month), close in sorted(closes_by_month(prices).items())
+    ]
 
 
 def monthly_returns(prices: Iterable[MonthlyPrice]) -> list[tuple[int, int, Decimal]]:

@@ -606,6 +606,141 @@
         "title": "LotsResponse",
         "type": "object"
       },
+      "MarketFiguresResponse": {
+        "properties": {
+          "annualized": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annualized"
+          },
+          "as_of_month": {
+            "title": "As Of Month",
+            "type": "integer"
+          },
+          "as_of_year": {
+            "title": "As Of Year",
+            "type": "integer"
+          },
+          "last_month": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Month"
+          },
+          "since_year": {
+            "title": "Since Year",
+            "type": "integer"
+          },
+          "trailing_12_months": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trailing 12 Months"
+          },
+          "year_to_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year To Date"
+          }
+        },
+        "required": [
+          "as_of_year",
+          "as_of_month",
+          "last_month",
+          "year_to_date",
+          "trailing_12_months",
+          "annualized",
+          "since_year"
+        ],
+        "title": "MarketFiguresResponse",
+        "type": "object"
+      },
+      "MarketOverviewResponse": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/MarketRowResponse"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "basis",
+          "rows"
+        ],
+        "title": "MarketOverviewResponse",
+        "type": "object"
+      },
+      "MarketRowResponse": {
+        "properties": {
+          "figures": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketFiguresResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "group": {
+            "enum": [
+              "index",
+              "sector"
+            ],
+            "title": "Group",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "name",
+          "group",
+          "figures"
+        ],
+        "title": "MarketRowResponse",
+        "type": "object"
+      },
       "MetaResponse": {
         "properties": {
           "environment": {
@@ -2178,6 +2313,67 @@
         "summary": "Return of each calendar month, year by year",
         "tags": [
           "companies"
+        ]
+      }
+    },
+    "/api/v1/markets/overview": {
+      "get": {
+        "operationId": "get_overview_api_v1_markets_overview_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketOverviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Index and sector performance from month-end closes",
+        "tags": [
+          "markets"
         ]
       }
     },

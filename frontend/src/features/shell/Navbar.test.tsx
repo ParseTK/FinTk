@@ -30,3 +30,16 @@ describe("Navbar palette flag", () => {
     expect(screen.getByRole("link", { name: "Search" })).toBeInTheDocument();
   });
 });
+
+describe("Navbar markets flag", () => {
+  it("has no Markets link while the flag is off, so there is never a dead link", () => {
+    render(<Navbar />);
+    expect(screen.queryByRole("link", { name: "Markets" })).not.toBeInTheDocument();
+  });
+
+  it("links to Markets when the flag is on", () => {
+    vi.stubEnv("FEATURE_MARKETS", "true");
+    render(<Navbar />);
+    expect(screen.getByRole("link", { name: "Markets" })).toHaveAttribute("href", "/markets");
+  });
+});

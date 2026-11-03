@@ -32,6 +32,7 @@ from app.providers.sec.client import SecProvider, build_http_client
 from app.providers.twelvedata.client import TwelveDataProvider
 from app.providers.twelvedata.client import build_http_client as build_price_client
 from app.services.companies import CompanyService
+from app.services.markets import MarketService
 from app.services.prices import StoredPriceProvider
 
 _DOCS_PATHS = ("/docs", "/openapi.json")
@@ -58,20 +59,23 @@ def _lifespan(settings: Settings):
             app.state.database = owned_database
             checks: dict[str, ReadinessCheck] = app.state.readiness_checks
             checks["database"] = owned_database.ping
+        prices: PriceProvider = SamplePriceProvider()
+        needs_prices = app.state.company_service is None or app.state.market_service is None
+        if needs_prices and settings.twelve_data_api_key is not None:
+            price_client = build_price_client(settings.twelve_data_api_key.get_secret_value())
+            prices = StoredPriceProvider(
+                TwelveDataProvider(
+                    price_client,
+                    per_minute=SlidingWindowBudget(settings.twelve_data_calls_per_minute, 60),
+                    per_day=SlidingWindowBudget(settings.twelve_data_calls_per_day, 86_400),
+                ),
+                app.state.database,
+            )
+        if app.state.market_service is None:
+            app.state.market_service = MarketService(prices)
         if app.state.company_service is None and settings.sec_contact_email:
             client = build_http_client(settings.sec_contact_email)
             sec = SecProvider(client)
-            prices: PriceProvider = SamplePriceProvider()
-            if settings.twelve_data_api_key is not None:
-                price_client = build_price_client(settings.twelve_data_api_key.get_secret_value())
-                prices = StoredPriceProvider(
-                    TwelveDataProvider(
-                        price_client,
-                        per_minute=SlidingWindowBudget(settings.twelve_data_calls_per_minute, 60),
-                        per_day=SlidingWindowBudget(settings.twelve_data_calls_per_day, 86_400),
-                    ),
-                    app.state.database,
-                )
             latest = prices if isinstance(prices, StoredPriceProvider) else None
             app.state.company_service = CompanyService(sec, sec, sec, prices, latest)
         try:
@@ -94,6 +98,7 @@ def create_app(
     *,
     extra_routers: Sequence[APIRouter] = (),
     company_service: CompanyService | None = None,
+    market_service: MarketService | None = None,
     database: Database | None = None,
     oauth_providers: Mapping[str, OAuthProvider] | None = None,
 ) -> FastAPI:
@@ -116,6 +121,7 @@ def create_app(
     readiness_checks: dict[str, ReadinessCheck] = {}
     app.state.readiness_checks = readiness_checks
     app.state.company_service = company_service
+    app.state.market_service = market_service
     app.state.database = database
     app.state.oauth_providers = dict(oauth_providers or {})
     app.state.auth_limiter = KeyedRateLimiter(settings.auth_requests_per_minute)

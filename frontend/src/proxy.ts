@@ -24,6 +24,7 @@ import { isValidTicker } from "@/lib/ticker";
 
 const GATED_PAGES: ReadonlyArray<readonly [prefix: string, flag: FlagName]> = [
   ["/design", "design"],
+  ["/markets", "markets"],
   ["/sign-in", "auth"],
   ["/account", "auth"],
   ["/watchlist", "auth"],
@@ -101,6 +102,7 @@ export const config = {
   matcher: [
     "/design",
     "/design/:path*",
+    "/markets",
     "/company/:ticker",
     "/sign-in",
     "/account",

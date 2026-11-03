@@ -174,6 +174,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/markets/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Index and sector performance from month-end closes */
+        get: operations["get_overview_api_v1_markets_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -589,6 +606,45 @@ export interface components {
         LotsResponse: {
             /** Lots */
             lots: components["schemas"]["LotResponse"][];
+        };
+        /** MarketFiguresResponse */
+        MarketFiguresResponse: {
+            /** Annualized */
+            annualized: string | null;
+            /** As Of Month */
+            as_of_month: number;
+            /** As Of Year */
+            as_of_year: number;
+            /** Last Month */
+            last_month: string | null;
+            /** Since Year */
+            since_year: number;
+            /** Trailing 12 Months */
+            trailing_12_months: string | null;
+            /** Year To Date */
+            year_to_date: string | null;
+        };
+        /** MarketOverviewResponse */
+        MarketOverviewResponse: {
+            /** Basis */
+            basis: string;
+            /** Rows */
+            rows: components["schemas"]["MarketRowResponse"][];
+            /** Source */
+            source: string;
+        };
+        /** MarketRowResponse */
+        MarketRowResponse: {
+            figures: components["schemas"]["MarketFiguresResponse"] | null;
+            /**
+             * Group
+             * @enum {string}
+             */
+            group: "index" | "sector";
+            /** Name */
+            name: string;
+            /** Symbol */
+            symbol: string;
         };
         /** MetaResponse */
         MetaResponse: {
@@ -1511,6 +1567,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_overview_api_v1_markets_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketOverviewResponse"];
                 };
             };
             /** @description The request was not valid. */
