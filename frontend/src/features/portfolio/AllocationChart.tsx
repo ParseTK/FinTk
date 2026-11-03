@@ -96,7 +96,8 @@ export function AllocationChart({ holdings }: { holdings: Holding[] }) {
         </div>
       </div>
 
-      <div className="min-w-0 flex-1 space-y-2">
+      {/* At least 15rem wide: below that it wraps under the donut instead of squeezing the names. */}
+      <div className="max-w-md min-w-[15rem] flex-1 space-y-2">
         <h3 id="allocation-heading" className="text-sm font-semibold">
           Allocation by {caption}
         </h3>
@@ -108,7 +109,7 @@ export function AllocationChart({ holdings }: { holdings: Holding[] }) {
                 className="border-border-strong size-3 shrink-0 rounded-sm border"
                 style={{ background: fillFor(index, slice.symbol === null) }}
               />
-              <span className="min-w-0 flex-1 truncate font-medium">
+              <span className="min-w-14 flex-1 truncate font-medium">
                 {slice.symbol ? (
                   <Link
                     href={`/company/${encodeURIComponent(slice.symbol)}`}
