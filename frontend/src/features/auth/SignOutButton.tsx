@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 import { goTo } from "./navigate";
-import { sendWithCsrf } from "./request";
+import { sendWithCsrf } from "@/lib/apiRequest";
 
 export function SignOutButton({ csrfToken }: { csrfToken: string }) {
   const [busy, setBusy] = useState(false);
@@ -34,9 +35,9 @@ export function SignOutButton({ csrfToken }: { csrfToken: string }) {
       >
         Sign out
       </Button>
-      <p role="alert" className="text-loss text-sm" hidden={!failed}>
+      <LiveMessage>
         {failed ? "Could not sign you out. Reload the page and try again." : ""}
-      </p>
+      </LiveMessage>
     </div>
   );
 }

@@ -1,10 +1,21 @@
 import Link from "next/link";
 import type { CompanySummary } from "@/features/market-data";
 import { PortfolioToggleButton } from "@/features/portfolio";
+import { WatchlistToggle, type WatchlistState } from "@/features/watchlist";
 import { staggerDelay } from "@/lib/motion";
 import { Card } from "@/components/ui/Card";
 
-export function CompanyCard({ company, index = 0 }: { company: CompanySummary; index?: number }) {
+export interface CompanyCardProps {
+  company: CompanySummary;
+  index?: number;
+  /** Present when sign-in is on: the card then shows the real watchlist toggle. Absent: the
+   *  original in-browser toggle, unchanged. */
+  watch?: WatchlistState;
+  /** Where signing in should bring the visitor back to. */
+  signInNext?: string;
+}
+
+export function CompanyCard({ company, index = 0, watch, signInNext }: CompanyCardProps) {
   return (
     <Card
       as="li"
@@ -18,7 +29,16 @@ export function CompanyCard({ company, index = 0 }: { company: CompanySummary; i
         {company.name} ({company.ticker})
       </Link>
       <p className="font-bold">{company.exchange}</p>
-      <PortfolioToggleButton symbol={company.ticker} />
+      {watch ? (
+        <WatchlistToggle
+          symbol={company.ticker}
+          watched={watch.signedIn && watch.symbols.includes(company.ticker)}
+          csrfToken={watch.signedIn ? watch.csrfToken : undefined}
+          signInNext={signInNext}
+        />
+      ) : (
+        <PortfolioToggleButton symbol={company.ticker} />
+      )}
     </Card>
   );
 }

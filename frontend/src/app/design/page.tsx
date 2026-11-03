@@ -4,6 +4,7 @@ import { LogoMark } from "@/features/shell";
 import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/Container";
 import { Alert } from "@/components/ui/Alert";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
@@ -141,6 +142,15 @@ export default function DesignPage() {
           <Alert variant="error" title="Could not save">
             Check your connection and try again.
           </Alert>
+        </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            Live messages sit under a button or form and are announced when they appear. Empty ones
+            take no space.
+          </p>
+          <LiveMessage>Could not sign you out. Reload the page and try again.</LiveMessage>
+          <LiveMessage tone="success">Added 10 shares of AAPL.</LiveMessage>
+          <LiveMessage />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>

@@ -9,6 +9,8 @@ import {
   getKeyFilings,
   getFinancials,
 } from "@/features/market-data";
+import { getWatchlistState, WatchlistToggle } from "@/features/watchlist";
+import { isEnabled } from "@/lib/flags";
 import { formatFiscalYearEnd } from "@/lib/format";
 
 type Props = { params: Promise<{ ticker: string }> };
@@ -22,9 +24,10 @@ export default async function CompanyPage({ params }: Props) {
   const { ticker } = await params;
   const company = await getCompanyProfile(ticker);
   if (!company) notFound();
-  const [financials, filings] = await Promise.all([
+  const [financials, filings, watch] = await Promise.all([
     getFinancials(company.ticker),
     getKeyFilings(company.ticker),
+    isEnabled("auth") ? getWatchlistState() : undefined,
   ]);
 
   const facts = [
@@ -42,6 +45,16 @@ export default async function CompanyPage({ params }: Props) {
             {company.name} <span className="text-fg-muted font-normal">({company.ticker})</span>
           </h1>
           {company.industry && <p className="text-fg-muted">{company.industry}</p>}
+          {watch && (
+            <div className="pt-2">
+              <WatchlistToggle
+                symbol={company.ticker}
+                watched={watch.signedIn && watch.symbols.includes(company.ticker)}
+                csrfToken={watch.signedIn ? watch.csrfToken : undefined}
+                signInNext={`/company/${encodeURIComponent(company.ticker)}`}
+              />
+            </div>
+          )}
         </header>
 
         {facts.length > 0 && (

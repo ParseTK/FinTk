@@ -3,6 +3,8 @@ import {
   formatCompact,
   formatDate,
   formatFiscalYearEnd,
+  formatPrice,
+  formatShares,
   formatMoney,
   formatNumber,
   formatPercent,
@@ -110,5 +112,41 @@ describe("formatFiscalYearEnd", () => {
 
   it.each([null, undefined, "", "926", "1326", "0132x", "0000"])("returns null for %j", (value) => {
     expect(formatFiscalYearEnd(value)).toBeNull();
+  });
+});
+
+describe("formatShares", () => {
+  it.each([
+    ["12.500000", "12.5"],
+    ["10.000000", "10"],
+    ["0.333333", "0.333333"],
+    ["1234567.250000", "1,234,567.25"],
+    ["0.000001", "0.000001"],
+  ])("shows %s as %s", (input, expected) => {
+    expect(formatShares(input)).toBe(expected);
+  });
+
+  it("does not round through a float", () => {
+    expect(formatShares("123456789012.123456")).toBe("123,456,789,012.123456");
+  });
+
+  it.each([null, undefined, "", "abc"])("shows a dash for %j", (value) => {
+    expect(formatShares(value)).toBe(PLACEHOLDER);
+  });
+});
+
+describe("formatPrice", () => {
+  it.each([
+    ["100.000000", "$100.00"],
+    ["187.123456", "$187.123456"],
+    ["0.150000", "$0.15"],
+    ["3.333333", "$3.333333"],
+    ["1234.5", "$1,234.50"],
+  ])("shows %s as %s", (input, expected) => {
+    expect(formatPrice(input)).toBe(expected);
+  });
+
+  it.each([null, undefined, "nope"])("shows a dash for %j", (value) => {
+    expect(formatPrice(value)).toBe(PLACEHOLDER);
   });
 });

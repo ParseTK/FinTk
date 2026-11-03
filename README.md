@@ -33,9 +33,15 @@ Sign-in with Google or GitHub is behind the `auth` feature flag. With the flag o
 2. Run the backend with a database (see below), and start the frontend with
    `FEATURE_AUTH=true` and `API_URL` pointing at the backend.
 
+With the flag on, signed-in people also get `/watchlist` (companies they follow, with a Watch toggle on
+search results and company pages) and `/portfolio` (purchases of shares at a price; holdings and
+average cost are computed from them). Amounts are exact decimals in US dollars and show what was
+paid; current values need price data, which is not added yet. Visitors who are not signed in are sent
+to sign in and then back.
+
 Browsers only ever talk to the Next.js origin; `src/proxy.ts` forwards a small allowlist of paths
-(`/api/v1/auth/*` and `/api/v1/me`) to the API at request time, which keeps the session cookie
-same-site. Behind a load balancer, set `VIRELLO_TRUST_PROXY_HOPS` so the login rate limit sees real
+(`/api/v1/auth/*`, `/api/v1/me`, `/api/v1/watchlist*` and `/api/v1/portfolio*`) to the API at request
+time, which keeps the session cookie same-site. Behind a load balancer, set `VIRELLO_TRUST_PROXY_HOPS` so the login rate limit sees real
 client addresses.
 
 ### Local database

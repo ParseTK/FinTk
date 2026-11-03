@@ -10,7 +10,7 @@ const goTo = vi.fn();
 vi.mock("./navigate", () => ({ goTo: (path: string) => goTo(path) }));
 
 const sendWithCsrf = vi.fn();
-vi.mock("./request", () => ({
+vi.mock("@/lib/apiRequest", () => ({
   sendWithCsrf: (...args: unknown[]) => sendWithCsrf(...args),
 }));
 
@@ -154,6 +154,22 @@ describe("AccountMenuView", () => {
     expect(screen.getByRole("link", { name: "Your account" })).toHaveAttribute("href", "/account");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
     await expectNoA11yViolations(container);
+  });
+
+  it("links to the watchlist, the portfolio and the account, in that order", async () => {
+    render(<AccountMenuView user={user} csrfToken="c" />);
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+
+    const links = screen
+      .getAllByRole("link")
+      .map((link) => [link.textContent, link.getAttribute("href")]);
+
+    expect(links).toEqual([
+      ["Watchlist", "/watchlist"],
+      ["Portfolio", "/portfolio"],
+      ["Your account", "/account"],
+    ]);
+    expect(screen.getByRole("navigation", { name: "Your pages" })).toBeInTheDocument();
   });
 
   it("closes on Escape and returns focus to the button", async () => {

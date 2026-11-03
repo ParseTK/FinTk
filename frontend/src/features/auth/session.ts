@@ -1,11 +1,8 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { cache } from "react";
+import { authHeaders } from "@/lib/api/authHeaders";
 import { privateApi } from "@/lib/api/client";
 import { SIGNED_OUT, type SessionInfo } from "./types";
-
-/** The API's session cookie, by its development and production (__Host- prefixed) names. */
-const SESSION_COOKIES = ["__Host-virello_session", "virello_session"] as const;
 
 /**
  * Who is visiting, asked of the API once per request (React's cache dedupes the many components
@@ -16,15 +13,9 @@ const SESSION_COOKIES = ["__Host-virello_session", "virello_session"] as const;
  * the header still renders and pages can explain, instead of the whole site erroring.
  */
 export const getSession = cache(async (): Promise<SessionInfo> => {
-  const jar = await cookies();
-  const forwarded = SESSION_COOKIES.flatMap((name) => {
-    const value = jar.get(name)?.value;
-    return value ? [`${name}=${value}`] : [];
-  }).join("; ");
-
   try {
     const { data } = await privateApi.GET("/api/v1/auth/session", {
-      headers: forwarded ? { cookie: forwarded } : {},
+      headers: await authHeaders(),
     });
     if (!data) return { ...SIGNED_OUT, reachable: false };
     return {
