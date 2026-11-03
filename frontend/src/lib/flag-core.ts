@@ -35,6 +35,11 @@ export const FLAGS = {
     description:
       "The /markets page and its nav link: index and sector performance from month-end closes (ETF proxies).",
   },
+  crypto: {
+    default: false,
+    description:
+      "The /crypto page and its nav link: top coins, market totals and Fear and Greed from CoinMarketCap (needs a key and the internal token on the API).",
+  },
   seasonality: {
     default: false,
     description:

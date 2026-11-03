@@ -8,6 +8,7 @@ import { LiveMessage } from "@/components/ui/LiveMessage";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
+import { DataCredit } from "@/components/ui/DataCredit";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TextField } from "@/components/ui/Field";
@@ -179,6 +180,22 @@ export default function DesignPage() {
           <Change value={null} />
           <Change kind="money" value="12.3" />
           <Change kind="money" value="-4.5" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            The credit line a data provider requires beside its data: a real link, readable size,
+            https only. The second line below has a non-https address, so it stays plain text.
+          </p>
+          <DataCredit
+            text="Data provided by CoinMarketCap.com"
+            href="https://coinmarketcap.com/"
+            linkText="CoinMarketCap.com"
+          />
+          <DataCredit
+            text="Data provided by Example"
+            href="http://insecure.example/"
+            linkText="Example"
+          />
         </div>
         <Card as="div" className="overflow-x-auto p-0">
           <table className="w-full text-left text-sm">

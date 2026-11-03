@@ -9,7 +9,7 @@ const passesThrough = (response: Response) => response.headers.get("x-middleware
 afterEach(() => vi.unstubAllEnvs());
 
 describe("pages behind a flag", () => {
-  it.each(["/design", "/design/colors", "/sign-in", "/account", "/markets", "/news"])(
+  it.each(["/design", "/design/colors", "/sign-in", "/account", "/markets", "/crypto", "/news"])(
     "%s is a real 404 while its flag is off",
     async (path) => {
       expect(rewrittenTo(await proxy(request(path)))).toBe(
@@ -193,6 +193,24 @@ describe("the markets page", () => {
     expect(rewrittenTo(await proxy(request("/markets")))).toContain("/not-found-disabled");
     vi.stubEnv("FEATURE_MARKETS", "true");
     expect(passesThrough(await proxy(request("/markets")))).toBe(true);
+  });
+});
+
+describe("the crypto page", () => {
+  it("opens with its own flag, and neither the markets nor the auth flag opens it", async () => {
+    vi.stubEnv("FEATURE_MARKETS", "true");
+    vi.stubEnv("FEATURE_AUTH", "true");
+    expect(rewrittenTo(await proxy(request("/crypto")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(passesThrough(await proxy(request("/crypto")))).toBe(true);
+  });
+
+  it("is never reachable as an API path through the browser proxy", async () => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(rewrittenTo(await proxy(request("/api/v1/crypto/overview")))).toContain(
+      "/not-found-disabled",
+    );
   });
 });
 
