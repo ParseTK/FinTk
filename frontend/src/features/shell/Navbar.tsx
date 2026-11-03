@@ -19,12 +19,17 @@ export function Navbar() {
           <Logo />
         </Link>
         <div className="flex items-center gap-4 sm:gap-6">
-          <div className={clsx("items-center gap-6", collapse ? "hidden sm:flex" : "flex")}>
+          <div
+            className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}
+          >
             {NAV_ITEMS.map(({ href, label }) => (
               <NavLink key={href} href={href}>
                 {label}
               </NavLink>
             ))}
+            <Feature flag="markets">
+              <NavLink href="/markets">Markets</NavLink>
+            </Feature>
           </div>
           {collapse && <MobileMenu items={NAV_ITEMS} />}
           <Feature flag="auth">

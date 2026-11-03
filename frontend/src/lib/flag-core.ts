@@ -30,6 +30,11 @@ export const FLAGS = {
     description:
       "Portfolio value, gain or loss and latest prices (needs a price provider key on the API).",
   },
+  markets: {
+    default: false,
+    description:
+      "The /markets page and its nav link: index and sector performance from month-end closes (ETF proxies).",
+  },
   seasonality: {
     default: false,
     description:
