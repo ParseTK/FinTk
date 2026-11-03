@@ -23,6 +23,7 @@ Then open <http://localhost:8000/docs> (interactive docs, off in production).
 | `GET /api/v1/companies/{ticker}` | Company profile. |
 | `GET /api/v1/companies/{ticker}/filings` | Recent SEC filings, optional `form` and `limit`. |
 | `GET /api/v1/companies/{ticker}/financials` | Annual statements from SEC XBRL, `years` back. |
+| `GET /api/v1/crypto/overview` | Top coins, market totals and Fear and Greed. Internal only: needs the `X-Internal-Token` header. |
 | `GET /api/v1/companies/{ticker}/prices/monthly` | Monthly closes. **Sample data** (labelled `source: sample`) until a price provider is added. |
 
 Company data needs `VIRELLO_SEC_CONTACT_EMAIL`: SEC asks every client to identify itself. Without it
@@ -136,6 +137,27 @@ How it is kept correct and safe:
 `GET /api/v1/companies/{ticker}/prices/monthly` and `/seasonality` need monthly closing prices. With no key set they are generated **sample** data, and every response says `"source": "sample"`. For real data, create a free Twelve Data key (no card) and set `VIRELLO_TWELVE_DATA_API_KEY`, together with `VIRELLO_DATABASE_URL`.
 
 How the free quota is protected: a symbol's whole history is fetched **once** and stored permanently; once a month only the newest months are requested and appended; simultaneous requests share one provider call; if the provider fails, stored data is served; our own call budget (per minute and per day) refuses instead of queueing. Prices are split-adjusted closes without dividends, so the returns are price returns. Read the provider's terms before showing its data publicly.
+
+## Crypto prices
+
+`GET /api/v1/crypto/overview` returns the top coins by market capitalization, market totals and the
+Fear and Greed index, from CoinMarketCap's free Basic plan. Set `VIRELLO_CMC_API_KEY` (a free key; the
+call budgets `VIRELLO_CMC_CALLS_PER_MINUTE` and `VIRELLO_CMC_CALLS_PER_DAY` default to well under the plan's
+limits). Without a key the route answers 503.
+
+How the provider's licence shapes the design:
+
+- **Only our website may call it.** The licence allows the data inside our product, never as a standalone
+  feed, so the route requires the `X-Internal-Token` header (`VIRELLO_INTERNAL_API_TOKEN`, matching
+  `INTERNAL_API_TOKEN` in the frontend). Without a configured token the route is open in development and
+  closed in production, and production refuses to start with a crypto key but no token.
+- **Temporary storage only.** Answers are cached in memory for ten minutes (the Fear and Greed index for an
+  hour) and never written to the database. A stale copy is served for at most an hour if a refresh fails.
+- **Attribution.** Every response carries `attribution` ("Data provided by CoinMarketCap.com" and its link),
+  and pages must show it.
+- **A budget that refuses.** Calls are counted per minute and per day and refused (503 with `Retry-After`)
+  rather than queued. Each call's credit use is logged.
+- The test fixtures are invented, not recorded, so no provider data is committed.
 
 ## Quality gates
 

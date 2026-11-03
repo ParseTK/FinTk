@@ -27,12 +27,15 @@ from app.core.middleware import (
 from app.core.rate_limit import KeyedRateLimiter, SlidingWindowBudget
 from app.db.engine import Database
 from app.providers.base import PriceProvider
+from app.providers.coinmarketcap.client import CoinMarketCapProvider
+from app.providers.coinmarketcap.client import build_http_client as build_crypto_client
 from app.providers.feeds import FeedProvider
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client, build_user_agent
 from app.providers.twelvedata.client import TwelveDataProvider
 from app.providers.twelvedata.client import build_http_client as build_price_client
 from app.services.companies import CompanyService
+from app.services.crypto import CryptoService
 from app.services.markets import MarketService
 from app.services.news import NewsService
 from app.services.prices import StoredPriceProvider
@@ -54,6 +57,7 @@ def _lifespan(settings: Settings):
         owned_database: Database | None = None
         auth_client: httpx.AsyncClient | None = None
         feed_client: httpx.AsyncClient | None = None
+        crypto_client: httpx.AsyncClient | None = None
         if not app.state.oauth_providers and settings.enabled_providers:
             auth_client = httpx.AsyncClient(follow_redirects=False)
             app.state.oauth_providers = build_oauth_providers(settings, auth_client)
@@ -92,9 +96,20 @@ def _lifespan(settings: Settings):
             app.state.news_service = NewsService(
                 FeedProvider(feed_client), app.state.company_service
             )
+        if app.state.crypto_service is None and settings.cmc_api_key is not None:
+            crypto_client = build_crypto_client(settings.cmc_api_key.get_secret_value())
+            app.state.crypto_service = CryptoService(
+                CoinMarketCapProvider(
+                    crypto_client,
+                    per_minute=SlidingWindowBudget(settings.cmc_calls_per_minute, 60),
+                    per_day=SlidingWindowBudget(settings.cmc_calls_per_day, 86_400),
+                )
+            )
         try:
             yield
         finally:
+            if crypto_client is not None:
+                await crypto_client.aclose()
             if client is not None:
                 await client.aclose()
             if price_client is not None:
@@ -116,6 +131,7 @@ def create_app(
     company_service: CompanyService | None = None,
     market_service: MarketService | None = None,
     news_service: NewsService | None = None,
+    crypto_service: CryptoService | None = None,
     database: Database | None = None,
     oauth_providers: Mapping[str, OAuthProvider] | None = None,
 ) -> FastAPI:
@@ -140,6 +156,7 @@ def create_app(
     app.state.company_service = company_service
     app.state.market_service = market_service
     app.state.news_service = news_service
+    app.state.crypto_service = crypto_service
     app.state.database = database
     app.state.oauth_providers = dict(oauth_providers or {})
     app.state.auth_limiter = KeyedRateLimiter(settings.auth_requests_per_minute)

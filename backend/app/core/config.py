@@ -52,6 +52,13 @@ class Settings(BaseSettings):
     # Generate one with: openssl rand -base64 48
     internal_api_token: SecretStr | None = None
 
+    # CoinMarketCap crypto data (free Basic plan: 15,000 credits a month, 50 calls a minute). Unset
+    # means the crypto routes answer 503. The defaults keep a month under the plan with headroom
+    # (450 a day is about 13,500). Sent only in a header, held as a secret.
+    cmc_api_key: SecretStr | None = None
+    cmc_calls_per_minute: int = Field(default=20, ge=1, le=50)
+    cmc_calls_per_day: int = Field(default=450, ge=1, le=5000)
+
     # Postgres connection URL, e.g. postgresql+asyncpg://user:pass@host:5432/db. Held as a secret so
     # it never shows up in a repr, log line or traceback. Unset means "no database": the app still
     # starts and the data routes that need it answer 503.
@@ -145,6 +152,15 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         if self.is_production and self.public_url and not self.public_url.startswith("https://"):
             msg = "public_url must be https in production"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def _check_vendor_data_is_gated(self) -> "Settings":
+        # The vendor licence allows its data only inside our product, never as a public feed. In
+        # production the routes that return it must therefore be behind the internal token.
+        if self.is_production and self.cmc_api_key is not None and self.internal_api_token is None:
+            msg = "VIRELLO_INTERNAL_API_TOKEN is required in production when a crypto key is set"
             raise ValueError(msg)
         return self
 

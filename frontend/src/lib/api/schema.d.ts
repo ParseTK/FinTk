@@ -191,6 +191,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crypto/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Top coins by market capitalization, with market totals and Fear and Greed
+         * @description For our own website only: requires the internal token. The response carries the attribution that must be shown with the data.
+         */
+        get: operations["get_overview_api_v1_crypto_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/markets/overview": {
         parameters: {
             query?: never;
@@ -420,6 +440,13 @@ export interface components {
             /** Value */
             value: string;
         };
+        /** AttributionResponse */
+        AttributionResponse: {
+            /** Text */
+            text: string;
+            /** Url */
+            url: string;
+        };
         /**
          * BatchLotsInput
          * @description Several purchases saved together: all of them, or none.
@@ -477,6 +504,42 @@ export interface components {
             /** Ticker */
             ticker: string;
         };
+        /** CryptoAssetResponse */
+        CryptoAssetResponse: {
+            /** Change 24H */
+            change_24h: string | null;
+            /** Change 7D */
+            change_7d: string | null;
+            /** Market Cap */
+            market_cap: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: string;
+            /** Rank */
+            rank: number;
+            /** Slug */
+            slug: string;
+            /** Symbol */
+            symbol: string;
+            /** Volume 24H */
+            volume_24h: string | null;
+        };
+        /** CryptoOverviewResponse */
+        CryptoOverviewResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Assets */
+            assets: components["schemas"]["CryptoAssetResponse"][];
+            attribution: components["schemas"]["AttributionResponse"];
+            fear_greed: components["schemas"]["FearGreedResponse"] | null;
+            totals: components["schemas"]["MarketTotalsResponse"] | null;
+            /** Unavailable */
+            unavailable: string[];
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Code */
@@ -503,6 +566,13 @@ export interface components {
         /** ErrorResponse */
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
+        };
+        /** FearGreedResponse */
+        FearGreedResponse: {
+            /** Label */
+            label: string;
+            /** Value */
+            value: number;
         };
         /** FilingResponse */
         FilingResponse: {
@@ -697,6 +767,17 @@ export interface components {
             name: string;
             /** Symbol */
             symbol: string;
+        };
+        /** MarketTotalsResponse */
+        MarketTotalsResponse: {
+            /** Btc Dominance */
+            btc_dominance: string | null;
+            /** Eth Dominance */
+            eth_dominance: string | null;
+            /** Total Market Cap */
+            total_market_cap: string | null;
+            /** Total Volume 24H */
+            total_volume_24h: string | null;
         };
         /** MetaResponse */
         MetaResponse: {
@@ -1709,6 +1790,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_overview_api_v1_crypto_overview_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CryptoOverviewResponse"];
                 };
             };
             /** @description The request was not valid. */
