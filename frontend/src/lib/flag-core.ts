@@ -20,6 +20,11 @@ export const FLAGS = {
     description:
       "Sign in with Google or GitHub: header menu, /sign-in, /account and the /api sign-in proxy. Off: none of it is reachable.",
   },
+  valuation: {
+    default: false,
+    description:
+      "Portfolio value, gain or loss and latest prices (needs a price provider key on the API).",
+  },
   seasonality: {
     default: false,
     description:

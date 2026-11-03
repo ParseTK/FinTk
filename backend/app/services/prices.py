@@ -15,16 +15,17 @@ Slow network calls never happen inside a database transaction (the database clos
 that sit idle for ten seconds), so each step opens its own short session.
 """
 
+import asyncio
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import AppError, UpstreamError
 from app.db.engine import Database
-from app.domain.models import PriceHistory
+from app.domain.models import LatestClose, PriceHistory
 from app.domain.months import last_complete_month_end, month_index
 from app.providers.base import PriceProvider
 from app.repositories.prices import PriceRepository, SeriesInfo
@@ -92,17 +93,10 @@ class StoredPriceProvider:
         stored = await self._read(database, symbol)
         if stored is not None and self._is_fresh(stored.info):
             return stored.history
-        if self._cooling_down(symbol):
-            return self._fallback(stored)
-
-        try:
-            await self._refreshing.get_or_load(
-                symbol, lambda: self._refresh(database, symbol, stored), ttl=0
-            )
-        except AppError:
-            self._remember_failure(symbol)
+        error = await self._try_refresh(database, symbol, stored.info if stored else None)
+        if error is not None:
             if stored is None:
-                raise
+                raise error
             logger.warning("serving stored prices after a failed refresh")
             return stored.history
         refreshed = await self._read(database, symbol)
@@ -110,6 +104,50 @@ class StoredPriceProvider:
             msg = "Price history could not be stored."
             raise UpstreamError(msg)
         return refreshed.history
+
+    async def latest_closes(
+        self, symbols: Iterable[str], *, max_refresh: int = 3, refresh_timeout: float = 4.0
+    ) -> dict[str, LatestClose]:
+        """The newest stored close of each symbol, for valuing a portfolio.
+
+        Two queries however many symbols there are. Symbols we have never stored (or whose data
+        is out of date) are refreshed first, but at most ``max_refresh`` per call and never with
+        an error: a portfolio page must not wait on, or fail because of, a price provider. The
+        rest are picked up by later calls. Symbols without a stored price are simply absent.
+
+        The refresh wait is capped at ``refresh_timeout`` seconds. The caller's request may hold
+        an open database transaction (the database ends one idle for 10 s), and a slow provider
+        must not be able to use that up. A refresh cut short keeps running for whoever asks next.
+        """
+        database = self._database
+        wanted = sorted({symbol.upper() for symbol in symbols})
+        if database is None or not wanted:
+            return {}
+        async with database.session() as session:
+            infos = await PriceRepository(session).infos(wanted)
+        stale = [s for s in wanted if s not in infos or not self._is_fresh(infos[s])]
+        if stale[:max_refresh]:
+            await self._refresh_within(database, stale[:max_refresh], infos, refresh_timeout)
+        async with database.session() as session:
+            return await PriceRepository(session).latest_closes(wanted)
+
+    async def _refresh_within(
+        self, database: Database, symbols: list[str], infos: dict[str, SeriesInfo], budget: float
+    ) -> None:
+        try:
+            async with asyncio.timeout(budget):
+                outcomes = await asyncio.gather(
+                    *(self._try_refresh(database, s, infos.get(s)) for s in symbols),
+                    return_exceptions=True,
+                )
+        except TimeoutError:
+            logger.info("price refresh is still running; valuing with what is stored")
+            return
+        for outcome in outcomes:
+            # A provider failure comes back as a returned AppError and is deliberately tolerated.
+            # Anything else that was raised (for example the database) is a real problem.
+            if isinstance(outcome, BaseException) and not isinstance(outcome, AppError):
+                raise outcome
 
     # -- internals --------------------------------------------------------------------------
 
@@ -137,12 +175,22 @@ class StoredPriceProvider:
         while len(self._failed_at) > COOLDOWN_ENTRIES:
             self._failed_at.pop(next(iter(self._failed_at)))  # oldest first
 
-    @staticmethod
-    def _fallback(stored: _Stored | None) -> PriceHistory:
-        if stored is None:
+    async def _try_refresh(
+        self, database: Database, symbol: str, info: SeriesInfo | None
+    ) -> AppError | None:
+        """Bring one symbol up to date. None on success, else the reason it could not be (which
+        callers decide whether to raise or to work around by using what is already stored)."""
+        if self._cooling_down(symbol):
             msg = "Price history is unavailable right now. Please try again shortly."
-            raise UpstreamError(msg)
-        return stored.history
+            return UpstreamError(msg)
+        try:
+            await self._refreshing.get_or_load(
+                symbol, lambda: self._refresh(database, symbol, info), ttl=0
+            )
+        except AppError as error:
+            self._remember_failure(symbol)
+            return error
+        return None
 
     @staticmethod
     async def _read(database: Database, symbol: str) -> _Stored | None:
@@ -154,8 +202,7 @@ class StoredPriceProvider:
             months = await repo.months(symbol)
         return _Stored(info, PriceHistory(symbol=symbol, source=info.source, prices=tuple(months)))
 
-    async def _refresh(self, database: Database, symbol: str, stored: _Stored | None) -> None:
-        info = stored.info if stored is not None else None
+    async def _refresh(self, database: Database, symbol: str, info: SeriesInfo | None) -> None:
         resume_from = (
             info.latest_month if info is not None and info.source == self._upstream.source else None
         )

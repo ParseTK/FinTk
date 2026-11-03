@@ -1,5 +1,6 @@
 """The provider interfaces. Services depend on these, never on a concrete data source."""
 
+from collections.abc import Iterable
 from datetime import date
 from typing import Protocol
 
@@ -7,6 +8,7 @@ from app.domain.models import (
     CompanyProfile,
     CompanyRef,
     Filing,
+    LatestClose,
     MetricSeries,
     PriceHistory,
 )
@@ -38,3 +40,11 @@ class PriceProvider(Protocol):
         """Completed months, oldest first. With ``since``, a provider may return only the months
         from that one on (it must include it, so a restated month is corrected)."""
         ...
+
+
+class LatestPriceSource(Protocol):
+    """The newest stored close of many symbols at once, for valuing holdings."""
+
+    async def latest_closes(
+        self, symbols: Iterable[str], *, max_refresh: int = 3
+    ) -> dict[str, LatestClose]: ...

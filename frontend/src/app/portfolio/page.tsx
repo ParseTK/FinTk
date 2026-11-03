@@ -9,8 +9,10 @@ import {
   getLots,
   getPortfolio,
   HoldingsTable,
+  PortfolioSummary,
   PurchasesSection,
 } from "@/features/portfolio";
+import { isEnabled } from "@/lib/flags";
 
 export const metadata: Metadata = { title: "Portfolio", robots: { index: false } };
 
@@ -18,16 +20,19 @@ export default async function PortfolioPage() {
   const { user, csrfToken } = await getSession();
   if (!user || !csrfToken) redirect(`/sign-in?next=${encodeURIComponent("/portfolio")}`);
   const [portfolio, lots] = await Promise.all([getPortfolio(), getLots()]);
+  const showValue = isEnabled("valuation");
 
   return (
-    <Container size="narrow" className="py-8">
+    <Container size={showValue ? "default" : "narrow"} className="py-8">
       <div className="space-y-6">
         <header className="space-y-2">
           <h1 className="text-3xl font-bold">Portfolio</h1>
           <p className="text-fg-muted">
             Record what you bought and what you paid. Average cost is worked out from your
-            purchases. Amounts are in US dollars and show what you paid; current values will appear
-            once price data is added.
+            purchases. Amounts are in US dollars.
+            {showValue
+              ? " Values use month-end closing prices where we have them."
+              : " They show what you paid; current values will appear once price data is added."}
           </p>
         </header>
 
@@ -42,7 +47,8 @@ export default async function PortfolioPage() {
                 <h2 id="holdings-heading" className="text-xl font-semibold">
                   Holdings
                 </h2>
-                <HoldingsTable portfolio={portfolio} />
+                {showValue && <PortfolioSummary portfolio={portfolio} />}
+                <HoldingsTable portfolio={portfolio} showValue={showValue} />
               </Card>
             )}
 
