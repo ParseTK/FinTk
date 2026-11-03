@@ -7,11 +7,14 @@ export function HoldingsCards({
   lots,
   csrfToken,
   showValue,
+  colors = {},
 }: {
   portfolio: Portfolio;
   lots: Lot[];
   csrfToken: string;
   showValue: boolean;
+  /** Each company's allocation color, shown as a dot beside its name. */
+  colors?: Record<string, string>;
 }) {
   const bySymbol = new Map<string, Lot[]>();
   for (const lot of lots) bySymbol.set(lot.symbol, [...(bySymbol.get(lot.symbol) ?? []), lot]);
@@ -25,6 +28,7 @@ export function HoldingsCards({
             lots={bySymbol.get(holding.symbol) ?? []}
             csrfToken={csrfToken}
             showValue={showValue}
+            color={colors[holding.symbol]}
           />
         </li>
       ))}

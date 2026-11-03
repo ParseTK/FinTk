@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeAllocation, fromCents, MAX_SLICES, toCents } from "./allocation";
+import { computeAllocation, fromCents, MAX_SLICES, OTHER_COLOR, toCents } from "./allocation";
 import type { Holding } from "./types";
 
 const holding = (symbol: string, cost: string, value?: string): Holding => ({
@@ -98,6 +98,33 @@ describe("computeAllocation", () => {
     expect(other.label).toBe("Other (3)");
     expect(other.amount).toBe("282.00"); // 95 + 94 + 93, summed exactly
     expect(grouped.total).toBe("772.00"); // 100 + 99 + ... + 93
+  });
+
+  it("gives each company its own chart color in order, and the grouped ones the neutral one", () => {
+    const eight = Array.from({ length: 8 }, (_, i) => holding(`S${i}`, `${100 - i}.00`));
+    const result = computeAllocation(eight)!;
+    expect(result.slices.map((s) => s.color)).toEqual([
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-4)",
+      "var(--chart-5)",
+      OTHER_COLOR,
+    ]);
+    expect(result.colors.S0).toBe("var(--chart-1)");
+    expect(result.colors.S4).toBe("var(--chart-5)");
+    expect(result.colors.S5).toBe(OTHER_COLOR); // grouped companies still get a swatch
+    expect(result.colors.S7).toBe(OTHER_COLOR);
+    expect(Object.keys(result.colors)).toHaveLength(8);
+  });
+
+  it("never gives two companies the same color", () => {
+    const before = computeAllocation([holding("A", "50.00"), holding("B", "30.00")])!;
+    expect(before.colors.A).toBe("var(--chart-1)");
+    // B growing past A reorders the slices, and colors follow the order of the split, as in any
+    // single chart; what must hold is that no two companies ever share a color.
+    const after = computeAllocation([holding("A", "50.00"), holding("B", "80.00")])!;
+    expect(new Set(Object.values(after.colors)).size).toBe(2);
   });
 
   it("leaves out holdings worth nothing and returns nothing when nothing is left", () => {

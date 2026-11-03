@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TextField } from "@/components/ui/Field";
-import { CloseIcon, PlusIcon } from "@/components/ui/icons";
+import { CheckIcon, CloseIcon, PlusIcon } from "@/components/ui/icons";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { VisuallyHidden } from "@/components/ui/VisuallyHidden";
 import { sendJson } from "@/lib/apiRequest";
@@ -49,11 +49,11 @@ function missingFields(row: Row): RowErrors {
   return errors;
 }
 
-const plural = (count: number) => (count === 1 ? "purchase" : "purchases");
+const plural = (count: number) => (count === 1 ? "record" : "records");
 
 /**
- * "Add purchases": a button that opens a panel at the top of the page, where one or several
- * purchases are entered and saved together. After a successful save the panel closes itself,
+ * "Add record": a button that opens a panel at the top of the page, where one or several
+ * records (each a purchase of shares) are entered and saved together. After a successful save the panel closes itself,
  * says what was added, and puts keyboard focus back on the button.
  *
  * All rows are saved or none are. Problems come back per row, so the form marks the exact field
@@ -90,6 +90,13 @@ export function AddPurchasePanel({
     if (open) form.current?.querySelector<HTMLInputElement>("input")?.focus();
   }, [open]);
 
+  // The confirmation is for a moment, not for good.
+  useEffect(() => {
+    if (!added) return;
+    const timer = setTimeout(() => setAdded(""), 6000);
+    return () => clearTimeout(timer);
+  }, [added]);
+
   function close() {
     setOpen(false);
     toggle.current?.focus();
@@ -114,7 +121,7 @@ export function AddPurchasePanel({
 
     const filled = rows.filter((row) => !isBlank(row));
     if (filled.length === 0) {
-      setProblem("Add at least one purchase.");
+      setProblem("Add at least one record.");
       return;
     }
     const local: Record<string, RowErrors> = {};
@@ -186,11 +193,27 @@ export function AddPurchasePanel({
           onClick={() => (open ? close() : setOpen(true))}
         >
           {open ? <CloseIcon /> : <PlusIcon />}
-          {open ? "Close" : "Add purchases"}
+          {open ? "Close" : "Add record"}
         </Button>
       </div>
 
-      <LiveMessage tone="success">{added}</LiveMessage>
+      {/* The confirmation: a small pill that clears itself, announced politely when it appears. */}
+      <LiveMessage
+        tone="success"
+        // Only styled as a pill while it has something to say; empty it stays the invisible region.
+        className={
+          added
+            ? "inline-flex items-center gap-2 rounded-full bg-[color-mix(in_srgb,var(--gain)_6%,transparent)] px-3 py-1.5 font-medium"
+            : undefined
+        }
+      >
+        {added && (
+          <>
+            <CheckIcon />
+            {added}
+          </>
+        )}
+      </LiveMessage>
 
       {/* Collapses by animating the row height from 0fr to 1fr. While closed it is inert: not
           focusable and not read out, so its fields cannot be reached by accident. */}
@@ -206,10 +229,11 @@ export function AddPurchasePanel({
           <Card as="section" aria-labelledby={titleId} className="space-y-4">
             <div className="space-y-1">
               <h2 id={titleId} className="text-xl font-semibold">
-                Record what you bought
+                New records
               </h2>
               <p className="text-fg-muted text-sm">
-                Add one or several purchases. They are saved together, or not at all.
+                Add one or several records, each a purchase of shares. They are saved together, or
+                not at all.
               </p>
             </div>
             <form
@@ -222,10 +246,10 @@ export function AddPurchasePanel({
               {rows.map((row, index) => (
                 <fieldset
                   key={row.id}
-                  className="border-border space-y-3 rounded-lg border p-3 sm:p-4"
+                  className="border-border relative space-y-3 rounded-xl border p-3 sm:p-4"
                 >
                   <legend className="px-1 text-sm font-semibold">
-                    <VisuallyHidden>Purchase</VisuallyHidden> <span aria-hidden="true">#</span>
+                    <VisuallyHidden>Record</VisuallyHidden> <span aria-hidden="true">#</span>
                     {index + 1}
                   </legend>
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -268,10 +292,14 @@ export function AddPurchasePanel({
                     />
                   </div>
                   {rows.length > 1 && (
-                    <Button variant="ghost" size="sm" onClick={() => removeRow(row.id)}>
+                    <button
+                      type="button"
+                      onClick={() => removeRow(row.id)}
+                      className="text-fg-muted hover:text-fg absolute top-2 right-2 rounded-full p-2 transition-colors hover:bg-[color-mix(in_srgb,var(--fg)_8%,transparent)]"
+                    >
                       <CloseIcon />
-                      Remove <VisuallyHidden>purchase {index + 1}</VisuallyHidden>
-                    </Button>
+                      <VisuallyHidden>Remove record {index + 1}</VisuallyHidden>
+                    </button>
                   )}
                 </fieldset>
               ))}
@@ -283,7 +311,7 @@ export function AddPurchasePanel({
                   disabled={rows.length >= MAX_ROWS}
                 >
                   <PlusIcon />
-                  Add another row
+                  Add another record
                 </Button>
                 {rows.length >= MAX_ROWS && (
                   <span className="text-fg-muted text-sm">Up to {MAX_ROWS} at once.</span>
@@ -294,7 +322,7 @@ export function AddPurchasePanel({
 
               <div className="flex flex-wrap items-center gap-3">
                 <Button type="submit" loading={busy}>
-                  {filledCount > 1 ? `Save ${filledCount} purchases` : "Save purchase"}
+                  {filledCount > 1 ? `Save ${filledCount} records` : "Save record"}
                 </Button>
                 <Button variant="ghost" onClick={close}>
                   Cancel

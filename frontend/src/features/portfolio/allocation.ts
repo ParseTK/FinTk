@@ -1,7 +1,10 @@
 import type { Holding } from "./types";
 
-/** How many companies get their own slice; the rest are grouped as "Other". */
+/** How many companies get their own slice (one chart token each); the rest are grouped. */
 export const MAX_SLICES = 5;
+
+export const OTHER_COLOR = "var(--chart-other)";
+const colorOf = (index: number) => `var(--chart-${index + 1})`;
 
 export interface Slice {
   key: string;
@@ -12,6 +15,8 @@ export interface Slice {
   amount: string;
   /** 0 to 1. For drawing and for showing a percentage only. */
   share: number;
+  /** A CSS color for this slice: a chart token, in fixed order (never a generated hue). */
+  color: string;
 }
 
 export interface Allocation {
@@ -19,6 +24,8 @@ export interface Allocation {
   basis: "value" | "paid";
   total: string;
   slices: Slice[];
+  /** The color of every company in the split, so a table row can wear its slice's color. */
+  colors: Record<string, string>;
 }
 
 /** "1234.5" or "1234.56" to whole cents, exactly. Anything unreadable counts as zero. */
@@ -61,13 +68,17 @@ export function computeAllocation(holdings: Holding[]): Allocation | null {
 
   const grouping = items.length > MAX_SLICES + 1;
   const shown = grouping ? items.slice(0, MAX_SLICES) : items;
-  const slices: Slice[] = shown.map(({ holding, cents }) => ({
+  const slices: Slice[] = shown.map(({ holding, cents }, index) => ({
     key: holding.symbol,
     label: holding.symbol,
     symbol: holding.symbol,
     amount: fromCents(cents),
     share: shareOf(cents),
+    color: colorOf(index),
   }));
+  const colors: Record<string, string> = Object.fromEntries(
+    shown.map(({ holding }, index) => [holding.symbol, colorOf(index)]),
+  );
   if (grouping) {
     const rest = items.slice(MAX_SLICES);
     const cents = rest.reduce((sum, item) => sum + item.cents, 0n);
@@ -77,7 +88,14 @@ export function computeAllocation(holdings: Holding[]): Allocation | null {
       symbol: null,
       amount: fromCents(cents),
       share: shareOf(cents),
+      color: OTHER_COLOR,
     });
+    for (const { holding } of rest) colors[holding.symbol] = OTHER_COLOR;
   }
-  return { basis, total: fromCents(total), slices };
+  return { basis, total: fromCents(total), slices, colors };
+}
+
+/** Each company's chart color (empty when there is nothing to split). */
+export function allocationColors(holdings: Holding[]): Record<string, string> {
+  return computeAllocation(holdings)?.colors ?? {};
 }
