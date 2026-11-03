@@ -15,6 +15,11 @@ export const FLAGS = {
     default: false,
     description: "Component gallery at /design (internal review page; hidden and not indexed).",
   },
+  auth: {
+    default: false,
+    description:
+      "Sign in with Google or GitHub: header menu, /sign-in, /account and the /api sign-in proxy. Off: none of it is reachable.",
+  },
   news: {
     default: false,
     description: "News section and nav link (not built yet).",

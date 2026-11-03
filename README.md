@@ -22,6 +22,22 @@ npm run dev
 
 The API lives in `backend/` (`uv sync`, then `uv run uvicorn app.main:app --reload`); see its README.
 
+### Sign-in (off by default)
+
+Sign-in with Google or GitHub is behind the `auth` feature flag. With the flag off, `/sign-in`,
+`/account` and the `/api` proxy answer 404, so nothing half-finished is reachable.
+
+1. Register an OAuth app with each provider you want and set the backend variables (see the
+   "Sign-in" section of `backend/README.md`): the client ids and secrets, `VIRELLO_SECRET_KEY`, and
+   `VIRELLO_PUBLIC_URL` set to the address you browse (for example `http://localhost:3000`).
+2. Run the backend with a database (see below), and start the frontend with
+   `FEATURE_AUTH=true` and `API_URL` pointing at the backend.
+
+Browsers only ever talk to the Next.js origin; `src/proxy.ts` forwards a small allowlist of paths
+(`/api/v1/auth/*` and `/api/v1/me`) to the API at request time, which keeps the session cookie
+same-site. Behind a load balancer, set `VIRELLO_TRUST_PROXY_HOPS` so the login rate limit sees real
+client addresses.
+
 ### Local database
 
 The API stores data in Postgres 17. A compose file runs one for development:

@@ -1,11 +1,13 @@
 import clsx from "clsx";
 import Link from "next/link";
+import { Suspense } from "react";
 import { COLLAPSE_AFTER, NAV_ITEMS } from "./navigation";
 import { Feature } from "@/components/ui/Feature";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { PalettePicker } from "@/features/appearance";
+import { AccountMenu } from "@/features/auth";
 
 export function Navbar() {
   const collapse = NAV_ITEMS.length > COLLAPSE_AFTER;
@@ -25,6 +27,13 @@ export function Navbar() {
             ))}
           </div>
           {collapse && <MobileMenu items={NAV_ITEMS} />}
+          <Feature flag="auth">
+            {/* Streams in after the rest of the header, in a box the same size, so asking the API
+                who is signed in never delays the page or makes the header jump. */}
+            <Suspense fallback={<span aria-hidden="true" className="inline-block h-8 w-20" />}>
+              <AccountMenu />
+            </Suspense>
+          </Feature>
           <Feature flag="palette">
             <PalettePicker />
           </Feature>

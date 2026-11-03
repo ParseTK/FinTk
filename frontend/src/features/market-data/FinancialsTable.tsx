@@ -1,5 +1,5 @@
 import { formatCompact, formatDate, formatMoney, PLACEHOLDER } from "@/lib/format";
-import type { Financials, MetricSeries } from "./api/types";
+import type { Financials, MetricSeries } from "./types";
 
 /** The metrics worth showing first, in reading order, with their labels. */
 const ROWS: { metric: string; label: string }[] = [

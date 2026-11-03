@@ -93,6 +93,6 @@ export default defineConfig([
     "out/**",
     "coverage/**",
     "next-env.d.ts",
-    "src/features/market-data/api/schema.d.ts", // generated
+    "src/lib/api/schema.d.ts", // generated
   ]),
 ]);

@@ -30,7 +30,7 @@ jobs:
       # The generated API client must match the committed contract (backend/openapi.json).
       - run: npm run gen:api
       - name: Fail if the generated client is stale
-        run: git diff --exit-code -- src/features/market-data/api/schema.d.ts
+        run: git diff --exit-code -- src/lib/api/schema.d.ts
       - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck

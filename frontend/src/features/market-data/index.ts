@@ -9,4 +9,4 @@ export {
 } from "./companies";
 export { FilingsList } from "./FilingsList";
 export { FinancialsTable } from "./FinancialsTable";
-export type { CompanyProfile, CompanySummary, Filing, Financials, MetricSeries } from "./api/types";
+export type { CompanyProfile, CompanySummary, Filing, Financials, MetricSeries } from "./types";

@@ -92,11 +92,17 @@ async def verify_csrf(
 
 def client_key(request: Request) -> str:
     """Who is calling, for rate limiting."""
-    if get_settings_from(request).trust_proxy_headers:
-        forwarded = request.headers.get("x-forwarded-for", "")
-        if forwarded:
-            # The rightmost entry was appended by our own proxy; earlier ones are client-supplied.
-            return forwarded.split(",")[-1].strip()[:64]
+    hops = get_settings_from(request).trust_proxy_hops
+    if hops:
+        entries = [
+            part.strip()
+            for part in request.headers.get("x-forwarded-for", "").split(",")
+            if part.strip()
+        ]
+        # The Nth from the right was appended by the Nth proxy we trust. Fewer entries than that
+        # means a proxy was skipped, so nothing in the header can be believed.
+        if len(entries) >= hops:
+            return entries[-hops][:64]
     return request.client.host if request.client else "unknown"
 
 

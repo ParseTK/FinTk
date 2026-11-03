@@ -1,5 +1,5 @@
 import { formatDate } from "@/lib/format";
-import type { Filing } from "./api/types";
+import type { Filing } from "./types";
 
 export function FilingsList({ filings }: { filings: Filing[] }) {
   return (
