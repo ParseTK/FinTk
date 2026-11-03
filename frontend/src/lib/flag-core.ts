@@ -20,6 +20,11 @@ export const FLAGS = {
     description:
       "Sign in with Google or GitHub: header menu, /sign-in, /account and the /api sign-in proxy. Off: none of it is reachable.",
   },
+  seasonality: {
+    default: false,
+    description:
+      "Month-by-year returns on the company page (price history comes from the API; sample data is labelled).",
+  },
   news: {
     default: false,
     description: "News section and nav link (not built yet).",
