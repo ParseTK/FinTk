@@ -16,6 +16,12 @@ export function initials(user: Pick<User, "name" | "email">): string {
   return letters.toUpperCase();
 }
 
+const MENU_LINKS = [
+  { href: "/watchlist", label: "Watchlist" },
+  { href: "/portfolio", label: "Portfolio" },
+  { href: "/account", label: "Your account" },
+] as const;
+
 export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: string }) {
   const { open, toggle, close, buttonRef, containerProps } = useDisclosure();
   const panelId = useId();
@@ -43,13 +49,18 @@ export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: st
             <p className="truncate font-semibold">{user.name ?? "Signed in"}</p>
             <p className="text-fg-muted truncate text-sm">{user.email}</p>
           </div>
-          <Link
-            href="/account"
-            onClick={() => close()}
-            className="text-fg hover:bg-surface block rounded-lg px-3 py-2 text-sm font-semibold"
-          >
-            Your account
-          </Link>
+          <nav aria-label="Your pages" className="space-y-1">
+            {MENU_LINKS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => close()}
+                className="text-fg hover:bg-surface block rounded-lg px-3 py-2 text-sm font-semibold"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <SignOutButton csrfToken={csrfToken} />
         </div>
       )}
