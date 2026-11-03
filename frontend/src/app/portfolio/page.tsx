@@ -8,10 +8,9 @@ import {
   AddPurchaseForm,
   AddPurchasePanel,
   allocationColors,
-  ExpandableHoldingsTable,
   getLots,
   getPortfolio,
-  HoldingsCards,
+  HoldingsExplorer,
   HoldingsTable,
   PortfolioOverview,
   PortfolioSummary,
@@ -61,26 +60,15 @@ export default async function PortfolioPage() {
                 <h2 id="holdings-heading" className="text-xl font-semibold">
                   Holdings
                 </h2>
-                {/* Phones get collapsed cards, wider screens a table whose rows open. Either way
-                    a company's records live inside it, so there is no separate list to scroll. */}
-                <div className="md:hidden">
-                  <HoldingsCards
-                    portfolio={portfolio}
-                    lots={lots}
-                    csrfToken={csrfToken}
-                    showValue={showValue}
-                    colors={allocationColors(portfolio.holdings)}
-                  />
-                </div>
-                <Card className="hidden rounded-2xl p-2 sm:p-4 md:block">
-                  <ExpandableHoldingsTable
-                    portfolio={portfolio}
-                    lots={lots}
-                    csrfToken={csrfToken}
-                    showValue={showValue}
-                    colors={allocationColors(portfolio.holdings)}
-                  />
-                </Card>
+                {/* Search, order and paging for any size of portfolio. Phones get collapsed cards,
+                    wider screens a table whose rows open; a company's records live inside it. */}
+                <HoldingsExplorer
+                  portfolio={portfolio}
+                  lots={lots}
+                  csrfToken={csrfToken}
+                  showValue={showValue}
+                  colors={allocationColors(portfolio.holdings)}
+                />
               </section>
             </>
           )

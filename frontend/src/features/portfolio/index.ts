@@ -6,6 +6,7 @@ export { ExpandableHoldingsTable } from "./ExpandableHoldingsTable";
 export { GainChip } from "./GainChip";
 export { getLots, getPortfolio } from "./data";
 export { HoldingsCards } from "./HoldingsCards";
+export { HoldingsExplorer } from "./HoldingsExplorer";
 export { HoldingsTable } from "./HoldingsTable";
 export { PortfolioList } from "./PortfolioList";
 export { PortfolioOverview } from "./PortfolioOverview";

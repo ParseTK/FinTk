@@ -146,10 +146,10 @@ describe("PortfolioOverview", () => {
     expect(screen.getByText("$4,000.00")).not.toHaveClass("tabular-nums");
   });
 
-  it("lights the card in the gain or loss color", () => {
+  it("lights the card in the accent color, so it follows the palette, whatever the result", () => {
     const { container, rerender } = render(<PortfolioOverview portfolio={portfolio()} showValue />);
     const glow = () => (container.querySelector("section > div[aria-hidden]") as HTMLElement).style;
-    expect(glow().backgroundImage).toContain("var(--gain)");
+    expect(glow().backgroundImage).toContain("var(--brand)");
     rerender(
       <PortfolioOverview
         portfolio={portfolio({
@@ -158,7 +158,7 @@ describe("PortfolioOverview", () => {
         showValue
       />,
     );
-    expect(glow().backgroundImage).toContain("var(--loss)");
+    expect(glow().backgroundImage).toContain("var(--brand)"); // a loss does not recolor the card
   });
 
   it("leads with what was paid, and says so, when there are no prices", () => {
@@ -181,6 +181,34 @@ describe("PortfolioOverview", () => {
     partial.valuation!.holdings_valued = 1;
     render(<PortfolioOverview portfolio={partial} showValue />);
     expect(screen.getByText(/cover 1 of your 2 holdings/)).toBeInTheDocument();
+  });
+
+  it("compares the value with what was paid for the same holdings when only some are priced", () => {
+    const partial = portfolio({
+      holdings: [
+        portfolio().holdings[0]!, // priced, paid 1,000.00
+        { ...portfolio().holdings[1]!, valuation: null, cost_basis: "60000.00" }, // not priced
+      ],
+      total_cost_basis: "61000.00",
+    });
+    partial.valuation!.holdings_valued = 1;
+    partial.valuation!.market_value = "3000.00";
+    render(<PortfolioOverview portfolio={partial} showValue />);
+
+    expect(screen.getByText("Value of 1 priced holding").nextElementSibling).toHaveTextContent(
+      "$3,000.00",
+    );
+    expect(screen.getByText("Paid for these").nextElementSibling).toHaveTextContent("$1,000.00");
+    expect(screen.getByText("Total paid").nextElementSibling).toHaveTextContent("$61,000.00");
+    expect(screen.queryByText("Portfolio value")).not.toBeInTheDocument();
+  });
+
+  it("uses plain labels when every holding is priced", () => {
+    render(<PortfolioOverview portfolio={portfolio()} showValue />);
+    expect(screen.getByText("Portfolio value")).toBeInTheDocument();
+    expect(screen.getByText("Paid")).toBeInTheDocument();
+    expect(screen.queryByText("Paid for these")).not.toBeInTheDocument();
+    expect(screen.queryByText("Total paid")).not.toBeInTheDocument();
   });
 
   it("shows no allocation for a single company", () => {

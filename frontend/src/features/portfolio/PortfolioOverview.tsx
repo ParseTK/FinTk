@@ -1,16 +1,15 @@
-import { formatDate, formatMoney, isNegative, isPositive } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { AllocationBar } from "./AllocationBar";
-import { computeAllocation } from "./allocation";
+import { computeAllocation, fromCents, toCents } from "./allocation";
 import { GainChip } from "./GainChip";
 import type { Portfolio } from "./types";
 
-/** A soft light in the card's corner, in the gain or loss color, so the card has a mood. */
-function glow(gain: string | undefined): string | undefined {
-  if (gain === undefined) return undefined;
-  const token = isPositive(gain) ? "--gain" : isNegative(gain) ? "--loss" : null;
-  if (!token) return undefined;
-  return `radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(${token}) 16%, transparent), transparent 70%)`;
-}
+/**
+ * A soft light in the card's corner, in the visitor's accent color so the page matches the palette
+ * they chose. (Gain and loss keep their own green and red, on the chip, where the color has meaning.)
+ */
+const GLOW =
+  "radial-gradient(60% 90% at 100% 0%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 70%)";
 
 /**
  * The top of the portfolio page: what it is worth as one large figure, the gain beside it, what was
@@ -31,7 +30,11 @@ export function PortfolioOverview({
   const allocation = computeAllocation(portfolio.holdings);
   const total = portfolio.holdings.length;
   const partial = valuation !== null && valuation.holdings_valued < total;
-
+  // With only some holdings priced, "paid" must be compared with the same holdings, or a value of
+  // three companies would sit beside what was paid for a hundred and read as a huge loss.
+  const pricedPaid = fromCents(
+    portfolio.holdings.reduce((sum, h) => (h.valuation ? sum + toCents(h.cost_basis) : sum), 0n),
+  );
   return (
     <section
       aria-labelledby="overview-heading"
@@ -40,7 +43,7 @@ export function PortfolioOverview({
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
-        style={{ backgroundImage: glow(valuation?.gain) }}
+        style={{ backgroundImage: GLOW }}
       />
       <div className="relative space-y-8 p-6 sm:p-8">
         <h2 id="overview-heading" className="sr-only">
@@ -50,7 +53,11 @@ export function PortfolioOverview({
         <div className="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <div className="space-y-2">
             <p className="text-fg-muted text-sm font-medium">
-              {valuation ? "Portfolio value" : "Total paid"}
+              {valuation
+                ? partial
+                  ? `Value of ${valuation.holdings_valued} priced ${valuation.holdings_valued === 1 ? "holding" : "holdings"}`
+                  : "Portfolio value"
+                : "Total paid"}
             </p>
             <p className="text-5xl font-semibold tracking-tight sm:text-6xl">
               {formatMoney(valuation ? valuation.market_value : portfolio.total_cost_basis)}
@@ -63,7 +70,15 @@ export function PortfolioOverview({
           <dl className="flex gap-10 text-sm">
             {valuation && (
               <div>
-                <dt className="text-fg-muted">Paid</dt>
+                <dt className="text-fg-muted">{partial ? "Paid for these" : "Paid"}</dt>
+                <dd className="text-xl font-semibold">
+                  {formatMoney(partial ? pricedPaid : portfolio.total_cost_basis)}
+                </dd>
+              </div>
+            )}
+            {partial && (
+              <div>
+                <dt className="text-fg-muted">Total paid</dt>
                 <dd className="text-xl font-semibold">{formatMoney(portfolio.total_cost_basis)}</dd>
               </div>
             )}
