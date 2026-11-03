@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Change } from "@/components/ui/Change";
-import { formatMoney, formatPrice, formatShares, PLACEHOLDER } from "@/lib/format";
+import { formatMoney, formatPrice, formatQuote, formatShares, PLACEHOLDER } from "@/lib/format";
 import type { Portfolio } from "./types";
 
 /**
@@ -75,19 +75,19 @@ export function HoldingsTable({
               {valued && (
                 <>
                   <td className="px-2 py-3 text-right">
-                    {holding.valuation ? formatPrice(holding.valuation.price) : PLACEHOLDER}
+                    {holding.valuation ? formatQuote(holding.valuation.price) : PLACEHOLDER}
                   </td>
                   <td className="px-2 py-3 text-right">
                     {holding.valuation ? formatMoney(holding.valuation.market_value) : PLACEHOLDER}
                   </td>
                   <td className="px-2 py-3 text-right">
                     {holding.valuation ? (
-                      <>
+                      <span className="inline-flex items-start justify-end gap-1">
                         <Change value={holding.valuation.gain} kind="money" />
-                        <span className="block text-xs">
-                          <Change value={holding.valuation.gain_percent} />
+                        <span className="text-xs leading-none">
+                          (<Change value={holding.valuation.gain_percent} arrow={false} />)
                         </span>
-                      </>
+                      </span>
                     ) : (
                       PLACEHOLDER
                     )}

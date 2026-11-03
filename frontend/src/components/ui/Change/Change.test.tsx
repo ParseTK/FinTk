@@ -30,6 +30,13 @@ describe("Change", () => {
     expect(container.textContent).not.toMatch(/[▲▼]/);
   });
 
+  it("can hide the arrow when a neighbouring figure already shows it", () => {
+    const { container } = render(<Change value="5.76" arrow={false} />);
+    expect(screen.getByText("+5.76%")).toBeInTheDocument();
+    expect(container.firstChild).toHaveClass("text-gain");
+    expect(container.textContent).not.toMatch(/[▲▼]/);
+  });
+
   it("is neutral for missing values", () => {
     const { container } = render(<Change value={null} />);
     expect(screen.getByText("—")).toBeInTheDocument();

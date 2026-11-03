@@ -4,6 +4,7 @@ import {
   formatDate,
   formatFiscalYearEnd,
   formatPrice,
+  formatQuote,
   formatShares,
   formatMoney,
   formatNumber,
@@ -148,5 +149,23 @@ describe("formatPrice", () => {
 
   it.each([null, undefined, "nope"])("shows a dash for %j", (value) => {
     expect(formatPrice(value)).toBe(PLACEHOLDER);
+  });
+});
+
+describe("formatQuote", () => {
+  it("rounds provider noise away from one dollar up", () => {
+    expect(formatQuote("94.080002")).toBe("$94.08");
+    expect(formatQuote("344.630000")).toBe("$344.63");
+    expect(formatQuote("1")).toBe("$1.00");
+  });
+
+  it("keeps the decimals of a price under a dollar", () => {
+    expect(formatQuote("0.152344")).toBe("$0.152344");
+    expect(formatQuote("0.5")).toBe("$0.50");
+  });
+
+  it("shows a dash for missing values", () => {
+    expect(formatQuote(null)).toBe("—");
+    expect(formatQuote("abc")).toBe("—");
   });
 });
