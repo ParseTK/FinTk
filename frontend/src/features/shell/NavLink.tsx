@@ -11,10 +11,14 @@ export function NavLink({
   href,
   className,
   exact = false,
+  alsoActive,
   ...rest
-}: ComponentProps<typeof Link> & { exact?: boolean }) {
+}: ComponentProps<typeof Link> & { exact?: boolean; alsoActive?: readonly string[] }) {
   const pathname = usePathname();
-  const active = typeof href === "string" && isActivePath(pathname, href, exact);
+  const active =
+    typeof href === "string" &&
+    (isActivePath(pathname, href, exact) ||
+      (alsoActive ?? []).some((path) => isActivePath(pathname, path)));
 
   return (
     <Link

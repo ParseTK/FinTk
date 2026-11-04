@@ -2,7 +2,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { Suspense } from "react";
 import { COLLAPSE_AFTER } from "./navigation";
-import { navItems } from "./navItems";
+import { headerItems } from "./sections";
 import { Feature } from "@/components/ui/Feature";
 import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
@@ -17,7 +17,7 @@ import { ModeSwitch } from "./ModeSwitch";
  * is shown (centred on wide screens, on its own row on phones). With no mode it is the plain header.
  */
 export function Navbar({ mode = null }: { mode?: Mode | null }) {
-  const items = navItems(mode);
+  const items = headerItems(mode);
   const collapse = items.length > COLLAPSE_AFTER;
 
   return (
@@ -38,8 +38,8 @@ export function Navbar({ mode = null }: { mode?: Mode | null }) {
           <div
             className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}
           >
-            {items.map(({ href, label, exact }) => (
-              <NavLink key={href} href={href} exact={exact}>
+            {items.map(({ href, label, exact, alsoActive }) => (
+              <NavLink key={href} href={href} exact={exact} alsoActive={alsoActive}>
                 {label}
               </NavLink>
             ))}
