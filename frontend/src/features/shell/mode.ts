@@ -20,9 +20,3 @@ export async function getMode(): Promise<Mode | null> {
   const jar = await cookies();
   return parseMode(jar.get(MODE_COOKIE)?.value);
 }
-
-/** Where a visitor lands when they pick a mode. */
-export function modeHome(mode: Mode): string {
-  if (mode === "stocks") return "/search";
-  return isEnabled("crypto") ? "/crypto" : "/";
-}
