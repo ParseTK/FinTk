@@ -1,0 +1,91 @@
+import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { expectNoA11yViolations } from "@/test/axe";
+
+vi.mock("server-only", () => ({}));
+const GET = vi.fn();
+vi.mock("@/lib/api/client", () => ({
+  privateApi: { GET: (...args: unknown[]) => GET(...args) },
+  publicApi: { GET: vi.fn() },
+}));
+
+const { CryptoHome } = await import("./CryptoHome");
+
+const btc = {
+  rank: 1,
+  name: "Bitcoin",
+  symbol: "BTC",
+  slug: "bitcoin",
+  price: "100.00",
+  change_24h: "1.00",
+  change_7d: "5.00",
+  change_30d: "10.00",
+  change_90d: "25.00",
+  change_year_to_date: "40.00",
+  change_past_year: "100.00",
+};
+const markets = {
+  attribution: { text: "Data provided by CoinMarketCap.com", url: "https://coinmarketcap.com/" },
+  as_of: "2026-11-04T01:00:00Z",
+  composition: null,
+  majors: [btc],
+  past_year_start: "2025-11-12",
+  unavailable: [],
+  year_start: "2026-01-01",
+};
+
+beforeEach(() => {
+  GET.mockReset(); // braces: a returned function would be run by vitest as a cleanup hook
+});
+afterEach(() => vi.unstubAllEnvs());
+
+describe("CryptoHome", () => {
+  it("leads with the crypto headline, the crypto text and links, not a company search", async () => {
+    GET.mockResolvedValue({ data: markets });
+    const { container } = render(await CryptoHome());
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Digital financial data.");
+    expect(
+      screen.getByText("Research crypto markets, coins and official filings."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Explore the market" })).toHaveAttribute(
+      "href",
+      "/crypto",
+    );
+    expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
+    expect(screen.queryByText(/without the (hype|noise)/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/AAPL|NVIDIA|sample/i)).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it("shows live prices and a Bitcoin chart, with one request", async () => {
+    GET.mockResolvedValue({ data: markets });
+    render(await CryptoHome());
+    expect(screen.getByRole("region", { name: /largest cryptocurrencies/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /Bitcoin price over the past year/ }),
+    ).toBeInTheDocument();
+    expect(GET).toHaveBeenCalledTimes(1);
+    expect(GET).toHaveBeenCalledWith("/api/v1/crypto/markets");
+  });
+
+  it("shows the Read the news link only while the news page is on", async () => {
+    GET.mockResolvedValue({ data: markets });
+    render(await CryptoHome());
+    expect(screen.queryByRole("link", { name: "Read the news" })).not.toBeInTheDocument();
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    render(await CryptoHome());
+    expect(screen.getByRole("link", { name: "Read the news" })).toHaveAttribute(
+      "href",
+      "/crypto/news",
+    );
+  });
+
+  it("without figures, leaves out the prices and the chart and still shows the hero", async () => {
+    GET.mockRejectedValue(new Error("down"));
+    const { container } = render(await CryptoHome());
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Digital financial data.");
+    expect(screen.queryByRole("region", { name: /largest cryptocurrencies/i })).toBeNull();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+});

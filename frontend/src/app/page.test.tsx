@@ -46,3 +46,11 @@ describe("home page (the landing page)", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe("home page with crypto_home", () => {
+  it("is still the same landing page unless both crypto_home and crypto are on", () => {
+    vi.stubEnv("FEATURE_CRYPTO_HOME", "true");
+    render(<HomePage />);
+    landing(); // crypto itself is off, so the usual page
+  });
+});

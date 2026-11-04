@@ -2,7 +2,9 @@
 export { getCryptoMarkets, getCryptoNews, getCryptoOverview } from "./data";
 export { CompositionPanel } from "./CompositionPanel";
 export { CryptoMarkets } from "./CryptoMarkets";
+export { BitcoinChart } from "./BitcoinChart";
 export { CryptoMarketsPageBody } from "./CryptoMarketsPageBody";
+export { CryptoTicker } from "./CryptoTicker";
 export { CryptoNews } from "./CryptoNews";
 export { CryptoNewsPageBody } from "./CryptoNewsPageBody";
 export { MajorsTable } from "./MajorsTable";

@@ -1,11 +1,5 @@
-"use client";
-
-import clsx from "clsx";
-import { useState } from "react";
 import { formatMoney } from "@/lib/format";
-import { PauseIcon, PlayIcon } from "@/components/ui/icons";
-import { Change } from "@/components/ui/Change";
-import { IconButton } from "@/components/ui/IconButton";
+import { Ticker } from "@/components/ui/Ticker";
 
 // Fictional companies with made-up numbers, so no invented price is ever attached to a real firm.
 const SAMPLE = [
@@ -19,60 +13,23 @@ const SAMPLE = [
   { symbol: "SOLR", price: "92.55", change: "1.86" },
 ] as const;
 
-function Items({ copy }: { copy?: boolean }) {
-  return (
-    <ul
-      aria-hidden={copy || undefined}
-      className={clsx("flex shrink-0 items-center gap-8 pr-8", copy && "motion-reduce:hidden")}
-    >
-      {SAMPLE.map(({ symbol, price, change }) => (
-        <li key={symbol} className="flex items-baseline gap-2 whitespace-nowrap tabular-nums">
-          <span className="font-semibold">{symbol}</span>
-          <span>{formatMoney(price)}</span>
-          <Change value={change} className="text-sm" />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/**
- * A slow marquee of sample quotes. It has a pause button (WCAG 2.2.2), also pauses on hover and
- * keyboard focus, and does not move at all under reduced motion (the list becomes scrollable).
- */
+/** The sample strip of fictional quotes (kept until the stock-side landing page is retired). */
 export function MarketTicker() {
-  const [paused, setPaused] = useState(false);
-
   return (
-    <section
-      aria-label="Sample market snapshot with fictional companies"
-      className="border-border bg-surface-raised/60 border-y"
-    >
-      <div className="flex items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <p className="text-fg-muted shrink-0 text-xs font-semibold tracking-wide uppercase">
+    <Ticker
+      label="Sample market snapshot with fictional companies"
+      lead={
+        <span className="text-fg-muted text-xs font-semibold tracking-wide uppercase">
           Sample data
-        </p>
-        <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:overflow-x-auto">
-          <div
-            className={clsx(
-              "motion-safe:animate-marquee flex w-max focus-within:[animation-play-state:paused] hover:[animation-play-state:paused]",
-              paused && "[animation-play-state:paused]",
-            )}
-          >
-            <Items />
-            <Items copy />
-          </div>
-        </div>
-        <IconButton
-          label={paused ? "Play sample ticker" : "Pause sample ticker"}
-          size="sm"
-          variant="ghost"
-          onClick={() => setPaused((value) => !value)}
-          className="motion-reduce:hidden"
-        >
-          {paused ? <PlayIcon /> : <PauseIcon />}
-        </IconButton>
-      </div>
-    </section>
+        </span>
+      }
+      items={SAMPLE.map(({ symbol, price, change }) => ({
+        symbol,
+        price: formatMoney(price),
+        change,
+      }))}
+      pauseLabel="Pause sample ticker"
+      playLabel="Play sample ticker"
+    />
   );
 }

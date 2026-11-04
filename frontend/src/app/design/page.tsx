@@ -15,6 +15,7 @@ import { TextField } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
+import { Ticker } from "@/components/ui/Ticker";
 import { isEnabled } from "@/lib/flags";
 import { formatCompact, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
 
@@ -195,6 +196,29 @@ export default function DesignPage() {
             text="Data provided by Example"
             href="http://insecure.example/"
             linkText="Example"
+          />
+        </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            A slow strip of quotes. It pauses on hover and focus, has a pause button, and does not
+            move under Motion Reduced. Prices and the lead-in are supplied by the page. An unknown
+            change shows no figure.
+          </p>
+          <Ticker
+            label="Example ticker"
+            lead={
+              <span className="text-fg-muted text-xs font-semibold tracking-wide uppercase">
+                Example
+              </span>
+            }
+            items={[
+              { symbol: "AAA", price: "$1,234.50", change: "1.24" },
+              { symbol: "BBB", price: "$56.78", change: "-0.62" },
+              { symbol: "CCC", price: "$0.0004", change: null },
+              { symbol: "DDD", price: "$9.10", change: "0" },
+            ]}
+            pauseLabel="Pause example ticker"
+            playLabel="Play example ticker"
           />
         </div>
         <Card as="div" className="overflow-x-auto p-0">
