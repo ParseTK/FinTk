@@ -16,6 +16,12 @@ const FLAGGED_ITEMS: ReadonlyArray<NavItem & { flags: readonly FlagName[] }> = [
     flags: ["crypto", "crypto_markets"],
     modes: ["crypto"],
   },
+  {
+    href: "/crypto/news",
+    label: "Crypto news",
+    flags: ["crypto", "crypto_news"],
+    modes: ["crypto"],
+  },
   { href: "/news", label: "News", flags: ["news"], modes: ["stocks"] },
 ];
 

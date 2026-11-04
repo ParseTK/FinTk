@@ -243,3 +243,19 @@ describe("the news page", () => {
     expect(passesThrough(await proxy(request("/news")))).toBe(true);
   });
 });
+
+describe("the crypto news page", () => {
+  it("needs both the crypto flag and its own flag", async () => {
+    expect(rewrittenTo(await proxy(request("/crypto/news")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true"); // news alone does not open it
+    expect(rewrittenTo(await proxy(request("/crypto/news")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(passesThrough(await proxy(request("/crypto/news")))).toBe(true);
+  });
+
+  it("is closed by its own flag even while the crypto page is open", async () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(rewrittenTo(await proxy(request("/crypto/news")))).toContain("/not-found-disabled");
+    expect(passesThrough(await proxy(request("/crypto")))).toBe(true);
+  });
+});

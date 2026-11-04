@@ -6,6 +6,7 @@ from app.core.errors import ErrorResponse, UnavailableError
 from app.schemas.news import (
     NEWS_BASIS,
     CompanyNewsResponse,
+    CryptoNewsResponse,
     MarketNewsResponse,
     NewsItemResponse,
 )
@@ -33,6 +34,16 @@ async def get_market_news(
 ) -> MarketNewsResponse:
     response.headers["Cache-Control"] = "public, max-age=300"
     return MarketNewsResponse.from_domain(await service.market_news(limit))
+
+
+@router.get("/news/crypto", summary="Official crypto-related announcements and filings")
+async def get_crypto_news(
+    service: Service,
+    response: Response,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> CryptoNewsResponse:
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return CryptoNewsResponse.from_domain(await service.crypto_news(limit))
 
 
 @router.get(
