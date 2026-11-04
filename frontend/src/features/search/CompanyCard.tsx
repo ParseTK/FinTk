@@ -19,7 +19,7 @@ export function CompanyCard({ company, index = 0, watch, signInNext }: CompanyCa
   return (
     <Card
       as="li"
-      className="animate-fade-up flex flex-col items-center justify-between gap-3 md:flex-row"
+      className="animate-fade-up flex flex-col items-center gap-3 md:grid md:grid-cols-[minmax(0,1fr)_6rem_14rem]"
       style={{ animationDelay: staggerDelay(index) }}
     >
       <Link
@@ -28,17 +28,19 @@ export function CompanyCard({ company, index = 0, watch, signInNext }: CompanyCa
       >
         {company.name} ({company.ticker})
       </Link>
-      <p className="font-bold">{company.exchange}</p>
-      {watch ? (
-        <WatchlistToggle
-          symbol={company.ticker}
-          watched={watch.signedIn && watch.symbols.includes(company.ticker)}
-          csrfToken={watch.signedIn ? watch.csrfToken : undefined}
-          signInNext={signInNext}
-        />
-      ) : (
-        <PortfolioToggleButton symbol={company.ticker} />
-      )}
+      <p className="font-bold md:text-left">{company.exchange}</p>
+      <div className="md:justify-self-end">
+        {watch ? (
+          <WatchlistToggle
+            symbol={company.ticker}
+            watched={watch.signedIn && watch.symbols.includes(company.ticker)}
+            csrfToken={watch.signedIn ? watch.csrfToken : undefined}
+            signInNext={signInNext}
+          />
+        ) : (
+          <PortfolioToggleButton symbol={company.ticker} />
+        )}
+      </div>
     </Card>
   );
 }
