@@ -112,6 +112,12 @@ describe("RatiosTable", () => {
     expect(document.querySelector("img")).toBeNull();
   });
 
+  it("positions its scroll box, so hidden text in a far cell cannot widen the page on a phone", () => {
+    const { container } = render(<RatiosTable ratios={[ratio(), times]} />);
+    for (const box of container.querySelectorAll(".overflow-x-auto"))
+      expect(box).toHaveClass("relative");
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(<RatiosTable ratios={[ratio(), times]} />);
     await expectNoA11yViolations(container);

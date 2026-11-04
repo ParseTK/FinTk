@@ -57,6 +57,33 @@ describe("NavLink", () => {
     expect(screen.getByRole("link", { name: "Search" })).not.toHaveAttribute("aria-current");
   });
 
+  it("with exact, is not current on a page beneath it, so two links are never both current", () => {
+    vi.mocked(usePathname).mockReturnValue("/crypto/markets");
+    render(
+      <>
+        <NavLink href="/crypto" exact>
+          Crypto
+        </NavLink>
+        <NavLink href="/crypto/markets">Crypto markets</NavLink>
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "Crypto" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Crypto markets" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("with exact, is still current on its own page", () => {
+    vi.mocked(usePathname).mockReturnValue("/crypto");
+    render(
+      <NavLink href="/crypto" exact>
+        Crypto
+      </NavLink>,
+    );
+    expect(screen.getByRole("link", { name: "Crypto" })).toHaveAttribute("aria-current", "page");
+  });
+
   it("shows the current page with an underline, not only a color", () => {
     vi.mocked(usePathname).mockReturnValue("/search");
     render(<NavLink href="/search">Search</NavLink>);

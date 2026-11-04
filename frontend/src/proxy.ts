@@ -26,6 +26,7 @@ const GATED_PAGES: ReadonlyArray<readonly [prefix: string, flag: FlagName]> = [
   ["/design", "design"],
   ["/markets", "markets"],
   ["/crypto", "crypto"],
+  ["/crypto/markets", "crypto_markets"],
   ["/news", "news"],
   ["/sign-in", "auth"],
   ["/account", "auth"],
@@ -95,8 +96,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`${pathname}${search}`, apiBaseUrl()));
   }
 
-  const gated = GATED_PAGES.find(([prefix]) => isUnder(pathname, prefix));
-  if (gated && !isEnabled(gated[1])) return notFound(request);
+  // Every gate that matches must be open: /crypto/markets needs both the crypto and the crypto_markets
+  // flags, so turning the markets page on never opens it while the crypto page itself is off.
+  const closed = GATED_PAGES.some(
+    ([prefix, flag]) => isUnder(pathname, prefix) && !isEnabled(flag),
+  );
+  if (closed) return notFound(request);
   return NextResponse.next();
 }
 
@@ -106,6 +111,7 @@ export const config = {
     "/design/:path*",
     "/markets",
     "/crypto",
+    "/crypto/markets",
     "/news",
     "/company/:ticker",
     "/sign-in",

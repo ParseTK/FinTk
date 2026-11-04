@@ -66,6 +66,28 @@ describe("navItems", () => {
       expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto"]);
     });
 
+    it("adds Crypto markets only with its own flag, and only in Crypto mode", () => {
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto"]);
+      vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+      expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto", "/crypto/markets"]);
+      expect(navItems("stocks").map((item) => item.href)).toEqual(["/search"]);
+    });
+
+    it("never shows the Crypto markets link while the crypto page itself is off (it would be a dead link)", () => {
+      vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+      expect(navItems().map((item) => item.href)).not.toContain("/crypto/markets");
+      expect(navItems("crypto").map((item) => item.href)).not.toContain("/crypto/markets");
+    });
+
+    it("gives the Crypto link exact matching, so it is not current on the markets page", () => {
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+      const items = navItems("crypto");
+      expect(items.find((item) => item.href === "/crypto")?.exact).toBe(true);
+      expect(items.find((item) => item.href === "/crypto/markets")?.exact).toBeFalsy();
+    });
+
     it("never repeats a link across the two modes", () => {
       everything();
       const crypto = navItems("crypto").map((item) => item.href);

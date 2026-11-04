@@ -28,10 +28,11 @@ export function MobileMenu({ items }: { items: readonly NavItem[] }) {
           id={panelId}
           className="border-border bg-surface-raised animate-pop-in absolute right-0 z-20 mt-2 w-48 origin-top-right space-y-1 rounded-2xl border p-2 shadow-lg"
         >
-          {items.map(({ href, label }) => (
+          {items.map(({ href, label, exact }) => (
             <li key={href}>
               <NavLink
                 href={href}
+                exact={exact}
                 onClick={() => close()}
                 className="hover:bg-surface block rounded-lg px-3 py-2"
               >
