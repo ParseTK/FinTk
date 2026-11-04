@@ -11,7 +11,12 @@ from datetime import UTC, datetime
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import AppError, UnavailableError
-from app.domain.crypto_news import CRYPTO_COMPANIES, filing_cutoff, is_crypto_related
+from app.domain.crypto_news import (
+    CRYPTO_COMPANIES,
+    PER_COMPANY_LIMIT,
+    filing_cutoff,
+    is_crypto_related,
+)
 from app.domain.news import NewsItem, filing_news, latest_first
 from app.providers.feeds import CRYPTO_FEEDS, Feed, FeedProvider
 from app.services.companies import CompanyService
@@ -99,7 +104,8 @@ class NewsService:
                 raise result
         for ticker, filed in zip(CRYPTO_COMPANIES, filings, strict=True):
             if isinstance(filed, list):
-                items.extend(item for item in filed if item.published >= cutoff)
+                recent = [item for item in filed if item.published >= cutoff]
+                items.extend(latest_first(recent)[:PER_COMPANY_LIMIT])
             elif isinstance(filed, AppError):
                 down.append(ticker)
             else:

@@ -613,8 +613,12 @@ export interface components {
             basis: string;
             /** Companies */
             companies: string[];
+            /** Filing Days */
+            filing_days: number;
             /** Items */
             items: components["schemas"]["NewsItemResponse"][];
+            /** Per Company Limit */
+            per_company_limit: number;
             /** Terms */
             terms: string[];
             /** Unavailable */

@@ -48,7 +48,8 @@ export async function CryptoNews() {
             headline contains one of these words or phrases: {news.terms.join(", ")}.
           </p>
           <p>
-            SEC filings (Form 8-K) are included for these companies, from the last 90 days:{" "}
+            SEC filings (Form 8-K) are included for these companies, from the last{" "}
+            {news.filing_days} days, at most the newest {news.per_company_limit} of each:{" "}
             {news.companies.join(", ")}.
           </p>
           <p>Headlines are the sources&apos; own. Nothing is ranked, summarised or rewritten.</p>

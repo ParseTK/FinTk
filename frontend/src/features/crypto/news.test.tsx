@@ -15,6 +15,8 @@ const news = (overrides: Partial<CryptoNewsData> = {}): CryptoNewsData => ({
   basis: "Only what official sources published themselves. No opinions, summaries or forecasts.",
   terms: ["crypto", "bitcoin", "digital asset"],
   companies: ["COIN", "MSTR"],
+  filing_days: 90,
+  per_company_limit: 3,
   unavailable: [],
   items: [
     {
@@ -74,6 +76,7 @@ describe("CryptoNews", () => {
     expect(rules).not.toBeNull();
     expect(rules).toHaveTextContent("crypto, bitcoin, digital asset");
     expect(rules).toHaveTextContent("COIN, MSTR");
+    expect(rules).toHaveTextContent("last 90 days, at most the newest 3 of each");
   });
 
   it("says plainly when nothing matches, rather than showing an error", async () => {
