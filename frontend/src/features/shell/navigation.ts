@@ -8,6 +8,12 @@ export interface NavItem {
    * switch off every link shows, whatever its modes say.
    */
   modes?: readonly Mode[];
+  /**
+   * Active only on exactly this path, not on the pages beneath it. For a link whose address is the
+   * start of another link's (Crypto, /crypto, and Crypto markets, /crypto/markets), so only one of
+   * them is marked as the current page.
+   */
+  exact?: boolean;
 }
 
 /**
@@ -22,7 +28,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
 /** Below this many items the links stay inline on small screens instead of collapsing into a menu. */
 export const COLLAPSE_AFTER = 2;
 
-export function isActivePath(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+export function isActivePath(pathname: string, href: string, exact = false): boolean {
+  if (href === "/" || exact) return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }

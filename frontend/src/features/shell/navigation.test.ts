@@ -12,6 +12,13 @@ describe("isActivePath", () => {
     expect(isActivePath("/company/AAPL", "/search")).toBe(false);
   });
 
+  it("with exact, matches only that very path and not the pages beneath it", () => {
+    expect(isActivePath("/crypto", "/crypto", true)).toBe(true);
+    expect(isActivePath("/crypto/markets", "/crypto", true)).toBe(false);
+    expect(isActivePath("/crypto/markets", "/crypto/markets", true)).toBe(true);
+    expect(isActivePath("/crypto/markets", "/crypto")).toBe(true); // without exact, as before
+  });
+
   it("treats / as active only on the home page", () => {
     expect(isActivePath("/", "/")).toBe(true);
     expect(isActivePath("/search", "/")).toBe(false);

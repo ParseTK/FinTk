@@ -38,8 +38,8 @@ export function Navbar({ mode = null }: { mode?: Mode | null }) {
           <div
             className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}
           >
-            {items.map(({ href, label }) => (
-              <NavLink key={href} href={href}>
+            {items.map(({ href, label, exact }) => (
+              <NavLink key={href} href={href} exact={exact}>
                 {label}
               </NavLink>
             ))}

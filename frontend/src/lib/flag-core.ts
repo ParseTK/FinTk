@@ -35,6 +35,11 @@ export const FLAGS = {
     description:
       "The /markets page and its nav link: index and sector performance from month-end closes (ETF proxies).",
   },
+  crypto_markets: {
+    default: false,
+    description:
+      "The /crypto/markets page and its nav link: the market make-up, and how the ten largest coins have done over 30 days to a year. Needs the crypto flag too.",
+  },
   mode_switch: {
     default: false,
     description:

@@ -32,7 +32,7 @@ export function RatiosTable({ ratios }: { ratios: readonly RatioSeries[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full text-left text-sm tabular-nums">
           <caption className="sr-only">
             Ratios worked out from the company&apos;s annual SEC filings, most recent fiscal year

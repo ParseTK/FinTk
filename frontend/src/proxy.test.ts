@@ -214,6 +214,27 @@ describe("the crypto page", () => {
   });
 });
 
+describe("the crypto markets page", () => {
+  it("needs both the crypto flag and its own flag", async () => {
+    expect(rewrittenTo(await proxy(request("/crypto/markets")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true"); // markets alone does not open it
+    expect(rewrittenTo(await proxy(request("/crypto/markets")))).toContain("/not-found-disabled");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(passesThrough(await proxy(request("/crypto/markets")))).toBe(true);
+  });
+
+  it("is closed by its own flag even while the crypto page is open", async () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(rewrittenTo(await proxy(request("/crypto/markets")))).toContain("/not-found-disabled");
+    expect(passesThrough(await proxy(request("/crypto")))).toBe(true);
+  });
+
+  it("does not open the crypto page", async () => {
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+    expect(rewrittenTo(await proxy(request("/crypto")))).toContain("/not-found-disabled");
+  });
+});
+
 describe("the news page", () => {
   it("opens with its own flag, and the markets flag does not open it", async () => {
     vi.stubEnv("FEATURE_MARKETS", "true");
