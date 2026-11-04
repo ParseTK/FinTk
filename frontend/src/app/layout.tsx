@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
-import { Footer } from "@/features/shell";
-import { Navbar } from "@/features/shell";
+import { Footer, getMode, Navbar } from "@/features/shell";
 import { PortfolioProvider } from "@/features/portfolio";
 import { PREFERENCES_INIT_SCRIPT } from "@/features/appearance";
 import "./globals.css";
@@ -38,7 +37,9 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // null while the Crypto | Stocks switch is off, so the header is then exactly as it always was.
+  const mode = await getMode();
   return (
     // suppressHydrationWarning: the script below sets class/data attributes before React hydrates.
     <html
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           Skip to content
         </a>
         <PortfolioProvider>
-          <Navbar />
+          <Navbar mode={mode} />
           <main id="main" className="flex-1">
             {children}
           </main>
