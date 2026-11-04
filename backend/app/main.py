@@ -32,8 +32,6 @@ from app.providers.coinmarketcap.client import build_http_client as build_crypto
 from app.providers.feeds import FeedProvider
 from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client, build_user_agent
-from app.providers.twelvedata.client import TwelveDataProvider
-from app.providers.twelvedata.client import build_http_client as build_price_client
 from app.services.companies import CompanyService
 from app.services.crypto import CryptoService
 from app.services.markets import MarketService
@@ -53,7 +51,6 @@ def _lifespan(settings: Settings):
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         client: httpx.AsyncClient | None = None
-        price_client: httpx.AsyncClient | None = None
         owned_database: Database | None = None
         auth_client: httpx.AsyncClient | None = None
         feed_client: httpx.AsyncClient | None = None
@@ -66,18 +63,12 @@ def _lifespan(settings: Settings):
             app.state.database = owned_database
             checks: dict[str, ReadinessCheck] = app.state.readiness_checks
             checks["database"] = owned_database.ping
+        # No real price provider is configured: the app serves clearly labelled SAMPLE prices, so
+        # the features built on prices (seasonality, markets, portfolio value) are dormant and off.
+        # To add a licensed provider: implement PriceProvider (providers/base.py), wrap it in
+        # StoredPriceProvider(provider, app.state.database) and assign it to `prices` here, and set
+        # its key in the settings. Read the dormant-features notes (local planning docs) first.
         prices: PriceProvider = SamplePriceProvider()
-        needs_prices = app.state.company_service is None or app.state.market_service is None
-        if needs_prices and settings.twelve_data_api_key is not None:
-            price_client = build_price_client(settings.twelve_data_api_key.get_secret_value())
-            prices = StoredPriceProvider(
-                TwelveDataProvider(
-                    price_client,
-                    per_minute=SlidingWindowBudget(settings.twelve_data_calls_per_minute, 60),
-                    per_day=SlidingWindowBudget(settings.twelve_data_calls_per_day, 86_400),
-                ),
-                app.state.database,
-            )
         if app.state.market_service is None:
             app.state.market_service = MarketService(prices)
         if app.state.company_service is None and settings.sec_contact_email:
@@ -112,8 +103,6 @@ def _lifespan(settings: Settings):
                 await crypto_client.aclose()
             if client is not None:
                 await client.aclose()
-            if price_client is not None:
-                await price_client.aclose()
             if owned_database is not None:
                 await owned_database.dispose()
             if auth_client is not None:

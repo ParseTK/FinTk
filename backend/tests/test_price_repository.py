@@ -29,7 +29,7 @@ async def test_saved_months_come_back_in_date_order_with_exact_decimals(
     async with database.session() as session:
         await PriceRepository(session).save(
             "AAPL",
-            "twelvedata",
+            "example-provider",
             [month(2024, 3, "10.123456"), month(2024, 1, "9.5"), month(2024, 2, "9.999999")],
         )
 
@@ -90,8 +90,8 @@ async def test_the_source_and_refresh_time_are_recorded_and_updated(database: Da
         repo = PriceRepository(session)
         await repo.save("AAPL", "sample", [month(2024, 1, "10")])
         first = await repo.refreshed_at("AAPL")
-        await repo.save("AAPL", "twelvedata", [])
-        assert await repo.source("AAPL") == "twelvedata"
+        await repo.save("AAPL", "example-provider", [])
+        assert await repo.source("AAPL") == "example-provider"
         second = await repo.refreshed_at("AAPL")
     assert first is not None
     assert second is not None

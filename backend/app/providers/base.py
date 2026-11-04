@@ -34,7 +34,7 @@ class FundamentalsProvider(Protocol):
 class PriceProvider(Protocol):
     @property
     def source(self) -> str:
-        """Where the numbers come from, shown to users ("Twelve Data", or "sample")."""
+        """Where the numbers come from, shown to users (a provider's name, or "sample")."""
         ...
 
     async def monthly_history(self, symbol: str, *, since: date | None = None) -> PriceHistory:

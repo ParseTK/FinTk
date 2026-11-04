@@ -36,7 +36,7 @@ const rows: MarketRow[] = [
 ];
 
 const overview = (overrides: Partial<MarketOverview> = {}): MarketOverview => ({
-  source: "Twelve Data",
+  source: "Example Prices",
   basis: "Month-to-month change in the closing price, split-adjusted, dividends not included.",
   rows,
   ...overrides,

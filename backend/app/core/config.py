@@ -39,12 +39,6 @@ class Settings(BaseSettings):
     # from the environment, never committed.
     sec_contact_email: str | None = None
 
-    # Twelve Data price history. Unset means the app serves clearly labelled sample prices. The
-    # free plan allows 8 calls a minute and 800 a day; the defaults leave headroom for manual use.
-    twelve_data_api_key: SecretStr | None = None
-    twelve_data_calls_per_minute: int = Field(default=7, ge=1, le=600)
-    twelve_data_calls_per_day: int = Field(default=700, ge=1, le=100_000)
-
     # Shared secret that proves a request comes from our own website server. Routes that return a
     # data vendor's content (the licence allows it only as part of our product, never on a
     # standalone basis) require it, so the API cannot be used as a public feed of that data. Unset

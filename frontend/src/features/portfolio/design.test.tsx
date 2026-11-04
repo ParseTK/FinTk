@@ -47,7 +47,7 @@ const portfolio = (overrides: Partial<Portfolio> = {}): Portfolio => ({
     gain_percent: "166.67",
     holdings_valued: 2,
     as_of: "2026-10-31",
-    source: "Twelve Data",
+    source: "Example Prices",
   },
   currency: "USD",
   ...overrides,
@@ -136,7 +136,7 @@ describe("PortfolioOverview", () => {
     expect(screen.getByText(/\+\$2,500\.00/)).toBeInTheDocument();
     expect(screen.getByText("Paid").nextElementSibling).toHaveTextContent("$1,500.00");
     expect(screen.getByText("Companies").nextElementSibling).toHaveTextContent("2");
-    expect(screen.getByText(/Twelve Data, the latest being Oct 2026/)).toBeInTheDocument();
+    expect(screen.getByText(/Example Prices, the latest being Oct 2026/)).toBeInTheDocument();
     expect(screen.getByText(/do not include dividends/)).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
