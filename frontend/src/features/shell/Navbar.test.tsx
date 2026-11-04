@@ -59,3 +59,40 @@ describe("Navbar with several flagged pages", () => {
     expect(screen.queryByRole("button", { name: "Menu" })).not.toBeInTheDocument();
   });
 });
+
+describe("Navbar with the Crypto | Stocks switch", () => {
+  it("shows no switch and every link when no mode is given", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    render(<Navbar />);
+    expect(screen.queryByRole("group", { name: "Show" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Search" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Crypto" })).toBeInTheDocument();
+  });
+
+  it("shows the switch and only the crypto links in Crypto mode", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    render(<Navbar mode="crypto" />);
+    const group = screen.getByRole("group", { name: "Show" });
+    expect(group).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Crypto" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: "Crypto" })).toHaveAttribute("href", "/crypto");
+    expect(screen.queryByRole("link", { name: "Search" })).not.toBeInTheDocument();
+  });
+
+  it("shows the switch and the research links in Stocks mode", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    render(<Navbar mode="stocks" />);
+    expect(screen.getByRole("button", { name: "Stocks" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(screen.queryByRole("link", { name: "Crypto" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the logo and the appearance button in both modes", () => {
+    for (const mode of ["crypto", "stocks"] as const) {
+      const { unmount } = render(<Navbar mode={mode} />);
+      expect(screen.getByRole("link", { name: "Virello home" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Appearance" })).toBeInTheDocument();
+      unmount();
+    }
+  });
+});

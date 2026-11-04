@@ -31,4 +31,46 @@ describe("navItems", () => {
     vi.stubEnv("FEATURE_CRYPTO", "true");
     expect(navItems().map((item) => item.href)).toEqual(["/search", "/crypto"]);
   });
+
+  describe("with the Crypto | Stocks switch", () => {
+    const everything = () => {
+      vi.stubEnv("FEATURE_MARKETS", "true");
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      vi.stubEnv("FEATURE_NEWS", "true");
+    };
+
+    it("shows every link when there is no mode, as before the switch existed", () => {
+      everything();
+      expect(navItems().map((item) => item.href)).toEqual([
+        "/search",
+        "/markets",
+        "/crypto",
+        "/news",
+      ]);
+      expect(navItems(null).map((item) => item.href)).toHaveLength(4);
+    });
+
+    it("shows only the crypto link in Crypto mode", () => {
+      everything();
+      expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto"]);
+    });
+
+    it("shows the company-research links in Stocks mode", () => {
+      everything();
+      expect(navItems("stocks").map((item) => item.href)).toEqual(["/search", "/markets", "/news"]);
+    });
+
+    it("still hides a link whose own flag is off, in any mode", () => {
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      expect(navItems("stocks").map((item) => item.href)).toEqual(["/search"]);
+      expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto"]);
+    });
+
+    it("never repeats a link across the two modes", () => {
+      everything();
+      const crypto = navItems("crypto").map((item) => item.href);
+      const stocks = navItems("stocks").map((item) => item.href);
+      expect(crypto.filter((href) => stocks.includes(href))).toEqual([]);
+    });
+  });
 });

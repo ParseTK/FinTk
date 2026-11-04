@@ -35,6 +35,11 @@ export const FLAGS = {
     description:
       "The /markets page and its nav link: index and sector performance from month-end closes (ETF proxies).",
   },
+  mode_switch: {
+    default: false,
+    description:
+      "A Crypto | Stocks switch in the header. Crypto is the default; each mode shows its own links and the home page follows the mode. Needs the crypto flag too.",
+  },
   ratios: {
     default: false,
     description:
