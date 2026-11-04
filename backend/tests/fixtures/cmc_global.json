@@ -1,5 +1,9 @@
 {
-  "status": { "timestamp": "2026-11-03T20:01:00.000Z", "error_code": 0, "credit_count": 1 },
+  "status": {
+    "timestamp": "2026-11-03T20:01:00.000Z",
+    "error_code": 0,
+    "credit_count": 1
+  },
   "data": {
     "btc_dominance": 52.3456,
     "eth_dominance": 17.8,
@@ -7,8 +11,13 @@
     "quote": {
       "USD": {
         "total_market_cap": 2450000000000.5,
-        "total_volume_24h": 98000000000
+        "total_volume_24h": 98000000000,
+        "total_market_cap_yesterday": 2400000000000,
+        "stablecoin_market_cap": 245000000000,
+        "defi_market_cap": 98000000000
       }
-    }
+    },
+    "btc_dominance_yesterday": 52.1,
+    "eth_dominance_yesterday": 17.9
   }
 }

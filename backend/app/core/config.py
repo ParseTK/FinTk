@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     # (450 a day is about 13,500). Sent only in a header, held as a secret.
     cmc_api_key: SecretStr | None = None
     cmc_calls_per_minute: int = Field(default=20, ge=1, le=50)
-    cmc_calls_per_day: int = Field(default=450, ge=1, le=5000)
+    cmc_credits_per_day: int = Field(default=450, ge=1, le=5000)
 
     # Postgres connection URL, e.g. postgresql+asyncpg://user:pass@host:5432/db. Held as a secret so
     # it never shows up in a repr, log line or traceback. Unset means "no database": the app still

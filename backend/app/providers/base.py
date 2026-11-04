@@ -1,10 +1,10 @@
 """The provider interfaces. Services depend on these, never on a concrete data source."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from datetime import date
 from typing import Protocol
 
-from app.domain.crypto import CryptoListings, FearGreed, MarketTotals
+from app.domain.crypto import AnchorPrices, CryptoListings, FearGreed, MarketTotals
 from app.domain.models import (
     CompanyProfile,
     CompanyRef,
@@ -58,6 +58,10 @@ class CryptoProvider(Protocol):
     async def market_totals(self) -> MarketTotals: ...
 
     async def fear_greed(self) -> FearGreed: ...
+
+    async def anchor_prices(self, ids: Sequence[int], day: date) -> AnchorPrices:
+        """Each coin's price at 00:00 UTC on ``day``, to measure change since a fixed date."""
+        ...
 
 
 class LatestPriceSource(Protocol):

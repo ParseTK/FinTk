@@ -20,7 +20,9 @@
           "volume_24h": 1500000000.25,
           "percent_change_24h": -0.456,
           "percent_change_7d": 3.2149,
-          "market_cap": 300000000000
+          "market_cap": 300000000000,
+          "percent_change_30d": -3.75,
+          "percent_change_90d": 8
         }
       }
     },
@@ -36,7 +38,9 @@
           "volume_24h": 30000000000,
           "percent_change_24h": 1.234,
           "percent_change_7d": -2,
-          "market_cap": 1280000000000
+          "market_cap": 1280000000000,
+          "percent_change_30d": 12.5,
+          "percent_change_90d": -20.25
         }
       }
     },
@@ -48,11 +52,13 @@
       "cmc_rank": 3,
       "quote": {
         "USD": {
-          "price": 0.0000001234,
+          "price": 1.234e-7,
           "volume_24h": 4000,
           "percent_change_24h": null,
           "percent_change_7d": null,
-          "market_cap": null
+          "market_cap": null,
+          "percent_change_30d": null,
+          "percent_change_90d": null
         }
       }
     }

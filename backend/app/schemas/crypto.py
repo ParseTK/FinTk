@@ -5,14 +5,15 @@ notation (a tiny coin price such as 0.0000001 must not arrive as ``1E-7``). The 
 CoinMarketCap requires travels in every response so a page cannot forget to show it.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer
 
 from app.domain.crypto import CryptoAsset, FearGreed, MarketTotals
-from app.services.crypto import CryptoOverview
+from app.domain.crypto_markets import Composition, CompositionRow
+from app.services.crypto import CryptoMarkets, CryptoOverview, MajorCoin
 
 # A plain fixed-point string: ``format(value, "f")`` never uses an exponent.
 PlainDecimal = Annotated[
@@ -109,4 +110,107 @@ class CryptoOverviewResponse(BaseModel):
                 FearGreedResponse.from_domain(overview.fear_greed) if overview.fear_greed else None
             ),
             unavailable=list(overview.unavailable),
+        )
+
+
+class CompositionRowResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    key: Literal["bitcoin", "ethereum", "other", "stablecoins", "defi"]
+    label: str
+    share: PlainDecimal | None  # percent of the total market capitalization
+    market_cap: PlainDecimal | None  # US dollars
+    share_change: PlainDecimal | None  # percentage points since yesterday, when known
+    # True for a group that is also counted among the coins above it (stablecoins, DeFi tokens), so
+    # the rows must not be added up.
+    overlaps: bool
+
+    @classmethod
+    def from_domain(cls, row: CompositionRow) -> "CompositionRowResponse":
+        return cls(
+            key=row.key,
+            label=row.label,
+            share=row.share,
+            market_cap=row.market_cap,
+            share_change=row.share_change,
+            overlaps=row.overlaps,
+        )
+
+
+class CompositionResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    total_market_cap: PlainDecimal | None  # US dollars
+    total_change_24h: PlainDecimal | None  # percent
+    rows: list[CompositionRowResponse]
+
+    @classmethod
+    def from_domain(cls, value: Composition) -> "CompositionResponse":
+        return cls(
+            total_market_cap=value.total_market_cap,
+            total_change_24h=value.total_change_24h,
+            rows=[CompositionRowResponse.from_domain(row) for row in value.rows],
+        )
+
+
+class MajorCoinResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    rank: int
+    name: str
+    symbol: str
+    slug: str
+    price: PlainDecimal  # US dollars
+    change_24h: PlainDecimal | None  # percent points, here and below
+    change_7d: PlainDecimal | None
+    change_30d: PlainDecimal | None
+    change_90d: PlainDecimal | None
+    change_year_to_date: PlainDecimal | None
+    change_past_year: PlainDecimal | None
+
+    @classmethod
+    def from_domain(cls, coin: MajorCoin) -> "MajorCoinResponse":
+        asset = coin.asset
+        return cls(
+            rank=asset.rank,
+            name=asset.name,
+            symbol=asset.symbol,
+            slug=asset.slug,
+            price=asset.price,
+            change_24h=asset.change_24h,
+            change_7d=asset.change_7d,
+            change_30d=asset.change_30d,
+            change_90d=asset.change_90d,
+            change_year_to_date=coin.year_to_date,
+            change_past_year=coin.past_year,
+        )
+
+
+class CryptoMarketsResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    attribution: AttributionResponse
+    as_of: datetime
+    composition: CompositionResponse | None
+    majors: list[MajorCoinResponse]
+    # The days the two long changes are measured from, so the page can say exactly what they mean.
+    year_start: date | None
+    past_year_start: date | None
+    # Parts that could not be loaded this time, so the page says so instead of looking complete.
+    unavailable: list[str]
+
+    @classmethod
+    def from_domain(cls, markets: CryptoMarkets) -> "CryptoMarketsResponse":
+        return cls(
+            attribution=AttributionResponse(text=ATTRIBUTION_TEXT, url=ATTRIBUTION_URL),
+            as_of=markets.as_of,
+            composition=(
+                CompositionResponse.from_domain(markets.composition)
+                if markets.composition
+                else None
+            ),
+            majors=[MajorCoinResponse.from_domain(coin) for coin in markets.majors],
+            year_start=markets.year_start,
+            past_year_start=markets.past_year_start,
+            unavailable=list(markets.unavailable),
         )

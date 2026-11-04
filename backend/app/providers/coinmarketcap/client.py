@@ -16,15 +16,15 @@ proxy, a log line or an error message might repeat. Nothing here logs a response
 
 import asyncio
 import logging
-from collections.abc import Callable
-from datetime import UTC, datetime
+from collections.abc import Callable, Sequence
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, cast
 
 import httpx
 
 from app.core.errors import UnavailableError, UpstreamError
 from app.core.rate_limit import SlidingWindowBudget
-from app.domain.crypto import CryptoListings, FearGreed, MarketTotals
+from app.domain.crypto import AnchorPrices, CryptoListings, FearGreed, MarketTotals
 from app.providers.coinmarketcap import parsers
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,24 @@ class CoinMarketCapProvider:
         payload = await self._get("/v3/fear-and-greed/latest", {})
         return self._read(lambda: parsers.parse_fear_greed(payload, self._now()))
 
+    async def anchor_prices(self, ids: Sequence[int], day: date) -> AnchorPrices:
+        """One daily point per coin, stamped 00:00 UTC on ``day``. Ten coins cost one credit.
+
+        The provider stamps a daily point with the day it closes, so the request starts the day
+        before. The free plan allows only twelve months of history: an older day is refused.
+        """
+        payload = await self._get(
+            "/v3/cryptocurrency/quotes/historical",
+            {
+                "id": ",".join(str(coin) for coin in sorted(set(ids))),
+                "interval": "daily",
+                "time_start": (day - timedelta(days=1)).isoformat(),
+                "count": 1,
+                "convert": "USD",
+            },
+        )
+        return self._read(lambda: parsers.parse_anchor_prices(payload))
+
     @staticmethod
     def _read[T](parse: Callable[[], T]) -> T:
         try:
@@ -105,12 +123,19 @@ class CoinMarketCapProvider:
                 if response.status_code in RETRYABLE_STATUS and attempt == 1:
                     pass
                 else:
-                    return self._decode(response)
+                    return self._settle(self._decode(response))
             await asyncio.sleep(self._retry_delay)
         msg = (
             "The crypto data service is unavailable."  # unreachable; keeps the type checker honest
         )
         raise UpstreamError(msg)
+
+    def _settle(self, body: dict[str, Any]) -> dict[str, Any]:
+        """Remember credits beyond the one each call is budgeted for (a long history costs many)."""
+        used = parsers.credit_count(body)
+        if used is not None and used > 1:
+            self._per_day.spend(used - 1)
+        return body
 
     def _spend_budget(self) -> None:
         for budget in (self._per_minute, self._per_day):
