@@ -151,7 +151,7 @@ describe("AccountMenuView", () => {
 
     expect(button).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("octo@example.com")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Your account" })).toHaveAttribute("href", "/account");
+    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
@@ -164,7 +164,7 @@ describe("AccountMenuView", () => {
     expect(button).toHaveAttribute("data-initials", initials(user));
   });
 
-  it("links to the watchlist, the portfolio and the account, in that order", async () => {
+  it("links to the portfolio, the watchlist and the account, in the Holdings sidebar's order, then Sign out", async () => {
     render(<AccountMenuView user={user} csrfToken="c" />);
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
 
@@ -173,10 +173,13 @@ describe("AccountMenuView", () => {
       .map((link) => [link.textContent, link.getAttribute("href")]);
 
     expect(links).toEqual([
-      ["Watchlist", "/watchlist"],
       ["Portfolio", "/portfolio"],
-      ["Your account", "/account"],
+      ["Watchlist", "/watchlist"],
+      ["Account", "/account"],
     ]);
+    const panel = screen.getByRole("navigation", { name: "Your pages" }).parentElement!;
+    const order = [...panel.querySelectorAll("a, button")].map((element) => element.textContent);
+    expect(order.slice(-4)).toEqual(["Portfolio", "Watchlist", "Account", "Sign out"]);
     expect(screen.getByRole("navigation", { name: "Your pages" })).toBeInTheDocument();
   });
 
