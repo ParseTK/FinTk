@@ -191,6 +191,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crypto/markets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How the crypto market is made up, and how the largest coins have done
+         * @description For our own website only: requires the internal token. Composition of the market, and 30 day, 90 day, year-to-date and past-year changes for the ten largest coins. The response carries the attribution that must be shown with the data.
+         */
+        get: operations["get_markets_api_v1_crypto_markets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crypto/overview": {
         parameters: {
             query?: never;
@@ -504,6 +524,33 @@ export interface components {
             /** Ticker */
             ticker: string;
         };
+        /** CompositionResponse */
+        CompositionResponse: {
+            /** Rows */
+            rows: components["schemas"]["CompositionRowResponse"][];
+            /** Total Change 24H */
+            total_change_24h: string | null;
+            /** Total Market Cap */
+            total_market_cap: string | null;
+        };
+        /** CompositionRowResponse */
+        CompositionRowResponse: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "bitcoin" | "ethereum" | "other" | "stablecoins" | "defi";
+            /** Label */
+            label: string;
+            /** Market Cap */
+            market_cap: string | null;
+            /** Overlaps */
+            overlaps: boolean;
+            /** Share */
+            share: string | null;
+            /** Share Change */
+            share_change: string | null;
+        };
         /** CryptoAssetResponse */
         CryptoAssetResponse: {
             /** Change 24H */
@@ -524,6 +571,24 @@ export interface components {
             symbol: string;
             /** Volume 24H */
             volume_24h: string | null;
+        };
+        /** CryptoMarketsResponse */
+        CryptoMarketsResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            attribution: components["schemas"]["AttributionResponse"];
+            composition: components["schemas"]["CompositionResponse"] | null;
+            /** Majors */
+            majors: components["schemas"]["MajorCoinResponse"][];
+            /** Past Year Start */
+            past_year_start: string | null;
+            /** Unavailable */
+            unavailable: string[];
+            /** Year Start */
+            year_start: string | null;
         };
         /** CryptoOverviewResponse */
         CryptoOverviewResponse: {
@@ -721,6 +786,31 @@ export interface components {
         LotsResponse: {
             /** Lots */
             lots: components["schemas"]["LotResponse"][];
+        };
+        /** MajorCoinResponse */
+        MajorCoinResponse: {
+            /** Change 24H */
+            change_24h: string | null;
+            /** Change 30D */
+            change_30d: string | null;
+            /** Change 7D */
+            change_7d: string | null;
+            /** Change 90D */
+            change_90d: string | null;
+            /** Change Past Year */
+            change_past_year: string | null;
+            /** Change Year To Date */
+            change_year_to_date: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: string;
+            /** Rank */
+            rank: number;
+            /** Slug */
+            slug: string;
+            /** Symbol */
+            symbol: string;
         };
         /** MarketFiguresResponse */
         MarketFiguresResponse: {
@@ -1818,6 +1908,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_markets_api_v1_crypto_markets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CryptoMarketsResponse"];
                 };
             };
             /** @description The request was not valid. */

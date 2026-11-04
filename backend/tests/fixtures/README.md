@@ -18,3 +18,6 @@ CoinMarketCap. The coins are fictional (Example Gold, Example Silver, Example Ti
 made up. They are shaped like the documented response so the parsers can be tested. Real responses are
 deliberately not committed: the provider's licence allows its data only inside our product, so copying
 real data into a public repository would store it where it may not be stored.
+
+`cmc_anchor.json` (also invented) is the shape of a one-point-per-coin historical response, used for the
+year-to-date and past-year changes.

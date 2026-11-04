@@ -204,7 +204,7 @@ def test_the_crypto_key_is_not_shown_in_the_settings_repr() -> None:
     assert "plainly-not-a-real-key" not in repr(make_settings(cmc_api_key="plainly-not-a-real-key"))
 
 
-@pytest.mark.parametrize("field", ["cmc_calls_per_minute", "cmc_calls_per_day"])
+@pytest.mark.parametrize("field", ["cmc_calls_per_minute", "cmc_credits_per_day"])
 def test_the_budgets_must_be_positive(field: str) -> None:
     with pytest.raises(ValidationError):
         make_settings(**{field: 0})

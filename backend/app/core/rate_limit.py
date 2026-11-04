@@ -68,6 +68,15 @@ class SlidingWindowBudget:
         self._clock = clock
         self._calls: deque[float] = deque()
 
+    def spend(self, extra: int) -> None:
+        """Count ``extra`` more calls that already happened, without ever refusing.
+
+        For a provider that charges more than one credit for some calls: the call was made and the
+        credits are gone, so the budget must remember them even though nothing can be refused now.
+        """
+        now = self._clock()
+        self._calls.extend([now] * max(extra, 0))
+
     def take(self) -> float | None:
         """Spend one call. None if allowed, else the seconds until a call becomes available."""
         now = self._clock()

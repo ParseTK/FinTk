@@ -64,3 +64,37 @@ def test_memory_is_bounded_by_the_limit() -> None:
 def test_rejects_nonsense_configuration(limit: int, window: float) -> None:
     with pytest.raises(ValueError, match="positive"):
         SlidingWindowBudget(limit, window)
+
+
+class TestSpend:
+    """Calls that already happened and cost more than one credit are remembered, never refused."""
+
+    def test_counts_extra_calls_against_the_limit(self) -> None:
+        clock = Clock()
+        budget = SlidingWindowBudget(5, 60, clock=clock)
+        assert budget.take() is None  # one call
+        budget.spend(3)  # it turned out to cost four credits in all
+        assert budget.take() is None  # the fifth
+        assert budget.take() is not None  # the sixth is refused
+
+    def test_spending_never_refuses_even_past_the_limit(self) -> None:
+        clock = Clock()
+        budget = SlidingWindowBudget(2, 60, clock=clock)
+        budget.spend(10)  # no exception: the credits are already gone
+        assert budget.take() == pytest.approx(60)
+
+    def test_what_was_spent_leaves_the_window_like_any_other_call(self) -> None:
+        clock = Clock()
+        budget = SlidingWindowBudget(3, 60, clock=clock)
+        budget.spend(3)
+        clock.now = 59
+        assert budget.take() is not None
+        clock.now = 60
+        assert budget.take() is None
+
+    @pytest.mark.parametrize("extra", [0, -1, -100])
+    def test_nothing_or_less_than_nothing_changes_nothing(self, extra: int) -> None:
+        clock = Clock()
+        budget = SlidingWindowBudget(1, 60, clock=clock)
+        budget.spend(extra)
+        assert budget.take() is None

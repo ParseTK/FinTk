@@ -1,0 +1,61 @@
+{
+  "status": {
+    "timestamp": "2026-11-03T20:01:00.000Z",
+    "error_code": 0,
+    "credit_count": 1
+  },
+  "data": {
+    "9001": [
+      {
+        "id": 9001,
+        "name": "Example Gold",
+        "symbol": "EXG",
+        "quotes": [
+          {
+            "timestamp": "2026-01-01T00:00:00.000Z",
+            "quote": {
+              "USD": {
+                "price": 50000.5,
+                "market_cap": 900000000000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "9002": [
+      {
+        "id": 9002,
+        "name": "Example Silver",
+        "symbol": "EXS",
+        "quotes": [
+          {
+            "timestamp": "2026-01-01T00:00:00.000Z",
+            "quote": {
+              "USD": {
+                "price": 2000
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "9003": [
+      {
+        "id": 9003,
+        "name": "Example Tiny",
+        "symbol": "EXT",
+        "quotes": [
+          {
+            "timestamp": "2026-01-01T00:00:00.000Z",
+            "quote": {
+              "USD": {
+                "price": 8e-8
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

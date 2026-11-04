@@ -1,13 +1,14 @@
 """The crypto service: short in-memory caching, single flight, stale-on-error, partial failure."""
 
 import asyncio
-from datetime import UTC, datetime
+from collections.abc import Sequence
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
 
 from app.core.errors import UnavailableError, UpstreamError
-from app.domain.crypto import CryptoAsset, CryptoListings, FearGreed, MarketTotals
+from app.domain.crypto import AnchorPrices, CryptoAsset, CryptoListings, FearGreed, MarketTotals
 from app.services.crypto import (
     FEAR_GREED_TTL,
     LISTINGS_TTL,
@@ -31,6 +32,9 @@ def asset(rank: int) -> CryptoAsset:
         change_7d=None,
         market_cap=None,
         volume_24h=None,
+        cmc_id=1000 + rank,
+        change_30d=Decimal("3.5"),
+        change_90d=Decimal("-7.25"),
     )
 
 
@@ -38,7 +42,12 @@ class FakeProvider:
     source = "fake"
 
     def __init__(self) -> None:
-        self.calls = {"listings": 0, "totals": 0, "fear": 0}
+        self.calls = {"listings": 0, "totals": 0, "fear": 0, "anchor": 0}
+        self.anchor_days: list[date] = []
+        self.anchor_ids: list[tuple[int, ...]] = []
+        self.fail_days: set[date] = set()
+        self.anchor_prices_by_id: dict[int, Decimal] | None = None
+        self.anchor_by_day: dict[date, dict[int, Decimal]] = {}
         self.fail: set[str] = set()
         self.delay = 0.0
         self.rows = 3
@@ -55,6 +64,19 @@ class FakeProvider:
         if "totals" in self.fail:
             raise UpstreamError("totals down")
         return MarketTotals(Decimal(1), Decimal(2), Decimal(50), Decimal(18), NOW)
+
+    async def anchor_prices(self, ids: Sequence[int], day: date) -> AnchorPrices:
+        self.calls["anchor"] += 1
+        self.anchor_days.append(day)
+        self.anchor_ids.append(tuple(ids))
+        if "anchor" in self.fail or day in self.fail_days:
+            raise UpstreamError("anchor down")
+        prices = (
+            self.anchor_by_day.get(day)
+            or self.anchor_prices_by_id
+            or {coin: Decimal(1) for coin in ids}
+        )
+        return AnchorPrices(on=day, prices={coin: prices[coin] for coin in ids if coin in prices})
 
     async def fear_greed(self) -> FearGreed:
         self.calls["fear"] += 1
@@ -90,14 +112,14 @@ async def test_a_second_look_is_served_from_memory() -> None:
     service, provider, _ = build()
     await service.overview()
     await service.overview()
-    assert provider.calls == {"listings": 1, "totals": 1, "fear": 1}
+    assert provider.calls == {"listings": 1, "totals": 1, "fear": 1, "anchor": 0}
 
 
 async def test_many_simultaneous_visitors_cost_one_call_each() -> None:
     service, provider, _ = build()
     provider.delay = 0.05
     await asyncio.gather(*(service.overview() for _ in range(20)))
-    assert provider.calls == {"listings": 1, "totals": 1, "fear": 1}
+    assert provider.calls == {"listings": 1, "totals": 1, "fear": 1, "anchor": 0}
 
 
 async def test_each_part_refreshes_on_its_own_schedule() -> None:
@@ -106,7 +128,7 @@ async def test_each_part_refreshes_on_its_own_schedule() -> None:
     clock.now += LISTINGS_TTL + 1  # listings and totals are due, fear and greed is not
     assert TOTALS_TTL == LISTINGS_TTL < FEAR_GREED_TTL
     await service.overview()
-    assert provider.calls == {"listings": 2, "totals": 2, "fear": 1}
+    assert provider.calls == {"listings": 2, "totals": 2, "fear": 1, "anchor": 0}
     clock.now += FEAR_GREED_TTL
     await service.overview()
     assert provider.calls["fear"] == 2
@@ -133,7 +155,7 @@ async def test_without_the_listing_there_is_no_page_and_no_extra_calls_are_spent
     provider.fail = {"listings"}
     with pytest.raises(UpstreamError):
         await service.overview()
-    assert provider.calls == {"listings": 1, "totals": 0, "fear": 0}
+    assert provider.calls == {"listings": 1, "totals": 0, "fear": 0, "anchor": 0}
 
 
 async def test_a_failure_is_not_cached() -> None:

@@ -13,11 +13,11 @@ live key; every reader is defensive about that. Whatever the provider sends is u
 import re
 import unicodedata
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any, cast
 
-from app.domain.crypto import CryptoAsset, CryptoListings, FearGreed, MarketTotals
+from app.domain.crypto import AnchorPrices, CryptoAsset, CryptoListings, FearGreed, MarketTotals
 
 Json = Mapping[str, Any]
 
@@ -91,6 +91,11 @@ def _when(value: object) -> datetime | None:
     return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
+def _id(value: object) -> int | None:
+    """The provider's numeric id: a positive integer, never a bool, a float or a string."""
+    return value if isinstance(value, int) and not isinstance(value, bool) and value > 0 else None
+
+
 def _asset(row: object) -> CryptoAsset | None:
     data = _dict(row)
     quote = _dict(_dict(data.get("quote")).get("USD"))
@@ -120,6 +125,9 @@ def _asset(row: object) -> CryptoAsset | None:
         change_7d=_percent(quote.get("percent_change_7d")),
         market_cap=_money(quote.get("market_cap")),
         volume_24h=_money(quote.get("volume_24h")),
+        cmc_id=_id(data.get("id")),
+        change_30d=_percent(quote.get("percent_change_30d")),
+        change_90d=_percent(quote.get("percent_change_90d")),
     )
 
 
@@ -143,6 +151,12 @@ def parse_listings(payload: Json, fetched_at: datetime) -> CryptoListings:
     return CryptoListings(assets=tuple(assets), as_of=as_of)
 
 
+def _either(data: Json, quote: Json, key: str) -> object:
+    """A figure the provider puts either beside the quote or inside it."""
+    value = quote.get(key)
+    return value if value is not None else data.get(key)
+
+
 def parse_global(payload: Json, fetched_at: datetime) -> MarketTotals:
     data = _dict(payload.get("data"))
     if not data:
@@ -155,6 +169,11 @@ def parse_global(payload: Json, fetched_at: datetime) -> MarketTotals:
         btc_dominance=_percent(data.get("btc_dominance")),
         eth_dominance=_percent(data.get("eth_dominance")),
         as_of=_when(data.get("last_updated")) or fetched_at,
+        total_market_cap_yesterday=_money(_either(data, quote, "total_market_cap_yesterday")),
+        btc_dominance_yesterday=_percent(_either(data, quote, "btc_dominance_yesterday")),
+        eth_dominance_yesterday=_percent(_either(data, quote, "eth_dominance_yesterday")),
+        stablecoin_market_cap=_money(_either(data, quote, "stablecoin_market_cap")),
+        defi_market_cap=_money(_either(data, quote, "defi_market_cap")),
     )
     if totals.total_market_cap is None and totals.btc_dominance is None:
         msg = "global metrics response has nothing readable"
@@ -178,3 +197,45 @@ def parse_fear_greed(payload: Json, fetched_at: datetime) -> FearGreed:
         msg = "fear and greed value is out of range"
         raise ValueError(msg)
     return FearGreed(value=number, label=label, as_of=_when(data.get("update_time")) or fetched_at)
+
+
+def _first(value: object) -> object:
+    """The first element of a list, the value itself otherwise (the provider sends either)."""
+    if isinstance(value, list):
+        items = cast("list[object]", value)
+        return items[0] if items else None
+    return value
+
+
+def parse_anchor_prices(payload: Json) -> AnchorPrices:
+    """The prices from a one-point historical request for several coins.
+
+    The provider stamps each point at 00:00 UTC of the day it describes; all coins share one day.
+    Raises ``ValueError`` when nothing usable is found, so garbage is never taken as "no change".
+    """
+    data = payload.get("data")
+    if not isinstance(data, Mapping):
+        msg = "anchor response has no data"
+        raise ValueError(msg)
+    prices: dict[int, Decimal] = {}
+    day: date | None = None
+    for key, value in cast("Mapping[object, object]", data).items():
+        row = _dict(_first(value))
+        coin = _id(row.get("id")) or (
+            _id(int(key)) if isinstance(key, str) and key.isdigit() else None
+        )
+        quotes = row.get("quotes")
+        first: Json = {}
+        if isinstance(quotes, list) and quotes:
+            first = _dict(cast("list[object]", quotes)[0])
+        price = _money(_dict(_dict(first.get("quote")).get("USD")).get("price"))
+        when = _when(first.get("timestamp"))
+        if coin is None or price is None or price == 0 or when is None:
+            continue
+        day = day or when.date()
+        if when.date() == day:
+            prices[coin] = price
+    if day is None or not prices:
+        msg = "anchor response has no readable prices"
+        raise ValueError(msg)
+    return AnchorPrices(on=day, prices=prices)

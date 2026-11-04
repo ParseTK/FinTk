@@ -242,6 +242,112 @@
         "title": "CompanySummary",
         "type": "object"
       },
+      "CompositionResponse": {
+        "properties": {
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CompositionRowResponse"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "total_change_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Change 24H"
+          },
+          "total_market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Market Cap"
+          }
+        },
+        "required": [
+          "total_market_cap",
+          "total_change_24h",
+          "rows"
+        ],
+        "title": "CompositionResponse",
+        "type": "object"
+      },
+      "CompositionRowResponse": {
+        "properties": {
+          "key": {
+            "enum": [
+              "bitcoin",
+              "ethereum",
+              "other",
+              "stablecoins",
+              "defi"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "overlaps": {
+            "title": "Overlaps",
+            "type": "boolean"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          },
+          "share_change": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Change"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "share",
+          "market_cap",
+          "share_change",
+          "overlaps"
+        ],
+        "title": "CompositionRowResponse",
+        "type": "object"
+      },
       "CryptoAssetResponse": {
         "properties": {
           "change_24h": {
@@ -321,6 +427,77 @@
           "volume_24h"
         ],
         "title": "CryptoAssetResponse",
+        "type": "object"
+      },
+      "CryptoMarketsResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "composition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompositionResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "majors": {
+            "items": {
+              "$ref": "#/components/schemas/MajorCoinResponse"
+            },
+            "title": "Majors",
+            "type": "array"
+          },
+          "past_year_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Past Year Start"
+          },
+          "unavailable": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          },
+          "year_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year Start"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "composition",
+          "majors",
+          "year_start",
+          "past_year_start",
+          "unavailable"
+        ],
+        "title": "CryptoMarketsResponse",
         "type": "object"
       },
       "CryptoOverviewResponse": {
@@ -811,6 +988,111 @@
           "lots"
         ],
         "title": "LotsResponse",
+        "type": "object"
+      },
+      "MajorCoinResponse": {
+        "properties": {
+          "change_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 24H"
+          },
+          "change_30d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 30D"
+          },
+          "change_7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 7D"
+          },
+          "change_90d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 90D"
+          },
+          "change_past_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Past Year"
+          },
+          "change_year_to_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Year To Date"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "name",
+          "symbol",
+          "slug",
+          "price",
+          "change_24h",
+          "change_7d",
+          "change_30d",
+          "change_90d",
+          "change_year_to_date",
+          "change_past_year"
+        ],
+        "title": "MajorCoinResponse",
         "type": "object"
       },
       "MarketFiguresResponse": {
@@ -2817,6 +3099,68 @@
         "summary": "Return of each calendar month, year by year",
         "tags": [
           "companies"
+        ]
+      }
+    },
+    "/api/v1/crypto/markets": {
+      "get": {
+        "description": "For our own website only: requires the internal token. Composition of the market, and 30 day, 90 day, year-to-date and past-year changes for the ten largest coins. The response carries the attribution that must be shown with the data.",
+        "operationId": "get_markets_api_v1_crypto_markets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoMarketsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "How the crypto market is made up, and how the largest coins have done",
+        "tags": [
+          "crypto"
         ]
       }
     },

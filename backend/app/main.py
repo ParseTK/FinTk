@@ -93,7 +93,7 @@ def _lifespan(settings: Settings):
                 CoinMarketCapProvider(
                     crypto_client,
                     per_minute=SlidingWindowBudget(settings.cmc_calls_per_minute, 60),
-                    per_day=SlidingWindowBudget(settings.cmc_calls_per_day, 86_400),
+                    per_day=SlidingWindowBudget(settings.cmc_credits_per_day, 86_400),
                 )
             )
         try:

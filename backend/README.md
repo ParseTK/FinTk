@@ -24,6 +24,7 @@ Then open <http://localhost:8000/docs> (interactive docs, off in production).
 | `GET /api/v1/companies/{ticker}/filings` | Recent SEC filings, optional `form` and `limit`. |
 | `GET /api/v1/companies/{ticker}/financials` | Annual statements from SEC XBRL, `years` back. |
 | `GET /api/v1/crypto/overview` | Top coins, market totals and Fear and Greed. Internal only: needs the `X-Internal-Token` header. |
+| `GET /api/v1/crypto/markets` | How the crypto market is made up, and how the ten largest coins have done (30 days, 90 days, year to date, past year). Internal only, same header. |
 | `GET /api/v1/companies/{ticker}/prices/monthly` | Monthly closes. **Sample data** (labelled `source: sample`) until a price provider is added. |
 
 Company data needs `VIRELLO_SEC_CONTACT_EMAIL`: SEC asks every client to identify itself. Without it
@@ -141,8 +142,11 @@ The price layer is ready for a provider that licenses public display. It sits be
 ## Crypto prices
 
 `GET /api/v1/crypto/overview` returns the top coins by market capitalization, market totals and the
-Fear and Greed index, from CoinMarketCap's free Basic plan. Set `VIRELLO_CMC_API_KEY` (a free key; the
-call budgets `VIRELLO_CMC_CALLS_PER_MINUTE` and `VIRELLO_CMC_CALLS_PER_DAY` default to well under the plan's
+Fear and Greed index, from CoinMarketCap's free Basic plan. `GET /api/v1/crypto/markets` adds the market's
+make-up (Bitcoin, Ethereum and all other coins as shares of the total, with stablecoins and DeFi tokens shown
+as overlapping groups, not slices) and the ten largest coins' change over 30 days, 90 days, since the
+start of the year and over the past year. Set `VIRELLO_CMC_API_KEY` (a free key; the
+call budgets `VIRELLO_CMC_CALLS_PER_MINUTE` and `VIRELLO_CMC_CREDITS_PER_DAY` default to well under the plan's
 limits). Without a key the route answers 503.
 
 How the provider's licence shapes the design:
@@ -155,8 +159,13 @@ How the provider's licence shapes the design:
   hour) and never written to the database. A stale copy is served for at most an hour if a refresh fails.
 - **Attribution.** Every response carries `attribution` ("Data provided by CoinMarketCap.com" and its link),
   and pages must show it.
-- **A budget that refuses.** Calls are counted per minute and per day and refused (503 with `Retry-After`)
-  rather than queued. Each call's credit use is logged.
+- **A budget that refuses.** Calls are counted per minute (the plan's limit is per request) and credits
+  per day (a call can cost more than one), and refused (503 with `Retry-After`) rather than queued. The
+  response's own credit count is read after each call, so an expensive call is counted in full.
+- **Cheap history.** The free plan allows only twelve months of history, and a year of daily points for one
+  coin costs about thirty credits. The markets view therefore asks for just two days (the start of the
+  year and about a year ago, ten coins per call, one credit each) and works the changes out itself; they
+  are cached for twelve hours. The 30 and 90 day changes come with the listing at no extra cost.
 - The test fixtures are invented, not recorded, so no provider data is committed.
 
 ## Quality gates
