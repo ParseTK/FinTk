@@ -1,24 +1,37 @@
 from app.main import create_app
 from app.providers.sample_prices import SamplePriceProvider
-from app.services.prices import StoredPriceProvider
 from tests.conftest import make_settings
 
 
-async def test_without_a_key_the_app_serves_labelled_sample_prices() -> None:
+async def test_the_app_serves_clearly_labelled_sample_prices() -> None:
+    """No licensed provider is configured, so prices are generated samples, labelled as such."""
     app = create_app(make_settings())
     async with app.router.lifespan_context(app):
-        assert isinstance(app.state.company_service._prices, SamplePriceProvider)  # pyright: ignore[reportPrivateUsage]
+        prices = app.state.company_service._prices  # pyright: ignore[reportPrivateUsage]
+        assert isinstance(prices, SamplePriceProvider)
+        assert prices.source == "sample"
 
 
-async def test_with_a_key_prices_come_from_twelve_data_through_the_store() -> None:
-    app = create_app(make_settings(twelve_data_api_key="placeholder-key"))
+async def test_the_markets_service_uses_the_same_sample_prices() -> None:
+    app = create_app(make_settings())
+    async with app.router.lifespan_context(app):
+        assert app.state.market_service is not None
+
+
+async def test_portfolio_valuation_has_no_price_source_without_a_provider() -> None:
+    """Valuation needs stored real prices. With none, it is simply absent, never invented."""
+    app = create_app(make_settings())
+    async with app.router.lifespan_context(app):
+        assert app.state.company_service._latest is None  # pyright: ignore[reportPrivateUsage]
+
+
+async def test_a_leftover_twelve_data_setting_is_ignored_not_used() -> None:
+    """An old environment variable must not break startup or switch a vendor back on."""
+    app = create_app(make_settings(twelve_data_api_key="leftover-key-from-an-old-env-file"))
     async with app.router.lifespan_context(app):
         prices = app.state.company_service._prices  # pyright: ignore[reportPrivateUsage]
-        assert isinstance(prices, StoredPriceProvider)
-        assert prices.source == "Twelve Data"
+        assert isinstance(prices, SamplePriceProvider)
 
 
-def test_the_key_never_appears_in_the_settings_repr() -> None:
-    settings = make_settings(twelve_data_api_key="placeholder-key")
-    assert "placeholder-key" not in repr(settings)
-    assert "placeholder-key" not in str(settings.model_dump())
+def test_the_setting_no_longer_exists() -> None:
+    assert not hasattr(make_settings(), "twelve_data_api_key")

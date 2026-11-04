@@ -15,7 +15,7 @@ const months = (...values: (string | null)[]): (string | null)[] =>
 function data(overrides: Partial<Seasonality> = {}): Seasonality {
   return {
     symbol: "AAPL",
-    source: "Twelve Data",
+    source: "Example Prices",
     basis: "Month-to-month change in the closing price, split-adjusted, dividends not included.",
     start: { year: 1970, month: 7 },
     end: { year: 1971, month: 12 },
@@ -131,7 +131,7 @@ describe("SeasonalitySection", () => {
     expect(screen.getByRole("heading", { name: "Seasonality" })).toBeInTheDocument();
     expect(screen.getByText(/Price data starts Jul 1970/)).toBeInTheDocument();
     expect(screen.getByText(/dividends not included/)).toBeInTheDocument();
-    expect(screen.getByText(/Source: Twelve Data/)).toBeInTheDocument();
+    expect(screen.getByText(/Source: Example Prices/)).toBeInTheDocument();
     expect(screen.queryByText("Sample data")).not.toBeInTheDocument();
   });
 
