@@ -14,6 +14,7 @@ from app.domain.crypto_news import (
     CRYPTO_COMPANIES,
     CRYPTO_TERMS,
     FILING_DAYS,
+    PER_COMPANY_LIMIT,
     filing_cutoff,
     is_crypto_related,
 )
@@ -252,3 +253,15 @@ async def test_without_a_news_service_the_endpoint_is_a_clean_503() -> None:
     transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         assert (await client.get("/api/v1/news/crypto")).status_code == 503
+
+
+async def test_one_company_that_files_often_cannot_fill_the_page() -> None:
+    busy = {**ALL_COMPANIES, "MSTR": [(n, ("8.01",)) for n in range(1, 11)]}
+    news = await service(Feeds({}), Companies(busy)).crypto_news(100)
+    mstr = [item for item in news.items if item.source.startswith("MSTR")]
+    assert len(mstr) == PER_COMPANY_LIMIT
+    assert [item.published for item in mstr] == [
+        TODAY - timedelta(days=n) for n in range(1, PER_COMPANY_LIMIT + 1)
+    ]  # the newest ones are the ones kept
+    others = [item for item in news.items if not item.source.startswith("MSTR")]
+    assert len(others) == len(CRYPTO_COMPANIES) - 1

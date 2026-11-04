@@ -6,7 +6,8 @@ Two kinds of item qualify, and nothing else does:
 - an official announcement (SEC, CFTC, Department of Justice) whose own headline contains one of
   ``CRYPTO_TERMS`` as a whole word;
 - a Form 8-K from one of the companies in ``CRYPTO_COMPANIES``, filed within the last
-  ``FILING_DAYS`` days.
+  ``FILING_DAYS`` days, at most the newest ``PER_COMPANY_LIMIT`` of each company (one company can
+  file almost weekly and would otherwise fill the page).
 
 The headline is the source's own; this module never rewrites, scores or ranks anything.
 """
@@ -48,6 +49,7 @@ CRYPTO_COMPANIES: tuple[str, ...] = (
 )
 
 FILING_DAYS = 90
+PER_COMPANY_LIMIT = 3
 
 _PATTERN = re.compile(
     r"\b(?:" + "|".join(re.escape(term) for term in CRYPTO_TERMS) + r")\b", re.IGNORECASE

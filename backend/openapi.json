@@ -513,12 +513,20 @@
             "title": "Companies",
             "type": "array"
           },
+          "filing_days": {
+            "title": "Filing Days",
+            "type": "integer"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/NewsItemResponse"
             },
             "title": "Items",
             "type": "array"
+          },
+          "per_company_limit": {
+            "title": "Per Company Limit",
+            "type": "integer"
           },
           "terms": {
             "items": {
@@ -539,6 +547,8 @@
           "basis",
           "terms",
           "companies",
+          "filing_days",
+          "per_company_limit",
           "items",
           "unavailable"
         ],
