@@ -52,6 +52,12 @@ export const FLAGS = {
     description:
       "The /crypto/news page and its nav link: official SEC, CFTC and Department of Justice announcements about crypto, and SEC filings of a printed list of crypto companies. Needs the crypto flag too.",
   },
+  // Depends on: crypto (it shows live crypto figures, so it is ignored while crypto is off).
+  crypto_home: {
+    default: false,
+    description:
+      "The landing page leads with crypto: a strip of live prices, the headline Digital financial data, and a plain Bitcoin chart instead of the company search. Needs the crypto flag too.",
+  },
   // Depends on: crypto (the switch only shows while the crypto section is on).
   mode_switch: {
     default: false,

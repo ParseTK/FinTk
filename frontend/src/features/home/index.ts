@@ -2,3 +2,4 @@
 export { FeatureGrid } from "./FeatureGrid";
 export { Hero } from "./Hero";
 export { MarketTicker } from "./MarketTicker";
+export { CryptoHome } from "./CryptoHome";
