@@ -14,13 +14,7 @@ vi.mock("next/headers", () => ({
   }),
 }));
 
-// redirect() throws in real Next to stop the action; mimic that so code after it cannot run.
-const redirect = vi.fn((to: string) => {
-  throw new Error(`NEXT_REDIRECT ${to}`);
-});
-vi.mock("next/navigation", () => ({ redirect: (to: string) => redirect(to) }));
-
-const { getMode, modeHome, modeSwitchActive } = await import("./mode");
+const { getMode, modeSwitchActive } = await import("./mode");
 const { setMode } = await import("./actions");
 const { ModeSwitch } = await import("./ModeSwitch");
 
@@ -33,7 +27,6 @@ const formWith = (mode: unknown) => {
 beforeEach(() => {
   cookieValue = undefined;
   set.mockReset();
-  redirect.mockClear();
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -84,22 +77,10 @@ describe("getMode", () => {
   );
 });
 
-describe("modeHome", () => {
-  it("sends Stocks to search and Crypto to the crypto page", () => {
-    vi.stubEnv("FEATURE_CRYPTO", "true");
-    expect(modeHome("stocks")).toBe("/search");
-    expect(modeHome("crypto")).toBe("/crypto");
-  });
-
-  it("never points at the crypto page when it is off", () => {
-    expect(modeHome("crypto")).toBe("/");
-  });
-});
-
 describe("setMode", () => {
-  it("remembers the mode for a year, safely, and goes to that mode's home", async () => {
+  it("remembers the mode for a year, safely, and stays on the page", async () => {
     switchOn();
-    await expect(setMode(formWith("stocks"))).rejects.toThrow("NEXT_REDIRECT /search");
+    await setMode(formWith("stocks")); // resolves: no redirect, the current page re-renders
     expect(set).toHaveBeenCalledTimes(1);
     const [name, value, options] = set.mock.calls[0]!;
     expect(name).toBe("virello_mode");
@@ -112,26 +93,25 @@ describe("setMode", () => {
     });
   });
 
-  it("goes to the crypto page for Crypto", async () => {
+  it("remembers Crypto too", async () => {
     switchOn();
-    await expect(setMode(formWith("crypto"))).rejects.toThrow("NEXT_REDIRECT /crypto");
+    await setMode(formWith("crypto"));
     expect(set.mock.calls[0]![1]).toBe("crypto");
   });
 
   it("is Secure in production", async () => {
     switchOn();
     vi.stubEnv("NODE_ENV", "production");
-    await expect(setMode(formWith("crypto"))).rejects.toThrow("NEXT_REDIRECT");
+    await setMode(formWith("crypto"));
     expect(set.mock.calls[0]![2]).toMatchObject({ secure: true });
   });
 
   it.each([undefined, "", "bonds", "CRYPTO", "<script>", "__proto__", "stocks,crypto"])(
-    "ignores an unknown value (%j): no cookie, no redirect",
+    "ignores an unknown value (%j): no cookie",
     async (value) => {
       switchOn();
       await setMode(formWith(value));
       expect(set).not.toHaveBeenCalled();
-      expect(redirect).not.toHaveBeenCalled();
     },
   );
 
@@ -146,7 +126,6 @@ describe("setMode", () => {
   it("does nothing while the switch is off", async () => {
     await setMode(formWith("stocks"));
     expect(set).not.toHaveBeenCalled();
-    expect(redirect).not.toHaveBeenCalled();
   });
 });
 
