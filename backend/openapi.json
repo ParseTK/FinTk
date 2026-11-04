@@ -500,6 +500,51 @@
         "title": "CryptoMarketsResponse",
         "type": "object"
       },
+      "CryptoNewsResponse": {
+        "properties": {
+          "basis": {
+            "title": "Basis",
+            "type": "string"
+          },
+          "companies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Companies",
+            "type": "array"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NewsItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "terms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Terms",
+            "type": "array"
+          },
+          "unavailable": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unavailable",
+            "type": "array"
+          }
+        },
+        "required": [
+          "basis",
+          "terms",
+          "companies",
+          "items",
+          "unavailable"
+        ],
+        "title": "CryptoNewsResponse",
+        "type": "object"
+      },
       "CryptoOverviewResponse": {
         "properties": {
           "as_of": {
@@ -3571,6 +3616,81 @@
           }
         },
         "summary": "Official market-wide announcements",
+        "tags": [
+          "news"
+        ]
+      }
+    },
+    "/api/v1/news/crypto": {
+      "get": {
+        "operationId": "get_crypto_news_api_v1_news_crypto_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CryptoNewsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Official crypto-related announcements and filings",
         "tags": [
           "news"
         ]

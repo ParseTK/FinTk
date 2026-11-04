@@ -55,6 +55,18 @@ FEEDS: tuple[Feed, ...] = (
     Feed("SEC", "https://www.sec.gov/news/pressreleases.rss", "www.sec.gov"),
 )
 
+# Read for the crypto news only; the keyword rule in app.domain.crypto_news picks the items.
+CRYPTO_FEEDS: tuple[Feed, ...] = (
+    Feed("SEC", "https://www.sec.gov/news/pressreleases.rss", "www.sec.gov"),
+    Feed("CFTC", "https://www.cftc.gov/RSS/RSSGP/rssgp.xml", "www.cftc.gov"),
+    Feed("CFTC enforcement", "https://www.cftc.gov/RSS/RSSENF/rssenf.xml", "www.cftc.gov"),
+    Feed(
+        "Department of Justice",
+        "https://www.justice.gov/news/rss?type=press_release&m=1",
+        "www.justice.gov",
+    ),
+)
+
 
 def _clean(text: str | None) -> str:
     if not text:

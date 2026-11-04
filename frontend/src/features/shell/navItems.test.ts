@@ -80,6 +80,14 @@ describe("navItems", () => {
       expect(navItems("crypto").map((item) => item.href)).not.toContain("/crypto/markets");
     });
 
+    it("adds Crypto news only with its own flag and the crypto flag, in Crypto mode only", () => {
+      vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+      expect(navItems("crypto").map((item) => item.href)).not.toContain("/crypto/news");
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      expect(navItems("crypto").map((item) => item.href)).toEqual(["/crypto", "/crypto/news"]);
+      expect(navItems("stocks").map((item) => item.href)).toEqual(["/search"]);
+    });
+
     it("gives the Crypto link exact matching, so it is not current on the markets page", () => {
       vi.stubEnv("FEATURE_CRYPTO", "true");
       vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");

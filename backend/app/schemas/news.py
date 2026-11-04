@@ -5,6 +5,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.domain.crypto_news import CRYPTO_COMPANIES, CRYPTO_TERMS, FILING_DAYS
 from app.domain.news import NewsItem
 from app.services.news import MarketNews
 
@@ -48,6 +49,35 @@ class MarketNewsResponse(BaseModel):
     def from_domain(cls, news: MarketNews) -> "MarketNewsResponse":
         return cls(
             basis=NEWS_BASIS,
+            items=[NewsItemResponse.from_domain(item) for item in news.items],
+            unavailable=list(news.unavailable),
+        )
+
+
+CRYPTO_NEWS_BASIS = (
+    "Only what official sources published themselves: SEC, CFTC and Department of Justice "
+    "announcements whose headline contains one of the listed crypto terms, and the SEC filings "
+    "(Form 8-K) of the listed crypto companies from the last "
+    f"{FILING_DAYS} days. No opinions, summaries or forecasts."
+)
+
+
+class CryptoNewsResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    basis: str
+    # The two rules that decide what appears here, so the page can print them.
+    terms: list[str]
+    companies: list[str]
+    items: list[NewsItemResponse]
+    unavailable: list[str]
+
+    @classmethod
+    def from_domain(cls, news: MarketNews) -> "CryptoNewsResponse":
+        return cls(
+            basis=CRYPTO_NEWS_BASIS,
+            terms=list(CRYPTO_TERMS),
+            companies=list(CRYPTO_COMPANIES),
             items=[NewsItemResponse.from_domain(item) for item in news.items],
             unavailable=list(news.unavailable),
         )

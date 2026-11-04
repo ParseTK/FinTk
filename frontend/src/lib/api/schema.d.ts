@@ -300,6 +300,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/news/crypto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Official crypto-related announcements and filings */
+        get: operations["get_crypto_news_api_v1_news_crypto_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portfolio": {
         parameters: {
             query?: never;
@@ -589,6 +606,19 @@ export interface components {
             unavailable: string[];
             /** Year Start */
             year_start: string | null;
+        };
+        /** CryptoNewsResponse */
+        CryptoNewsResponse: {
+            /** Basis */
+            basis: string;
+            /** Companies */
+            companies: string[];
+            /** Items */
+            items: components["schemas"]["NewsItemResponse"][];
+            /** Terms */
+            terms: string[];
+            /** Unavailable */
+            unavailable: string[];
         };
         /** CryptoOverviewResponse */
         CryptoOverviewResponse: {
@@ -2336,6 +2366,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MarketNewsResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_crypto_news_api_v1_news_crypto_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CryptoNewsResponse"];
                 };
             };
             /** @description The request was not valid. */
