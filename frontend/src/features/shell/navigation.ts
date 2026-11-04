@@ -14,6 +14,11 @@ export interface NavItem {
    * them is marked as the current page.
    */
   exact?: boolean;
+  /**
+   * Other paths on which this link is also the current one: a section link (Crypto) is current on
+   * every page of its section, and those pages are listed in the sidebar, not in the top bar.
+   */
+  alsoActive?: readonly string[];
 }
 
 /**

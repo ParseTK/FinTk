@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <Navbar mode={mode} />
           <main id="main" className="flex-1">
             {/* Passes children straight through unless the app shell is on and the page is in a section. */}
-            <SectionFrame sections={visibleSections(mode)}>{children}</SectionFrame>
+            <SectionFrame sections={visibleSections()}>{children}</SectionFrame>
           </main>
           <Footer />
         </PortfolioProvider>

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { visibleSections } from "./sections";
+import { headerItems, visibleSections } from "./sections";
 import { sectionFor, type SectionView } from "./sectionView";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -37,16 +37,71 @@ describe("visibleSections", () => {
     expect(visibleSections()).toEqual([]);
   });
 
-  it("narrows to the mode when the switch is on", () => {
+  it("does not depend on the mode: a sidebar belongs to the page you are on", () => {
     vi.stubEnv("FEATURE_APP_SHELL", "true");
+    vi.stubEnv("FEATURE_MODE_SWITCH", "true");
     vi.stubEnv("FEATURE_AUTH", "true");
     vi.stubEnv("FEATURE_CRYPTO", "true");
     vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
     vi.stubEnv("FEATURE_MARKETS", "true");
     vi.stubEnv("FEATURE_NEWS", "true");
-    expect(visibleSections("crypto").map((s) => s.id)).toEqual(["holdings", "crypto"]);
-    expect(visibleSections("stocks").map((s) => s.id)).toEqual(["holdings", "markets"]);
-    expect(visibleSections(null).map((s) => s.id)).toEqual(["holdings", "crypto", "markets"]);
+    expect(visibleSections().map((s) => s.id)).toEqual(["markets", "crypto", "holdings"]);
+  });
+});
+
+describe("headerItems", () => {
+  const allOn = () => {
+    vi.stubEnv("FEATURE_APP_SHELL", "true");
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    vi.stubEnv("FEATURE_MARKETS", "true");
+    vi.stubEnv("FEATURE_NEWS", "true");
+  };
+  const labels = (mode?: "crypto" | "stocks" | null) => headerItems(mode).map((item) => item.label);
+
+  it("is the usual page links while the app shell is off", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    expect(labels("crypto")).toEqual(["Crypto", "Crypto news"]);
+  });
+
+  it("is only the top-level sections with the shell on, per mode", () => {
+    allOn();
+    expect(labels("crypto")).toEqual(["Crypto", "Holdings"]);
+    expect(labels("stocks")).toEqual(["Research", "Markets", "Holdings"]);
+    expect(labels(null)).toEqual(["Research", "Markets", "Crypto", "Holdings"]);
+  });
+
+  it("holds one link per section and never a section's other pages (those are the sidebar's)", () => {
+    allOn();
+    const otherPages = visibleSections().flatMap((s) => s.links.slice(1).map((l) => l.href));
+    const hrefs = headerItems(null).map((item) => item.href);
+    expect(hrefs.filter((href) => otherPages.includes(href))).toEqual([]);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+
+  it("points each section at its first page and marks it current on all of its pages", () => {
+    allOn();
+    const crypto = headerItems("crypto").find((item) => item.label === "Crypto");
+    expect(crypto?.href).toBe("/crypto");
+    expect(crypto?.alsoActive).toEqual(["/crypto", "/crypto/markets", "/crypto/news"]);
+    const research = headerItems("stocks").find((item) => item.label === "Research");
+    expect(research?.alsoActive).toContain("/company");
+  });
+
+  it("drops a section none of whose pages can be shown", () => {
+    vi.stubEnv("FEATURE_APP_SHELL", "true");
+    expect(labels("crypto")).toEqual([]);
+    expect(labels("stocks")).toEqual(["Research"]);
+  });
+
+  it("keeps a section with one page in the top bar, though it has no sidebar", () => {
+    vi.stubEnv("FEATURE_APP_SHELL", "true");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(labels("crypto")).toEqual(["Crypto"]);
+    expect(visibleSections()).toEqual([]);
   });
 });
 
