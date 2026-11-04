@@ -18,10 +18,10 @@
   --border-strong: #64748b; /* boundaries of inputs and controls (3:1) */
   --fg: #0f172a;
   --fg-muted: #475569;
-  --brand: #1d4ed8; /* blue is the default accent */
+  --brand: #27704f; /* Mint, the default accent; a deep shade because the pale one fails on white */
   --gain: #14753a;
   --loss: #b91c1c;
-  --focus: #1d4ed8;
+  --focus: #27704f;
   --on-accent: #ffffff; /* text on solid brand / gain / loss / fg-muted fills */
   /* Chart series, in fixed order. Validated with the data-viz palette checker against these
      surfaces (adjacent color-blind separation and normal-vision floor pass in both themes). They do
@@ -35,16 +35,16 @@
 }
 
 .dark {
-  --surface: #020617;
-  --surface-raised: #0f172a;
-  --border: #1e293b;
+  --surface: #0c1117;
+  --surface-raised: #151b23;
+  --border: #232b35;
   --border-strong: #94a3b8;
   --fg: #f8fafc;
   --fg-muted: #94a3b8;
-  --brand: #60a5fa;
+  --brand: #5ebb8f; /* Mint, the default accent */
   --gain: #4ade80;
   --loss: #f87171;
-  --focus: #93c5fd;
+  --focus: #86d3ab;
   --on-accent: #020617;
   --chart-1: #3987e5;
   --chart-2: #d95926;
@@ -64,14 +64,14 @@
   --focus: #c4b5fd;
 }
 
-[data-accent="emerald"] {
-  --brand: #047857;
-  --focus: #047857;
+[data-accent="mint"] {
+  --brand: #27704f;
+  --focus: #27704f;
 }
-.dark[data-accent="emerald"],
-.dark [data-accent="emerald"] {
-  --brand: #34d399;
-  --focus: #6ee7b7;
+.dark[data-accent="mint"],
+.dark [data-accent="mint"] {
+  --brand: #5ebb8f;
+  --focus: #86d3ab;
 }
 
 [data-accent="rose"] {
@@ -84,7 +84,7 @@
   --focus: #fda4af;
 }
 
-/* Blue must also win when a swatch inside a violet/emerald/rose page asks for it. */
+/* Blue (no longer the default) must also win when a swatch inside another accent asks for it. */
 [data-accent="blue"] {
   --brand: #1d4ed8;
   --focus: #1d4ed8;

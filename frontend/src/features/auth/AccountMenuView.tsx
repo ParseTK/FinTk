@@ -17,9 +17,10 @@ export function initials(user: Pick<User, "name" | "email">): string {
 }
 
 const MENU_LINKS = [
-  { href: "/watchlist", label: "Watchlist" },
+  // The same order as the Holdings sidebar; Sign out comes after them.
   { href: "/portfolio", label: "Portfolio" },
-  { href: "/account", label: "Your account" },
+  { href: "/watchlist", label: "Watchlist" },
+  { href: "/account", label: "Account" },
 ] as const;
 
 export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: string }) {

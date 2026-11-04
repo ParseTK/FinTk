@@ -19,7 +19,8 @@ import { PaletteIcon } from "@/components/ui/icons";
 const CHANGE_EVENT = "preferences-change";
 
 function subscribe(onChange: () => void) {
-  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  // Only motion follows the device now (until chosen); the theme is dark unless the visitor picks Light.
+  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
   const onSystemChange = () => {
     applyPreferences(readPreferences());
     onChange();

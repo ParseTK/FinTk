@@ -35,11 +35,10 @@ describe("parsers", () => {
 });
 
 describe("resolveMode", () => {
-  it("uses the saved choice, otherwise the device setting", () => {
-    expect(resolveMode(null, true)).toBe("dark");
-    expect(resolveMode(null, false)).toBe("light");
-    expect(resolveMode("dark", false)).toBe("dark");
-    expect(resolveMode("light", true)).toBe("light");
+  it("uses the saved choice, otherwise dark: the device setting does not decide the theme", () => {
+    expect(resolveMode(null)).toBe("dark");
+    expect(resolveMode("dark")).toBe("dark");
+    expect(resolveMode("light")).toBe("light");
   });
 });
 
