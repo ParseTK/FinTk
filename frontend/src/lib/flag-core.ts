@@ -11,6 +11,11 @@
  * Add every new flag here and to .env.example (a test enforces the second part).
  */
 export const FLAGS = {
+  app_shell: {
+    default: false,
+    description:
+      "The new app shell: a sidebar of subpages beside the pages of a section that has several (Holdings, Crypto, Markets). Off: the plain header-only layout.",
+  },
   design: {
     default: false,
     description: "Component gallery at /design (internal review page; hidden and not indexed).",

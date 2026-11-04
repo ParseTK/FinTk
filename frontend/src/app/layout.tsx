@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
-import { Footer, getMode, Navbar } from "@/features/shell";
+import { Footer, getMode, Navbar, SectionFrame, visibleSections } from "@/features/shell";
 import { PortfolioProvider } from "@/features/portfolio";
 import { PREFERENCES_INIT_SCRIPT } from "@/features/appearance";
 import "./globals.css";
@@ -60,7 +60,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <PortfolioProvider>
           <Navbar mode={mode} />
           <main id="main" className="flex-1">
-            {children}
+            {/* Passes children straight through unless the app shell is on and the page is in a section. */}
+            <SectionFrame sections={visibleSections(mode)}>{children}</SectionFrame>
           </main>
           <Footer />
         </PortfolioProvider>
