@@ -1,7 +1,7 @@
 # Virello API
 
-FastAPI service that will own company data, caching, accounts and portfolios, so the web app never
-holds a data-provider key. Python 3.13, managed with [uv](https://docs.astral.sh/uv/).
+FastAPI service that owns crypto market data, official crypto news, caching and accounts, so the web
+app never holds a data-provider key. Python 3.13, managed with [uv](https://docs.astral.sh/uv/).
 
 ## Run it
 
@@ -19,16 +19,13 @@ Then open <http://localhost:8000/docs> (interactive docs, off in production).
 | `GET /healthz` | Liveness: is the process up. Never touches dependencies. |
 | `GET /readyz` | Readiness: runs the registered dependency checks, 503 with the failing names if one fails. |
 | `GET /api/v1/meta` | Service name, version and environment. |
-| `GET /api/v1/companies/search?q=` | Find companies by name or ticker (SEC directory). |
-| `GET /api/v1/companies/{ticker}` | Company profile. |
-| `GET /api/v1/companies/{ticker}/filings` | Recent SEC filings, optional `form` and `limit`. |
-| `GET /api/v1/companies/{ticker}/financials` | Annual statements from SEC XBRL, `years` back. |
 | `GET /api/v1/crypto/overview` | Top coins, market totals and Fear and Greed. Internal only: needs the `X-Internal-Token` header. |
 | `GET /api/v1/crypto/markets` | How the crypto market is made up, and how the ten largest coins have done (30 days, 90 days, year to date, past year). Internal only, same header. |
-| `GET /api/v1/companies/{ticker}/prices/monthly` | Monthly closes. **Sample data** (labelled `source: sample`) until a price provider is added. |
+| `GET /api/v1/news/crypto` | Official SEC, CFTC and Department of Justice announcements about crypto, and 8-Ks of a printed list of crypto companies. Public (official sources). |
 
-Company data needs `VIRELLO_SEC_CONTACT_EMAIL`: SEC asks every client to identify itself. Without it
-the company routes return 503 (and production refuses to start).
+The crypto news reads SEC filings, which needs `VIRELLO_SEC_CONTACT_EMAIL`: SEC asks every client to
+identify itself. Without it the company filings are left out of the news (and production refuses to
+start).
 
 ## Database and migrations
 
@@ -62,8 +59,6 @@ How the database layer is built:
 - Database outages (connection, timeout, deadlock, exhausted pool) become a 503 in the standard
   error shape; constraint and syntax errors stay 500s because they are bugs. `/readyz` reports
   `database` when it is down.
-- Price history is stored once per symbol and only the newest month is appended: the primary key
-  `(symbol, month_end)` serves every read, writes are idempotent and batched.
 
 Tests run against a real Postgres: set `VIRELLO_TEST_DATABASE_URL` (database name ending `_test`).
 They skip locally without it and **fail in CI** without it.
@@ -99,45 +94,11 @@ Register the OAuth apps (free, no card) and put the ids and secrets in `backend/
 GitHub allows one callback URL per app, so use a separate app per environment. Without credentials the
 tests still cover the whole flow against a fake provider (`tests/fake_idp.py`).
 
-## Watchlist and portfolio
+## Tables that are no longer used
 
-Signed-in only. All amounts are US dollars, exact decimals, and travel as **strings** (never JSON
-numbers: `0.1` as a float is not `0.1`).
-
-| Endpoint | Purpose |
-|---|---|
-| `GET /api/v1/watchlist` | My watchlist, sorted, with company names. |
-| `PUT /api/v1/watchlist/{symbol}` | Add (201 new, 200 if already there). |
-| `DELETE /api/v1/watchlist/{symbol}` | Remove (204, also when it was not there). |
-| `GET /api/v1/portfolio` | Holdings: one row per company, computed from its purchases, plus the total. |
-| `GET /api/v1/portfolio/lots?symbol=` | My purchases. |
-| `POST /api/v1/portfolio/lots` | Record a purchase (optional `Idempotency-Key` header). |
-| `POST /api/v1/portfolio/lots/batch` | Record up to 10 purchases at once: all or none. Every problem comes back with its row and field (422); optional `Idempotency-Key` makes a retry safe. |
-| `PUT /api/v1/portfolio/lots/{id}` | Replace a purchase (the company cannot change). |
-| `DELETE /api/v1/portfolio/lots/{id}` | Delete a purchase. |
-
-How it is kept correct and safe:
-
-- **Average cost is computed, not typed:** a holding is the sum of its purchases. The database adds
-  exactly (`NUMERIC`); the total is summed exactly and rounded to cents once, so rounded parts
-  never drift.
-- **Ownership on every id:** a purchase is only handed out after `require_owner`, and every
-  statement also filters by `user_id`. Someone else's purchase and a missing one are the same 404.
-- **Writes** need a session, the CSRF token and a trusted `Origin`, and are limited per person
-  (`VIRELLO_WRITES_PER_MINUTE`). Request bodies reject unknown fields, floats and anything that
-  would not fit the column.
-- **Bounded storage:** 200 watchlist items and 500 purchases per person by default. The limits are
-  checked under the person's row lock, so simultaneous requests cannot slip past them.
-- **Safe to repeat:** adding or removing twice is a no-op, and a purchase created twice with the
-  same `Idempotency-Key` returns the original (a different body with the same key is a 409).
-- Symbols are checked against the SEC directory before they are saved.
-- Lists are bounded by those caps, so they are returned whole rather than paged.
-
-## Prices and seasonality
-
-`GET /api/v1/companies/{ticker}/prices/monthly` and `/seasonality` need monthly closing prices. **No licensed price provider is configured**, so they serve generated **sample** data, and every response says `"source": "sample"`. Features built on prices (seasonality, the markets page, portfolio value) are therefore dormant: their feature flags stay off and the sample data is only for development.
-
-The price layer is ready for a provider that licenses public display. It sits behind the `PriceProvider` interface (`app/providers/base.py`), and `StoredPriceProvider` is the vendor-independent wrapper that protects a free quota: a symbol's whole history is fetched **once** and stored permanently; once a month only the newest months are requested and appended; simultaneous requests share one provider call; if the provider fails, stored data is served. Prices are split-adjusted closes without dividends, so returns are price returns. Before wiring any provider in, read its terms: most free price APIs license private use only, not showing the data publicly, and some limit how long it may be stored.
+The stock watchlist, holdings and price tables (`watchlist_item`, `holding_lot`, `price_series`,
+`monthly_price`) are not read or written any more. They stay until a migration drops them together
+with the crypto holdings that replace them (expand, then contract).
 
 ## Crypto prices
 
@@ -191,7 +152,7 @@ app/
   migrations/      Alembic revisions (one file per schema change)
   api/             routers: health at the root, everything else under /api/v1
   services/        use cases; depend on provider interfaces only
-  providers/       data sources behind interfaces (base.py): SEC EDGAR, sample prices
+  providers/       data sources behind interfaces (base.py): SEC EDGAR, CoinMarketCap, official news feeds
   domain/          provider-independent models (money is Decimal)
   schemas/         API response models, kept apart from the domain
 tests/             pytest, httpx AsyncClient; SEC calls are mocked with recorded fixtures

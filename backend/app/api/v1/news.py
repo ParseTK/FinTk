@@ -1,15 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Query, Request, Response
 
-from app.core.errors import ErrorResponse, UnavailableError
-from app.schemas.news import (
-    NEWS_BASIS,
-    CompanyNewsResponse,
-    CryptoNewsResponse,
-    MarketNewsResponse,
-    NewsItemResponse,
-)
+from app.core.errors import UnavailableError
+from app.schemas.news import CryptoNewsResponse
 from app.services.news import NewsService
 
 router = APIRouter(tags=["news"])
@@ -26,16 +20,6 @@ def get_news_service(request: Request) -> NewsService:
 Service = Annotated[NewsService, Depends(get_news_service)]
 
 
-@router.get("/news", summary="Official market-wide announcements")
-async def get_market_news(
-    service: Service,
-    response: Response,
-    limit: Annotated[int, Query(ge=1, le=50)] = 20,
-) -> MarketNewsResponse:
-    response.headers["Cache-Control"] = "public, max-age=300"
-    return MarketNewsResponse.from_domain(await service.market_news(limit))
-
-
 @router.get("/news/crypto", summary="Official crypto-related announcements and filings")
 async def get_crypto_news(
     service: Service,
@@ -44,23 +28,3 @@ async def get_crypto_news(
 ) -> CryptoNewsResponse:
     response.headers["Cache-Control"] = "public, max-age=300"
     return CryptoNewsResponse.from_domain(await service.crypto_news(limit))
-
-
-@router.get(
-    "/companies/{ticker}/news",
-    summary="A company's recent SEC 8-K events",
-    responses={404: {"model": ErrorResponse, "description": "No such company."}},
-)
-async def get_company_news(
-    ticker: Annotated[str, Path(min_length=1, max_length=10)],
-    service: Service,
-    response: Response,
-    limit: Annotated[int, Query(ge=1, le=50)] = 10,
-) -> CompanyNewsResponse:
-    response.headers["Cache-Control"] = "public, max-age=300"
-    items = await service.company_news(ticker, limit)
-    return CompanyNewsResponse(
-        ticker=ticker.upper(),
-        basis=NEWS_BASIS,
-        items=[NewsItemResponse.from_domain(item) for item in items],
-    )

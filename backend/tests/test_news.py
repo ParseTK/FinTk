@@ -5,20 +5,19 @@ from pathlib import Path
 import httpx
 import pytest
 
-from app.core.errors import AppError, UnavailableError, UpstreamError
+from app.core.errors import UpstreamError
 from app.domain.models import Filing
 from app.domain.news import NewsItem, eight_k_title, filing_news, latest_first
-from app.main import create_app
-from app.providers.feeds import FEEDS, MAX_BYTES, Feed, FeedProvider, parse_feed
-from app.providers.sec import parsers
-from app.providers.sec.client import SecProvider
-from app.services.companies import CompanyService
-from app.services.news import NewsService
-from tests.conftest import make_settings
-from tests.test_sec_provider import NoWait, Upstream
+from app.providers.feeds import CRYPTO_FEEDS, MAX_BYTES, Feed, FeedProvider, parse_feed
 
 FIXTURES = Path(__file__).parent / "fixtures"
-FED, SEC = FEEDS
+# The parser is host-generic: a Federal Reserve style feed is used here only to test it.
+FED = Feed(
+    "Federal Reserve",
+    "https://www.federalreserve.gov/feeds/press_all.xml",
+    "www.federalreserve.gov",
+)
+SEC = CRYPTO_FEEDS[0]
 
 
 def fixture(name: str) -> bytes:
@@ -72,16 +71,6 @@ def test_only_8ks_are_company_events() -> None:
     assert event.published == date(2026, 10, 29)
 
 
-def test_the_sec_submissions_parser_reads_8k_item_numbers() -> None:
-    import json
-
-    payload = json.loads(fixture("submissions_aapl.json"))
-    eight_ks = parsers.parse_filings(payload, "0000320193", "8-K", 50)
-    assert ("2.02", "9.01") in [f.items for f in eight_ks]
-    others = parsers.parse_filings(payload, "0000320193", "10-Q", 5)
-    assert all(f.items == () for f in others)
-
-
 def test_newest_first_with_a_stable_order() -> None:
     old = NewsItem("A", "press_release", "old", date(2026, 1, 1), "https://x")
     new = NewsItem("A", "press_release", "new", date(2026, 2, 1), "https://x")
@@ -89,16 +78,6 @@ def test_newest_first_with_a_stable_order() -> None:
 
 
 # -- feed parsing: the real feeds --------------------------------------------------------------
-
-
-def test_the_real_federal_reserve_feed_parses() -> None:
-    items = parse_feed(fixture("fed_press_all.xml"), FED)
-    assert len(items) >= 10
-    assert all(i.source == "Federal Reserve" and i.kind == "press_release" for i in items)
-    assert all(i.url.startswith("https://www.federalreserve.gov/") for i in items)
-    dates = [i.published for i in items]
-    assert dates == sorted(dates, reverse=True)
-    assert any("FOMC" in i.title or "Federal Reserve" in i.title for i in items)
 
 
 def test_the_real_sec_feed_parses_and_headline_whitespace_is_collapsed() -> None:
@@ -109,7 +88,7 @@ def test_the_real_sec_feed_parses_and_headline_whitespace_is_collapsed() -> None
 
 
 def test_the_limit_is_applied_after_sorting() -> None:
-    items = parse_feed(fixture("fed_press_all.xml"), FED, limit=3)
+    items = parse_feed(fixture("sec_press_releases.rss"), SEC, limit=3)
     assert len(items) == 3
 
 
@@ -208,8 +187,8 @@ def provider(handler: Callable[[httpx.Request], httpx.Response]) -> FeedProvider
 
 
 async def test_a_good_feed_is_fetched_and_parsed() -> None:
-    feeds = provider(lambda r: httpx.Response(200, content=fixture("fed_press_all.xml")))
-    assert len(await feeds.fetch(FED)) >= 10
+    feeds = provider(lambda r: httpx.Response(200, content=fixture("sec_press_releases.rss")))
+    assert len(await feeds.fetch(SEC)) >= 10
 
 
 @pytest.mark.parametrize("status", [403, 404, 500, 503])
@@ -235,156 +214,5 @@ async def test_a_hostile_body_is_an_upstream_error_not_a_crash() -> None:
 
 
 async def test_the_feed_list_is_fixed_and_https() -> None:
-    assert all(f.url.startswith("https://") for f in FEEDS)
-    assert all(Feed(f.name, f.url, f.host).host in f.url for f in FEEDS)
-
-
-# -- the service -------------------------------------------------------------------------------
-
-
-class Source:
-    """Serves one body per feed host, or a failure."""
-
-    def __init__(self, **down: bool) -> None:
-        self.down = down
-        self.calls = 0
-
-    def __call__(self, request: httpx.Request) -> httpx.Response:
-        self.calls += 1
-        host = request.url.host
-        if self.down.get(host, False) or self.down.get("all", False):
-            return httpx.Response(503)
-        if host == "www.federalreserve.gov":
-            return httpx.Response(200, content=fixture("fed_press_all.xml"))
-        return httpx.Response(200, content=fixture("sec_press_releases.rss"))
-
-
-def news_service(source: Source, companies: CompanyService | None = None) -> NewsService:
-    return NewsService(provider(source), companies)
-
-
-async def test_market_news_merges_both_sources_newest_first() -> None:
-    news = await news_service(Source()).market_news(50)
-    assert {i.source for i in news.items} == {"Federal Reserve", "SEC"}
-    dates = [i.published for i in news.items]
-    assert dates == sorted(dates, reverse=True)
-    assert news.unavailable == ()
-
-
-async def test_one_source_down_is_reported_and_the_other_still_answers() -> None:
-    news = await news_service(Source(**{"www.sec.gov": True})).market_news(50)
-    assert {i.source for i in news.items} == {"Federal Reserve"}
-    assert news.unavailable == ("SEC",)
-
-
-async def test_every_source_down_is_unavailable_and_the_failure_is_not_cached() -> None:
-    source = Source(all=True)
-    service = news_service(source)
-    with pytest.raises(UnavailableError):
-        await service.market_news(10)
-    source.down = {}
-    assert len((await service.market_news(10)).items) == 10  # recovered at once
-
-
-async def test_the_limit_applies_and_results_are_cached() -> None:
-    source = Source()
-    service = news_service(source)
-    assert len((await service.market_news(5)).items) == 5
-    calls = source.calls
-    assert len((await service.market_news(20)).items) == 20
-    assert source.calls == calls  # served from the cache
-
-
-async def test_a_bug_is_not_swallowed_as_a_source_being_down() -> None:
-    class Broken:
-        feeds = (FED,)
-
-        async def fetch(self, feed: Feed) -> list[NewsItem]:
-            raise KeyError("bug")
-
-    with pytest.raises(KeyError):
-        await NewsService(Broken(), None).market_news(5)  # pyright: ignore[reportArgumentType]
-
-
-def company_service() -> CompanyService:
-    from datetime import date as d
-
-    from app.providers.sample_prices import SamplePriceProvider
-
-    sec = SecProvider(
-        httpx.AsyncClient(transport=httpx.MockTransport(Upstream())),
-        limiter=NoWait(),  # pyright: ignore[reportArgumentType]
-        retry_delay=0,
-    )
-    return CompanyService(sec, sec, sec, SamplePriceProvider(today=lambda: d(2026, 11, 1)))
-
-
-async def test_company_news_is_the_companys_own_8ks_newest_first() -> None:
-    items = await news_service(Source(), company_service()).company_news("AAPL", 10)
-    assert items
-    assert all(i.kind == "filing" and i.source == "Apple Inc. (SEC filing)" for i in items)
-    assert all(i.url.startswith("https://www.sec.gov/Archives/") for i in items)
-    assert [i.published for i in items] == sorted((i.published for i in items), reverse=True)
-    assert "Results of Operations and Financial Condition" in [i.title for i in items]
-
-
-async def test_company_news_for_an_unknown_ticker_is_not_found() -> None:
-    with pytest.raises(AppError) as caught:
-        await news_service(Source(), company_service()).company_news("ZZZZZZ", 10)
-    assert caught.value.status_code == 404
-
-
-async def test_company_news_without_company_data_is_unavailable() -> None:
-    with pytest.raises(UnavailableError):
-        await news_service(Source(), None).company_news("AAPL", 10)
-
-
-# -- HTTP --------------------------------------------------------------------------------------
-
-
-@pytest.fixture
-async def api() -> httpx.AsyncClient:
-    service = news_service(Source(**{"www.sec.gov": True}), company_service())
-    app = create_app(make_settings(), news_service=service)
-    transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
-    return httpx.AsyncClient(transport=transport, base_url="http://test")
-
-
-async def test_the_market_endpoint_states_its_basis_and_the_source_that_is_down(
-    api: httpx.AsyncClient,
-) -> None:
-    response = await api.get("/api/v1/news", params={"limit": 3})
-    assert response.status_code == 200
-    body = response.json()
-    assert len(body["items"]) == 3
-    assert body["unavailable"] == ["SEC"]
-    assert "No opinions" in body["basis"]
-    assert response.headers["cache-control"] == "public, max-age=300"
-    assert set(body["items"][0]) == {"source", "kind", "title", "published", "url", "detail"}
-
-
-@pytest.mark.parametrize("limit", [0, 51, "x"])
-async def test_the_limit_is_validated(api: httpx.AsyncClient, limit: int | str) -> None:
-    response = await api.get("/api/v1/news", params={"limit": limit})
-    assert response.status_code == 422
-
-
-async def test_the_company_endpoint(api: httpx.AsyncClient) -> None:
-    response = await api.get("/api/v1/companies/aapl/news")
-    assert response.status_code == 200
-    body = response.json()
-    assert body["ticker"] == "AAPL"
-    assert body["items"][0]["kind"] == "filing"
-
-
-async def test_an_unknown_company_is_a_404_in_the_standard_shape(api: httpx.AsyncClient) -> None:
-    response = await api.get("/api/v1/companies/ZZZZZZ/news")
-    assert response.status_code == 404
-    assert response.json()["error"]["code"] == "not_found"
-
-
-async def test_without_a_news_service_it_is_a_clean_503() -> None:
-    app = create_app(make_settings())
-    transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-        assert (await client.get("/api/v1/news")).status_code == 503
+    assert all(f.url.startswith("https://") for f in CRYPTO_FEEDS)
+    assert all(f.host in f.url for f in CRYPTO_FEEDS)

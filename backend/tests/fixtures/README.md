@@ -6,10 +6,10 @@ run the real parsing code against genuine data instead of invented JSON.
 | File | Source endpoint | Trimmed to |
 |---|---|---|
 | `company_tickers_exchange.json` | `www.sec.gov/files/company_tickers_exchange.json` | a dozen well-known companies plus a few "Apple" names |
-| `submissions_aapl.json` | `data.sec.gov/submissions/CIK0000320193.json` | the profile and a mix of recent filing forms |
-| `companyfacts_aapl.json` | `data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json` | the concepts the API reads; 10-K, 10-K/A and 10-Q rows from 2018 on |
+| `submissions_aapl.json` | `data.sec.gov/submissions/CIK0000320193.json` | a mix of recent filing forms, including 8-Ks with item numbers |
+| `sec_press_releases.rss` | `www.sec.gov/news/pressreleases.rss` | the feed as served |
 
-Captured 2026-11-02. Apple's published results are the check: FY2024 revenue is 391,035 million USD.
+Captured 2026-11-02 and used to test the directory and filings parsers and the feed parser.
 
 # Crypto fixtures (synthetic)
 

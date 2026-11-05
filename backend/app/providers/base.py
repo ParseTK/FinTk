@@ -1,46 +1,19 @@
 """The provider interfaces. Services depend on these, never on a concrete data source."""
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from datetime import date
 from typing import Protocol
 
 from app.domain.crypto import AnchorPrices, CryptoListings, FearGreed, MarketTotals
-from app.domain.models import (
-    CompanyProfile,
-    CompanyRef,
-    Filing,
-    LatestClose,
-    MetricSeries,
-    PriceHistory,
-)
+from app.domain.models import CompanyRef, Filing
 
 
 class CompanyDirectory(Protocol):
     async def lookup(self, ticker: str) -> CompanyRef | None: ...
 
-    async def search(self, query: str, limit: int) -> list[CompanyRef]: ...
-
 
 class FilingsProvider(Protocol):
-    async def profile(self, company: CompanyRef) -> CompanyProfile: ...
-
     async def filings(self, company: CompanyRef, form: str | None, limit: int) -> list[Filing]: ...
-
-
-class FundamentalsProvider(Protocol):
-    async def annual_metrics(self, company: CompanyRef, years: int) -> list[MetricSeries]: ...
-
-
-class PriceProvider(Protocol):
-    @property
-    def source(self) -> str:
-        """Where the numbers come from, shown to users (a provider's name, or "sample")."""
-        ...
-
-    async def monthly_history(self, symbol: str, *, since: date | None = None) -> PriceHistory:
-        """Completed months, oldest first. With ``since``, a provider may return only the months
-        from that one on (it must include it, so a restated month is corrected)."""
-        ...
 
 
 class CryptoProvider(Protocol):
@@ -62,11 +35,3 @@ class CryptoProvider(Protocol):
     async def anchor_prices(self, ids: Sequence[int], day: date) -> AnchorPrices:
         """Each coin's price at 00:00 UTC on ``day``, to measure change since a fixed date."""
         ...
-
-
-class LatestPriceSource(Protocol):
-    """The newest stored close of many symbols at once, for valuing holdings."""
-
-    async def latest_closes(
-        self, symbols: Iterable[str], *, max_refresh: int = 3
-    ) -> dict[str, LatestClose]: ...

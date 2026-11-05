@@ -1,4 +1,4 @@
-"""Official RSS feeds as a news source: the Federal Reserve Board and the SEC.
+"""Official RSS feeds as a news source: the SEC, the CFTC and the Department of Justice.
 
 Feed XML is untrusted input, so:
 
@@ -17,7 +17,6 @@ Parsing is a pure function and is tested against recorded copies of the real fee
 import logging
 import re
 import unicodedata
-from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -46,16 +45,7 @@ class Feed:
     host: str  # item links must be https on this host
 
 
-FEEDS: tuple[Feed, ...] = (
-    Feed(
-        "Federal Reserve",
-        "https://www.federalreserve.gov/feeds/press_all.xml",
-        "www.federalreserve.gov",
-    ),
-    Feed("SEC", "https://www.sec.gov/news/pressreleases.rss", "www.sec.gov"),
-)
-
-# Read for the crypto news only; the keyword rule in app.domain.crypto_news picks the items.
+# The keyword rule in app.domain.crypto_news picks the crypto items from these.
 CRYPTO_FEEDS: tuple[Feed, ...] = (
     Feed("SEC", "https://www.sec.gov/news/pressreleases.rss", "www.sec.gov"),
     Feed("CFTC", "https://www.cftc.gov/RSS/RSSGP/rssgp.xml", "www.cftc.gov"),
@@ -138,9 +128,8 @@ def parse_feed(body: bytes, feed: Feed, limit: int = MAX_ITEMS_PER_FEED) -> list
 class FeedProvider:
     """Downloads the fixed feeds. ``client`` carries the User-Agent."""
 
-    def __init__(self, client: httpx.AsyncClient, feeds: Iterable[Feed] = FEEDS) -> None:
+    def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
-        self.feeds = tuple(feeds)
 
     async def fetch(self, feed: Feed) -> list[NewsItem]:
         """The feed's items, or UpstreamError (generic message; details go to the log only)."""

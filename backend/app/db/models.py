@@ -1,14 +1,9 @@
 """ORM models: the database's view of the data. Never returned from the API (see app.schemas).
 
-Price history is fetched from a provider once per symbol and kept permanently, so the free provider
-quotas are only spent on the newest month. Two tables keep that cheap:
-
-- ``price_series``: one row per symbol (where the data came from, when we last refreshed it).
-- ``monthly_price``: one row per symbol and month. The primary key (symbol, month_end) is also the
-  index for every access pattern we have: "all months of a symbol", "a date range of a symbol" and
-  "append the newest month" are all single index range scans or inserts, with no extra index to
-  maintain. A symbol has a few hundred rows, so a row costs about 40 bytes: tens of megabytes cover
-  thousands of symbols.
+RETIRED TABLES. `price_series`, `monthly_price`, `watchlist_item` and `holding_lot` belong to the
+stock features that were removed when the product became crypto-only. Nothing reads or writes them.
+They are kept here, and in the migrations, only so the schema and the models still agree; a later
+migration drops them together with the crypto holdings that replace them (expand, then contract).
 """
 
 import uuid

@@ -11,8 +11,6 @@ from app.core.config import Settings
 from app.db.engine import Database
 from app.domain.accounts import ExternalProfile
 from app.main import create_app
-from app.providers.base import LatestPriceSource, PriceProvider
-from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider
 from app.repositories.accounts import AccountRepository, SessionRepository
 from app.services.auth import AuthService
@@ -26,16 +24,14 @@ ORIGIN = (
 )
 
 
-def company_service(
-    prices: PriceProvider | None = None, latest: LatestPriceSource | None = None
-) -> CompanyService:
+def company_service() -> CompanyService:
     """Real company service over the recorded SEC fixtures: AAPL, MSFT, BRK-B and a few more."""
     sec = SecProvider(
         httpx.AsyncClient(transport=httpx.MockTransport(Upstream())),
         limiter=NoWait(),  # pyright: ignore[reportArgumentType]
         retry_delay=0,
     )
-    return CompanyService(sec, sec, sec, prices or SamplePriceProvider(), latest)
+    return CompanyService(sec, sec)
 
 
 def build_app(
