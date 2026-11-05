@@ -1,10 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from app.api.internal_deps import require_internal_caller
 from app.core.errors import UnavailableError
-from app.schemas.crypto import CryptoMarketsResponse, CryptoOverviewResponse
+from app.domain.crypto_search import MAX_QUERY
+from app.schemas.crypto import (
+    CoinDetailResponse,
+    CoinSearchResponse,
+    CryptoMarketsResponse,
+    CryptoOverviewResponse,
+)
 from app.services.crypto import CryptoService
 
 # Vendor data is licensed only inside our own product, never as a standalone feed, so this router
@@ -57,3 +63,40 @@ async def get_markets(
     # Never stored by a shared cache: the vendor allows only temporary storage, and we hold it.
     response.headers["Cache-Control"] = "no-store"
     return CryptoMarketsResponse.from_domain(markets)
+
+
+@router.get(
+    "/search",
+    summary="Find a coin by name or symbol among the largest coins",
+    description=(
+        "For our own website only: requires the internal token. Matches come from the cached "
+        "listing, so a search costs no provider call. The response carries the attribution."
+    ),
+)
+async def search_coins(
+    service: Annotated[CryptoService, Depends(get_crypto_service)],
+    response: Response,
+    q: Annotated[str, Query(min_length=1, max_length=MAX_QUERY)],
+    limit: Annotated[int, Query(ge=1, le=20)] = 8,
+) -> CoinSearchResponse:
+    assets, as_of = await service.search(q, limit)
+    response.headers["Cache-Control"] = "no-store"
+    return CoinSearchResponse.from_domain(assets, as_of)
+
+
+@router.get(
+    "/coins/{slug}",
+    summary="One coin's price, changes, market value and supply",
+    description=(
+        "For our own website only: requires the internal token. Only coins in the cached listing "
+        "of the largest coins are known; anything else is a 404."
+    ),
+)
+async def get_coin(
+    service: Annotated[CryptoService, Depends(get_crypto_service)],
+    response: Response,
+    slug: Annotated[str, Path(pattern=r"^[a-z0-9][a-z0-9._-]{0,79}$")],
+) -> CoinDetailResponse:
+    asset, as_of = await service.coin(slug)
+    response.headers["Cache-Control"] = "no-store"
+    return CoinDetailResponse.from_domain(asset, as_of)

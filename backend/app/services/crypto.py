@@ -18,14 +18,18 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from app.core.cache import AsyncTTLCache
-from app.core.errors import AppError
+from app.core.errors import AppError, NotFoundError
 from app.domain.crypto import AnchorPrices, CryptoAsset, FearGreed, MarketTotals
 from app.domain.crypto_markets import Composition, composition, percent_change
+from app.domain.crypto_search import search_assets
 from app.providers.base import CryptoProvider
 
 logger = logging.getLogger(__name__)
 
-TOP_N = 25
+TOP_N = 25  # how many coins the overview shows
+# How many the one cached listing holds: the overview shows the first TOP_N, and search and coin
+# pages use the rest. A 200-row page costs the same single credit, so this adds no provider calls.
+FETCH_N = 200
 LISTINGS_TTL = 10 * 60.0
 TOTALS_TTL = 10 * 60.0
 FEAR_GREED_TTL = 60 * 60.0  # the index moves slowly
@@ -77,12 +81,14 @@ class CryptoService:
         provider: CryptoProvider,
         *,
         top: int = TOP_N,
+        fetch: int = FETCH_N,
         clock: Callable[[], float] = time.monotonic,
         today: Callable[[], date] = lambda: datetime.now(UTC).date(),
     ) -> None:
         self._today = today
         self._provider = provider
         self._top = top
+        self._fetch = max(fetch, top)
         self._listings: AsyncTTLCache[str, tuple[tuple[CryptoAsset, ...], datetime]] = (
             AsyncTTLCache(max_entries=1, clock=clock)
         )
@@ -115,7 +121,7 @@ class CryptoService:
         kept_totals = self._summary(totals, SUMMARY_NAMES[0], down)
         kept_fear = self._summary(fear_greed, SUMMARY_NAMES[1], down)
         return CryptoOverview(
-            assets=assets,
+            assets=assets[: self._top],
             as_of=as_of,
             totals=kept_totals,
             fear_greed=kept_fear,
@@ -165,6 +171,24 @@ class CryptoService:
             unavailable=tuple(down),
         )
 
+    async def search(self, query: str, limit: int) -> tuple[list[CryptoAsset], datetime]:
+        """Listed coins matching a name or symbol, from the cached listing (no provider call)."""
+        assets, as_of = await self._listings.get_or_load(
+            "top", self._load_listings, ttl=LISTINGS_TTL, stale_ttl=STALE
+        )
+        return search_assets(assets, query, limit), as_of
+
+    async def coin(self, slug: str) -> tuple[CryptoAsset, datetime]:
+        """One listed coin by its slug. Only the coins in the cached listing are known."""
+        assets, as_of = await self._listings.get_or_load(
+            "top", self._load_listings, ttl=LISTINGS_TTL, stale_ttl=STALE
+        )
+        for asset in assets:
+            if asset.slug == slug:
+                return asset, as_of
+        msg = "That coin is not among the largest coins this site covers."
+        raise NotFoundError(msg)
+
     async def _anchor(self, ids: tuple[int, ...], day: date) -> AnchorPrices:
         return await self._anchors.get_or_load(
             (day, ids),
@@ -180,8 +204,8 @@ class CryptoService:
         return percent_change(asset.price, anchor.prices.get(asset.cmc_id))
 
     async def _load_listings(self) -> tuple[tuple[CryptoAsset, ...], datetime]:
-        listings = await self._provider.listings(self._top)
-        return listings.assets[: self._top], listings.as_of
+        listings = await self._provider.listings(self._fetch)
+        return listings.assets[: self._fetch], listings.as_of
 
     @staticmethod
     def _summary[T](result: T | BaseException, name: str, down: list[str]) -> T | None:

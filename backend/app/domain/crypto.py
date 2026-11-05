@@ -24,6 +24,12 @@ class CryptoAsset:
     cmc_id: int | None = None  # the provider's numeric id: unambiguous, unlike a symbol
     change_30d: Decimal | None = None
     change_90d: Decimal | None = None
+    # Added for the coin page, optional for the same reason.
+    change_1h: Decimal | None = None
+    circulating_supply: Decimal | None = None  # coins
+    total_supply: Decimal | None = None
+    max_supply: Decimal | None = None  # None when there is no fixed maximum
+    fully_diluted_market_cap: Decimal | None = None  # US dollars
 
 
 @dataclass(frozen=True, slots=True)

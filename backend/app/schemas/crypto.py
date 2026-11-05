@@ -214,3 +214,82 @@ class CryptoMarketsResponse(BaseModel):
             past_year_start=markets.past_year_start,
             unavailable=list(markets.unavailable),
         )
+
+
+class CoinHitResponse(BaseModel):
+    """One search result: just enough to show in a list and link to the coin's page."""
+
+    model_config = ConfigDict(frozen=True)
+
+    rank: int
+    name: str
+    symbol: str
+    slug: str
+
+    @classmethod
+    def from_domain(cls, asset: CryptoAsset) -> "CoinHitResponse":
+        return cls(rank=asset.rank, name=asset.name, symbol=asset.symbol, slug=asset.slug)
+
+
+class CoinSearchResponse(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    attribution: AttributionResponse
+    as_of: datetime
+    results: list[CoinHitResponse]
+
+    @classmethod
+    def from_domain(cls, assets: list[CryptoAsset], as_of: datetime) -> "CoinSearchResponse":
+        return cls(
+            attribution=AttributionResponse(text=ATTRIBUTION_TEXT, url=ATTRIBUTION_URL),
+            as_of=as_of,
+            results=[CoinHitResponse.from_domain(asset) for asset in assets],
+        )
+
+
+class CoinDetailResponse(BaseModel):
+    """Everything the coin page shows. A figure the provider did not send is null, never zero."""
+
+    model_config = ConfigDict(frozen=True)
+
+    attribution: AttributionResponse
+    as_of: datetime
+    rank: int
+    name: str
+    symbol: str
+    slug: str
+    price: PlainDecimal  # US dollars
+    change_1h: PlainDecimal | None  # percent points
+    change_24h: PlainDecimal | None
+    change_7d: PlainDecimal | None
+    change_30d: PlainDecimal | None
+    change_90d: PlainDecimal | None
+    market_cap: PlainDecimal | None  # US dollars
+    fully_diluted_market_cap: PlainDecimal | None
+    volume_24h: PlainDecimal | None
+    circulating_supply: PlainDecimal | None  # coins
+    total_supply: PlainDecimal | None
+    max_supply: PlainDecimal | None
+
+    @classmethod
+    def from_domain(cls, asset: CryptoAsset, as_of: datetime) -> "CoinDetailResponse":
+        return cls(
+            attribution=AttributionResponse(text=ATTRIBUTION_TEXT, url=ATTRIBUTION_URL),
+            as_of=as_of,
+            rank=asset.rank,
+            name=asset.name,
+            symbol=asset.symbol,
+            slug=asset.slug,
+            price=asset.price,
+            change_1h=asset.change_1h,
+            change_24h=asset.change_24h,
+            change_7d=asset.change_7d,
+            change_30d=asset.change_30d,
+            change_90d=asset.change_90d,
+            market_cap=asset.market_cap,
+            fully_diluted_market_cap=asset.fully_diluted_market_cap,
+            volume_24h=asset.volume_24h,
+            circulating_supply=asset.circulating_supply,
+            total_supply=asset.total_supply,
+            max_supply=asset.max_supply,
+        )

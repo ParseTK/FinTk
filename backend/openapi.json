@@ -19,6 +19,237 @@
         "title": "AttributionResponse",
         "type": "object"
       },
+      "CoinDetailResponse": {
+        "description": "Everything the coin page shows. A figure the provider did not send is null, never zero.",
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "change_1h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 1H"
+          },
+          "change_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 24H"
+          },
+          "change_30d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 30D"
+          },
+          "change_7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 7D"
+          },
+          "change_90d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 90D"
+          },
+          "circulating_supply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Circulating Supply"
+          },
+          "fully_diluted_market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fully Diluted Market Cap"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "max_supply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Supply"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "total_supply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Supply"
+          },
+          "volume_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volume 24H"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "rank",
+          "name",
+          "symbol",
+          "slug",
+          "price",
+          "change_1h",
+          "change_24h",
+          "change_7d",
+          "change_30d",
+          "change_90d",
+          "market_cap",
+          "fully_diluted_market_cap",
+          "volume_24h",
+          "circulating_supply",
+          "total_supply",
+          "max_supply"
+        ],
+        "title": "CoinDetailResponse",
+        "type": "object"
+      },
+      "CoinHitResponse": {
+        "description": "One search result: just enough to show in a list and link to the coin's page.",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "name",
+          "symbol",
+          "slug"
+        ],
+        "title": "CoinHitResponse",
+        "type": "object"
+      },
+      "CoinSearchResponse": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/CoinHitResponse"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "results"
+        ],
+        "title": "CoinSearchResponse",
+        "type": "object"
+      },
       "CompositionResponse": {
         "properties": {
           "rows": {
@@ -1305,6 +1536,80 @@
         ]
       }
     },
+    "/api/v1/crypto/coins/{slug}": {
+      "get": {
+        "description": "For our own website only: requires the internal token. Only coins in the cached listing of the largest coins are known; anything else is a 404.",
+        "operationId": "get_coin_api_v1_crypto_coins__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoinDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "One coin's price, changes, market value and supply",
+        "tags": [
+          "crypto"
+        ]
+      }
+    },
     "/api/v1/crypto/markets": {
       "get": {
         "description": "For our own website only: requires the internal token. Composition of the market, and 30 day, 90 day, year-to-date and past-year changes for the ten largest coins. The response carries the attribution that must be shown with the data.",
@@ -1424,6 +1729,93 @@
           }
         },
         "summary": "Top coins by market capitalization, with market totals and Fear and Greed",
+        "tags": [
+          "crypto"
+        ]
+      }
+    },
+    "/api/v1/crypto/search": {
+      "get": {
+        "description": "For our own website only: requires the internal token. Matches come from the cached listing, so a search costs no provider call. The response carries the attribution.",
+        "operationId": "search_coins_api_v1_crypto_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 40,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoinSearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Find a coin by name or symbol among the largest coins",
         "tags": [
           "crypto"
         ]
