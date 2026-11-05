@@ -62,14 +62,17 @@ describe("CryptoHome about section", () => {
     expect(about).toHaveTextContent(/not investment advice/);
   });
 
-  it("opens one step at a time", async () => {
+  it("starts closed and opens one step at a time", async () => {
     const user = userEvent.setup();
     GET.mockResolvedValue({ data: markets });
     render(await CryptoHome());
     const first = screen.getByRole("button", { name: "See the wider market." });
     const second = screen.getByRole("button", { name: "Look closer at a coin." });
-    expect(first).toHaveAttribute("aria-expanded", "true");
+    // Nothing is open until the visitor opens it.
+    expect(first).toHaveAttribute("aria-expanded", "false");
     expect(second).toHaveAttribute("aria-expanded", "false");
+    await user.click(first);
+    expect(first).toHaveAttribute("aria-expanded", "true");
     await user.click(second);
     expect(first).toHaveAttribute("aria-expanded", "false");
     expect(second).toHaveAttribute("aria-expanded", "true");

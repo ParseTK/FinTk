@@ -35,7 +35,7 @@ const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
  * supplied by the server component, which decides what to say from the flags that are on.
  */
 export function AboutSteps({ steps }: { steps: readonly AboutStep[] }) {
-  const [open, setOpen] = useState(0);
+  const [open, setOpen] = useState(-1);
   const id = useId();
   return (
     <ol className="border-border border-t">

@@ -90,7 +90,7 @@ export function AboutSection() {
           <div className="space-y-6">
             <h2
               id="about-heading"
-              className="text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl"
+              className="text-2xl leading-[1.1] font-bold tracking-tight sm:text-3xl lg:text-4xl"
             >
               Market context. <br />
               Original sources. <br />

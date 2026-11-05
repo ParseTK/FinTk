@@ -171,3 +171,22 @@ describe("MobileMenu", () => {
     await expectNoA11yViolations(container);
   });
 });
+
+describe("Footer quick links", () => {
+  it("lists external sources that open in a new tab and say so", () => {
+    render(<Footer />);
+    const nav = screen.getByRole("navigation", { name: "Quick links" });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(5);
+    for (const link of links) {
+      expect(link.getAttribute("href")).toMatch(/^https:\/\//);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveTextContent("(opens in a new tab)");
+    }
+    expect(within(nav).getByRole("link", { name: /CoinMarketCap methodology/ })).toHaveAttribute(
+      "href",
+      "https://coinmarketcap.com/methodology/",
+    );
+  });
+});
