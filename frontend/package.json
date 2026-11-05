@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "new:component": "node scripts/new-component.mjs",
-    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts"
+    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts",
+    "budget": "node scripts/check-budgets.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

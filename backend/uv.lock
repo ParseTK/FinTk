@@ -1371,6 +1371,7 @@ dependencies = [
     { name = "asyncpg" },
     { name = "defusedxml" },
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "uvicorn", extra = ["standard"] },
@@ -1378,7 +1379,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "pip-audit" },
     { name = "pyright" },
     { name = "pytest" },
@@ -1393,6 +1393,7 @@ requires-dist = [
     { name = "asyncpg", specifier = ">=0.32.0" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "fastapi", specifier = ">=0.162.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic-settings", specifier = ">=2.16.2" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.43" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
@@ -1400,7 +1401,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "pip-audit", specifier = ">=2.10.1" },
     { name = "pyright", specifier = ">=1.1.414" },
     { name = "pytest", specifier = ">=9.2.0" },
