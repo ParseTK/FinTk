@@ -58,7 +58,7 @@ export function DataMethodology() {
               <li key={id}>
                 <a
                   href={`#${id}-heading`}
-                  className="text-fg-muted hover:text-fg inline-flex min-h-6 items-center underline-offset-4 hover:underline"
+                  className="text-brand inline-flex min-h-6 items-center font-medium underline underline-offset-4 hover:no-underline"
                 >
                   {title}
                 </a>
