@@ -7,3 +7,4 @@ export { DataMethodology } from "./DataMethodology";
 export { SourceDirectory } from "./SourceDirectory";
 export { EducationGuides } from "./EducationGuides";
 export { ResearchTools } from "./ResearchTools";
+export { parseCompare } from "./compare";

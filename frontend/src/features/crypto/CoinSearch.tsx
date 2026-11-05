@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { findCoins, type CoinSuggestion } from "./actions";
 
+export type { CoinSuggestion };
+
 const DEBOUNCE_MS = 150;
 
 type Status = "idle" | "loading" | "done";
@@ -17,7 +19,18 @@ type Status = "idle" | "loading" | "done";
  * suggestions there are, because a screen reader cannot see the list appear. Answers that arrive
  * out of order are ignored.
  */
-export function CoinSearch({ className }: { className?: string }) {
+export function CoinSearch({
+  className,
+  onPick,
+  label = "Search coins by name or symbol",
+  placeholder = "Search coins",
+}: {
+  className?: string;
+  /** Used as a picker: choosing a suggestion calls this instead of opening the coin page. */
+  onPick?: (coin: CoinSuggestion) => void;
+  label?: string;
+  placeholder?: string;
+}) {
   const router = useRouter();
   const id = useId();
   const listId = `${id}-list`;
@@ -58,12 +71,13 @@ export function CoinSearch({ className }: { className?: string }) {
         ? "No coins found. Press Enter to search the full list."
         : `${suggestions.length} ${suggestions.length === 1 ? "suggestion" : "suggestions"}. Use the up and down arrow keys, then Enter.`;
 
-  const go = (slug: string) => {
+  const go = (coin: CoinSuggestion) => {
     setOpen(false);
     setText("");
     setSuggestions([]);
     setStatus("idle");
-    router.push(`/crypto/coins/${slug}`);
+    if (onPick) onPick(coin);
+    else router.push(`/crypto/coins/${coin.slug}`);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -77,7 +91,7 @@ export function CoinSearch({ className }: { className?: string }) {
       );
     } else if (event.key === "Enter" && showList && active >= 0 && active < suggestions.length) {
       event.preventDefault();
-      go(suggestions[active]!.slug);
+      go(suggestions[active]!);
     } else if (event.key === "Escape") {
       if (open) {
         event.preventDefault();
@@ -95,9 +109,23 @@ export function CoinSearch({ className }: { className?: string }) {
         if (!box.current?.contains(event.relatedTarget)) setOpen(false);
       }}
     >
-      <form role="search" action="/crypto/search" method="get">
+      <form
+        role={onPick ? undefined : "search"}
+        action={onPick ? undefined : "/crypto/search"}
+        method={onPick ? undefined : "get"}
+        onSubmit={
+          onPick
+            ? (event) => {
+                // A picker has no results page: Enter chooses the highlighted (or first) suggestion.
+                event.preventDefault();
+                const choice = suggestions[Math.max(active, 0)];
+                if (showList && choice) go(choice);
+              }
+            : undefined
+        }
+      >
         <label htmlFor={`${id}-input`} className="sr-only">
-          Search coins by name or symbol
+          {label}
         </label>
         <input
           id={`${id}-input`}
@@ -107,7 +135,7 @@ export function CoinSearch({ className }: { className?: string }) {
           autoComplete="off"
           spellCheck={false}
           maxLength={40}
-          placeholder="Search coins"
+          placeholder={placeholder}
           value={text}
           aria-expanded={showList}
           aria-controls={listId}
@@ -146,7 +174,7 @@ export function CoinSearch({ className }: { className?: string }) {
               aria-selected={index === active}
               // The mouse press must not move focus out of the input, or the list would close first.
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => go(coin.slug)}
+              onClick={() => go(coin)}
               className={clsx(
                 "cursor-pointer px-3 py-2 text-sm",
                 index === active ? "bg-brand text-on-accent" : "hover:bg-surface",
