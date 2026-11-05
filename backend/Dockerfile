@@ -21,7 +21,12 @@ COPY migrations ./migrations
 COPY alembic.ini ./
 
 FROM base AS runtime
-RUN groupadd --system app && useradd --system --gid app --no-create-home app
+# The server never installs anything, so it needs no pip or setuptools. The ones in the base image bundle
+# their own copies of libraries (msgpack, urllib3 and others) that carry their own vulnerabilities.
+RUN python -m pip uninstall --yes pip setuptools wheel \
+ && rm -rf /usr/local/lib/python3.13/site-packages/pip* /usr/local/lib/python3.13/site-packages/setuptools* \
+      /usr/local/lib/python3.13/site-packages/pkg_resources /usr/local/lib/python3.13/site-packages/wheel* \
+ && groupadd --system app && useradd --system --gid app --no-create-home app
 COPY --from=build --chown=app:app /app /app
 ENV PATH="/app/.venv/bin:$PATH" \
     PORT=8000
