@@ -25,19 +25,11 @@ export function Hero({ headline, body, actions, chart = null }: HeroProps) {
     // overflow-clip, not overflow-hidden: hidden would make this a scroll container and capture the
     // scroll-driven animations inside it.
     <section aria-labelledby="hero-heading" className="bg-surface relative isolate overflow-clip">
-      {/* Decorative depth: an accent glow and a faint grid that fades out. */}
+      {/* Decorative depth: a faint grid that fades out. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,black_60%,transparent)]"
       >
-        <div
-          className={clsx(
-            "absolute -top-32 right-[-8rem]",
-            drift && "parallax-page [--parallax-from:0px] [--parallax-to:150px]",
-          )}
-        >
-          <div className="animate-fade-in size-[34rem] rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--brand)_34%,transparent),transparent)]" />
-        </div>
         <div
           className={clsx(
             "absolute inset-0 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)] opacity-70",
