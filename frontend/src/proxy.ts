@@ -59,6 +59,10 @@ const FORWARDED = [
   methods: readonly string[] | null;
 }>;
 
+/** Pages that only make sense for a signed-in person, and the API's session cookie names. */
+const SIGNED_IN_PAGES = ["/holdings", "/account"] as const;
+const SESSION_COOKIES = ["__Host-virello_session", "virello_session"] as const;
+
 const isUnder = (pathname: string, prefix: string) =>
   pathname === prefix || pathname.startsWith(`${prefix}/`);
 
@@ -125,6 +129,18 @@ export async function proxy(request: NextRequest) {
     ([prefix, flag]) => isUnder(pathname, prefix) && !isEnabled(flag),
   );
   if (closed) return notFound(request);
+
+  // Pages that are only for a signed-in person send a visitor with no session cookie to sign in
+  // before anything renders. Left to the page, the shell and sidebar would stream first and flash.
+  // The page still checks the session itself (a stale cookie gets through to that check).
+  if (
+    SIGNED_IN_PAGES.some((prefix) => isUnder(pathname, prefix)) &&
+    !SESSION_COOKIES.some((name) => request.cookies.has(name))
+  ) {
+    const target = new URL("/sign-in", request.url);
+    target.searchParams.set("next", pathname);
+    return NextResponse.redirect(target);
+  }
 
   const coin = COIN_PAGE.exec(pathname);
   if (coin && (await coinMissing(coin[1]!))) return notFound(request);

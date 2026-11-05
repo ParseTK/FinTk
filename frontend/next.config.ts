@@ -10,8 +10,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Inline the (small) stylesheet so it does not block the first paint with a separate request.
-  experimental: { inlineCss: true },
+  // Not inlining the stylesheet (experimental.inlineCss): measured, it sends the CSS twice on every page
+  // (once as a style block, once in the React data stream), cannot be cached between pages, and made
+  // the footer jump on repeat visits. A cached stylesheet file is smaller and faster.
   // Lets verification builds use their own folder so they never clobber a running `next dev`.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,

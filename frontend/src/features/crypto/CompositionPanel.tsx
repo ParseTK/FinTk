@@ -51,7 +51,7 @@ function Table({
   withChange: boolean;
 }) {
   return (
-    <div className="relative overflow-x-auto">
+    <div role="region" aria-label={caption} tabIndex={0} className="relative overflow-x-auto">
       <table className="w-full text-left text-sm">
         <caption className="sr-only">{caption}</caption>
         <thead>

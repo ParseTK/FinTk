@@ -51,7 +51,7 @@ export function AboutBuilder() {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-brand inline-flex items-center gap-2 text-sm font-medium underline-offset-4 hover:underline"
+                  className="text-brand inline-flex min-h-6 items-center gap-2 text-sm font-medium underline-offset-4 hover:underline"
                 >
                   <Icon className="size-4" />
                   {label}
