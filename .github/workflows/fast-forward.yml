@@ -41,7 +41,7 @@ jobs:
             echo "::error::The RELEASE_TOKEN secret is not set. See 'Releasing' in the README."
             exit 1
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           # Pushing with this token (not GITHUB_TOKEN) lets the push start CI on main afterwards.
