@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 import { Footer } from "./Footer";
 import { MobileMenu } from "./MobileMenu";
@@ -35,6 +35,29 @@ describe("Footer", () => {
   it("has no accessibility violations", async () => {
     const { container } = render(<Footer />);
     await expectNoA11yViolations(container);
+  });
+});
+
+describe("Footer sections", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("lists each section with its pages underneath, like the header and sidebar", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+    render(<Footer />);
+    const nav = screen.getByRole("navigation", { name: "Footer" });
+    expect(within(nav).getByRole("heading", { name: "Crypto" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/crypto");
+    expect(within(nav).getByRole("link", { name: "Markets" })).toHaveAttribute(
+      "href",
+      "/crypto/markets",
+    );
+    expect(within(nav).queryByRole("link", { name: "News" })).not.toBeInTheDocument();
+  });
+
+  it("has no navigation at all while every page is off", () => {
+    render(<Footer />);
+    expect(screen.queryByRole("navigation", { name: "Footer" })).not.toBeInTheDocument();
   });
 });
 

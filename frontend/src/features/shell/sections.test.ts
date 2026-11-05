@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { headerItems, visibleSections } from "./sections";
+import { footerColumns, headerItems, visibleSections } from "./sections";
 import { sectionFor, type SectionView } from "./sectionView";
 
 afterEach(() => vi.unstubAllEnvs());
@@ -59,6 +59,24 @@ describe("headerItems", () => {
     const otherPages = visibleSections().flatMap((s) => s.links.slice(1).map((l) => l.href));
     const hrefs = headerItems().map((item) => item.href);
     expect(hrefs.filter((href) => otherPages.includes(href))).toEqual([]);
+  });
+});
+
+describe("footerColumns", () => {
+  it("is empty while the crypto pages are off", () => {
+    expect(footerColumns()).toEqual([]);
+  });
+
+  it("lists a section with even one page, with every visible page under it", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    expect(hrefs(footerColumns(), "crypto")).toEqual(["/crypto"]);
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+    expect(hrefs(footerColumns(), "crypto")).toEqual([
+      "/crypto",
+      "/crypto/markets",
+      "/crypto/news",
+    ]);
   });
 });
 
