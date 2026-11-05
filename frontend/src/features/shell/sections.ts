@@ -67,3 +67,15 @@ export function headerItems(): NavItem[] {
       alsoActive: links.map((link) => link.href),
     }));
 }
+
+/**
+ * The footer's columns: every section that has at least one visible page, with all of its pages
+ * underneath (the footer lists a single-page section too, unlike the sidebar).
+ */
+export function footerColumns(): SectionView[] {
+  return SECTIONS.map((section) => ({
+    id: section.id,
+    label: section.label,
+    links: shownLinks(section),
+  })).filter((section) => section.links.length > 0);
+}

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 
@@ -39,6 +39,33 @@ beforeEach(() => {
   GET.mockReset(); // braces: a returned function would be run by vitest as a cleanup hook
 });
 afterEach(() => vi.unstubAllEnvs());
+
+describe("CryptoHome about section", () => {
+  it("explains what the site is, what it does, where the data comes from and its limits", async () => {
+    GET.mockResolvedValue({ data: markets });
+    render(await CryptoHome());
+    const about = screen.getByRole("region", { name: "About Virello" });
+    for (const title of ["What it does", "Where the data comes from", "Limits", "How to use it"]) {
+      expect(within(about).getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
+    }
+    expect(within(about).getByRole("link", { name: "CoinMarketCap.com" })).toHaveAttribute(
+      "href",
+      "https://coinmarketcap.com/",
+    );
+    expect(about).toHaveTextContent(/no full price history/);
+    expect(about).toHaveTextContent(/not investment advice/);
+  });
+
+  it("only describes the pages that are switched on", async () => {
+    GET.mockResolvedValue({ data: markets });
+    const { unmount } = render(await CryptoHome());
+    expect(screen.queryByText(/Collects official announcements/)).not.toBeInTheDocument();
+    unmount();
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    render(await CryptoHome());
+    expect(screen.getByText(/Collects official announcements/)).toBeInTheDocument();
+  });
+});
 
 describe("CryptoHome", () => {
   it("leads with the crypto headline, the crypto text and links, not a company search", async () => {
