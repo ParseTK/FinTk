@@ -60,8 +60,6 @@ export interface Failure {
   message: string;
   /** Per-field messages for `invalid`, keyed by the API field name. */
   fields: Record<string, string>;
-  /** For a batch: the same per-field messages, by row (0-based index in the request). */
-  rows: Record<number, Record<string, string>>;
 }
 
 export interface Success<T> {
@@ -74,10 +72,8 @@ export interface Success<T> {
 export type JsonResult<T> = Success<T> | Failure;
 
 const FIELD_MESSAGES: Record<string, string> = {
-  symbol: "Enter a coin symbol such as BTC.",
-  shares: "Enter a number of shares above zero, with at most 6 decimals.",
-  unit_cost: "Enter a price above zero, with at most 6 decimals.",
-  acquired_on: "Use a date like 2024-05-31.",
+  amount: "Enter an amount above zero, with at most 18 decimals.",
+  cost: "Enter what you paid in US dollars, with at most 2 decimals, or leave it empty.",
 };
 
 const MESSAGES: Record<Exclude<FailureKind, "invalid">, string> = {
@@ -94,17 +90,10 @@ function failure(
   kind: FailureKind,
   message?: string,
   fields: Record<string, string> = {},
-  rows: Record<number, Record<string, string>> = {},
 ): Failure {
   const text = message ?? (kind === "invalid" ? "Check the highlighted fields." : MESSAGES[kind]);
-  return { ok: false, kind, message: text, fields, rows };
+  return { ok: false, kind, message: text, fields };
 }
-
-/** What to say about a problem the API located. Its own `type` wins where we know a better line. */
-const TYPE_MESSAGES: Record<string, string> = {
-  unknown_symbol: "We could not find a coin with that symbol.",
-  future_date: "The purchase date cannot be in the future.",
-};
 
 type ErrorBody = {
   error?: {
@@ -129,12 +118,11 @@ export async function sendJson<T = unknown>(
   method: "POST" | "PUT" | "DELETE",
   path: string,
   csrfToken: string,
-  options: { body?: unknown; idempotencyKey?: string; fetcher?: typeof fetch } = {},
+  options: { body?: unknown; fetcher?: typeof fetch } = {},
 ): Promise<JsonResult<T>> {
-  const { body, idempotencyKey, fetcher = fetch } = options;
+  const { body, fetcher = fetch } = options;
   const headers: Record<string, string> = { "X-CSRF-Token": csrfToken };
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
 
   let response: Response;
   try {
@@ -169,18 +157,13 @@ export async function sendJson<T = unknown>(
       return failure(error?.code === "limit_reached" ? "limit" : "conflict", authored);
     case 422: {
       const fields: Record<string, string> = {};
-      const rows: Record<number, Record<string, string>> = {};
       for (const detail of error?.details ?? []) {
         const loc = detail.loc ?? [];
         const name = loc.at(-1);
         if (typeof name !== "string" || !(name in FIELD_MESSAGES)) continue;
-        const text = (detail.type && TYPE_MESSAGES[detail.type]) || FIELD_MESSAGES[name]!;
-        fields[name] = text;
-        // A batch locates the problem as ["body", "lots", <row>, <field>].
-        const row = loc.at(-2);
-        if (typeof row === "number" && loc.at(-3) === "lots") (rows[row] ??= {})[name] = text;
+        fields[name] = FIELD_MESSAGES[name]!;
       }
-      return failure("invalid", undefined, fields, rows);
+      return failure("invalid", undefined, fields);
     }
     case 429:
       return failure("rate-limited");

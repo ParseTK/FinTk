@@ -44,6 +44,12 @@ export const FLAGS = {
     description:
       "Search for a coin by name or symbol (header box with suggestions, and /crypto/search), and a page for each coin at /crypto/coins/<name>. Needs the crypto flag too.",
   },
+  // Depends on: crypto, auth (it needs the crypto prices and a signed-in person).
+  holdings: {
+    default: false,
+    description:
+      "Holdings: a portfolio of the coins a signed-in person holds (valued at today's prices) and a watchlist, at /holdings and /holdings/watchlist, plus Watch and Your holding on each coin's page. Needs the crypto and auth flags too.",
+  },
   palette: {
     default: true,
     description:

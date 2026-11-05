@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
@@ -72,7 +73,14 @@ function Stats({ coin }: { coin: CoinDetail }) {
  * be loaded right now gets a plain message instead, so a good link never reads as "does not exist".
  * The provider's credit sits above the figures, as the licence requires.
  */
-export async function CoinPage({ slug }: { slug: string }) {
+export async function CoinPage({
+  slug,
+  extras,
+}: {
+  slug: string;
+  /** Something to show under the figures, given the coin (the holdings panel, when it is on). */
+  extras?: (coin: { slug: string; name: string; symbol: string }) => ReactNode;
+}) {
   const result = await getCoin(slug);
   if (result.status === "not_found") notFound();
 
@@ -128,6 +136,7 @@ export async function CoinPage({ slug }: { slug: string }) {
         />
         <Stats coin={coin} />
       </div>
+      {extras?.({ slug: coin.slug, name: coin.name, symbol: coin.symbol })}
     </Container>
   );
 }

@@ -48,24 +48,19 @@ const json = (status: number, body?: unknown) =>
   );
 
 describe("sendJson requests", () => {
-  it("sends the token, the cookie scope, the JSON body and the idempotency key", async () => {
+  it("sends the token, the cookie scope and the JSON body", async () => {
     const fetcher = json(201, { id: "1" });
 
-    await sendJson("POST", "/api/v1/portfolio/lots", "tok", {
-      body: { symbol: "BTC" },
-      idempotencyKey: "same-same-same",
+    await sendJson("PUT", "/api/v1/portfolio/bitcoin", "tok", {
+      body: { amount: "1" },
       fetcher,
     });
 
-    expect(fetcher).toHaveBeenCalledWith("/api/v1/portfolio/lots", {
-      method: "POST",
-      headers: {
-        "X-CSRF-Token": "tok",
-        "Content-Type": "application/json",
-        "Idempotency-Key": "same-same-same",
-      },
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/portfolio/bitcoin", {
+      method: "PUT",
+      headers: { "X-CSRF-Token": "tok", "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ symbol: "BTC" }),
+      body: JSON.stringify({ amount: "1" }),
     });
   });
 
@@ -121,18 +116,21 @@ describe("sendJson results", () => {
     });
     const key = await sendJson("POST", "/x", "t", {
       fetcher: json(409, {
-        error: { code: "conflict", message: "That Idempotency-Key was reused." },
+        error: { code: "conflict", message: "That conflicts with something saved." },
       }),
     });
     const date = await sendJson("POST", "/x", "t", {
       fetcher: json(400, {
-        error: { code: "bad_request", message: "The date cannot be in the future." },
+        error: { code: "bad_request", message: "That value is not allowed." },
       }),
     });
 
     expect(limit).toMatchObject({ kind: "limit", message: "Your watchlist is full (200)." });
-    expect(key).toMatchObject({ kind: "conflict", message: "That Idempotency-Key was reused." });
-    expect(date).toMatchObject({ kind: "invalid", message: "The date cannot be in the future." });
+    expect(key).toMatchObject({
+      kind: "conflict",
+      message: "That conflicts with something saved.",
+    });
+    expect(date).toMatchObject({ kind: "invalid", message: "That value is not allowed." });
   });
 
   it("never shows a server message under an unexpected code", async () => {
@@ -149,8 +147,8 @@ describe("sendJson results", () => {
         error: {
           code: "validation_error",
           details: [
-            { loc: ["body", "shares"], message: "String should match pattern", type: "x" },
-            { loc: ["body", "unit_cost"], message: "Value error", type: "x" },
+            { loc: ["body", "amount"], message: "String should match pattern", type: "x" },
+            { loc: ["body", "cost"], message: "Value error", type: "x" },
             { loc: ["body", "evil<script>"], message: "x", type: "x" },
           ],
         },
@@ -159,43 +157,10 @@ describe("sendJson results", () => {
 
     expect(result).toMatchObject({ ok: false, kind: "invalid" });
     if (!result.ok) {
-      expect(Object.keys(result.fields).sort()).toEqual(["shares", "unit_cost"]);
-      expect(result.fields.shares).toMatch(/shares above zero/);
+      expect(Object.keys(result.fields).sort()).toEqual(["amount", "cost"]);
+      expect(result.fields.amount).toMatch(/amount above zero/);
       expect(JSON.stringify(result.fields)).not.toContain("pattern");
     }
-  });
-
-  it("places a batch's problems on the row they came from", async () => {
-    const result = await sendJson("POST", "/x", "t", {
-      fetcher: json(422, {
-        error: {
-          code: "validation_error",
-          details: [
-            { loc: ["body", "lots", 1, "symbol"], message: "x", type: "unknown_symbol" },
-            { loc: ["body", "lots", 2, "acquired_on"], message: "x", type: "future_date" },
-            { loc: ["body", "lots", 2, "shares"], message: "x", type: "string_pattern_mismatch" },
-            { loc: ["body", "lots"], message: "too long", type: "too_long" },
-          ],
-        },
-      }),
-    });
-
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(Object.keys(result.rows)).toEqual(["1", "2"]);
-      expect(result.rows[1]).toEqual({ symbol: "We could not find a coin with that symbol." });
-      expect(result.rows[2]?.acquired_on).toBe("The purchase date cannot be in the future.");
-      expect(result.rows[2]?.shares).toMatch(/shares above zero/);
-    }
-  });
-
-  it("has no rows for an ordinary single-purchase error", async () => {
-    const result = await sendJson("POST", "/x", "t", {
-      fetcher: json(422, {
-        error: { details: [{ loc: ["body", "shares"], message: "x", type: "x" }] },
-      }),
-    });
-    expect(result.ok === false && result.rows).toEqual({});
   });
 
   it("survives an error response that is not JSON", async () => {
