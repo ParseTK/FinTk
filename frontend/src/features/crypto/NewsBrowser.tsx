@@ -18,7 +18,7 @@ function Headline({ item, className }: { item: NewsItem; className: string }) {
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={clsx(className, "underline-offset-2 hover:underline")}
+      className={clsx(className, "inline-block py-0.5 underline-offset-2 hover:underline")}
     >
       {item.title} <span className="sr-only">(opens in a new tab)</span>
     </a>

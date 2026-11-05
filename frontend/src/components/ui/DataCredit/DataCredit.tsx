@@ -23,7 +23,7 @@ export function DataCredit({ text, href, linkText, className }: DataCreditProps)
       <a
         href={href}
         rel="noopener noreferrer"
-        className="text-brand font-medium underline underline-offset-2"
+        className="text-brand inline-flex min-h-6 items-center font-medium underline underline-offset-2"
       >
         {label}
       </a>
