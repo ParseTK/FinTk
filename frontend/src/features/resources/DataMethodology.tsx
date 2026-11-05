@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/LinkButton";
+import { ExternalLink } from "./ExternalLink";
 import { FIGURES, LIMITS, SOURCES } from "./methodology";
 
 const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
-const EXTERNAL = "text-brand font-medium underline underline-offset-2 hover:no-underline";
 
 const SECTIONS = [
   { id: "sources", title: "Where the figures come from" },
@@ -25,15 +25,6 @@ function Section({ id, title, children }: { id: string; title: string; children:
       </h2>
       {children}
     </section>
-  );
-}
-
-function External({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={EXTERNAL}>
-      {children}
-      <span className="sr-only"> (opens in a new tab)</span>
-    </a>
   );
 }
 
@@ -98,7 +89,7 @@ export function DataMethodology() {
               {SOURCES.map((source) => (
                 <tr key={source.name} className="border-border border-b align-top last:border-0">
                   <th scope="row" className="px-4 py-3 font-medium whitespace-nowrap">
-                    <External href={source.href}>{source.name}</External>
+                    <ExternalLink href={source.href}>{source.name}</ExternalLink>
                   </th>
                   <td className="text-fg-muted px-4 py-3">{source.provides}</td>
                   <td className="text-fg-muted px-4 py-3">{source.age}</td>
@@ -120,9 +111,9 @@ export function DataMethodology() {
         </dl>
         <p className="text-fg-muted text-sm">
           For how CoinMarketCap builds its own figures, read{" "}
-          <External href="https://coinmarketcap.com/methodology/">
+          <ExternalLink href="https://coinmarketcap.com/methodology/">
             CoinMarketCap&apos;s methodology
-          </External>
+          </ExternalLink>
           .
         </p>
       </Section>
@@ -163,9 +154,10 @@ export function DataMethodology() {
       <Section id="credits" title="Credits">
         <p className="text-fg-muted max-w-2xl">
           Market data is provided by{" "}
-          <External href="https://coinmarketcap.com/">CoinMarketCap.com</External>. Announcements
-          and filings are published by the SEC, the CFTC and the U.S. Department of Justice. Virello
-          is an independent project and is not affiliated with or endorsed by any of them.
+          <ExternalLink href="https://coinmarketcap.com/">CoinMarketCap.com</ExternalLink>.
+          Announcements and filings are published by the SEC, the CFTC and the U.S. Department of
+          Justice. Virello is an independent project and is not affiliated with or endorsed by any
+          of them.
         </p>
         <LinkButton href="/resources" variant="secondary">
           Back to the overview
