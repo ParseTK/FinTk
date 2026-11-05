@@ -7,7 +7,8 @@ import { updatedLabel } from "./crypto";
 import { getCryptoOverview } from "./data";
 import { MarketMood } from "./MarketMood";
 
-const LINK = "text-brand font-medium underline underline-offset-2";
+// min-h-6: a link on its own line is at least 24 CSS pixels tall (WCAG 2.2, target size).
+const LINK = "text-brand inline-flex min-h-6 items-center font-medium underline underline-offset-2";
 
 /** What this section offers and what it cannot do. Static: it does not depend on the figures. */
 function About() {

@@ -53,7 +53,11 @@ select = [
     "T20",      # no print()
     "TID",      # tidy imports
     "PERF",     # performance
+    "C90",      # cyclomatic complexity, capped below
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15  # a ceiling for new code, not a target
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]   # assert and fake secrets are fine in tests

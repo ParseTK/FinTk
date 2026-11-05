@@ -289,3 +289,45 @@ describe("holdings pages and calls", () => {
     }
   });
 });
+
+describe("Content-Security-Policy", () => {
+  it("gives a page a policy with a fresh nonce, and passes the same nonce to the page", async () => {
+    const first = await proxy(request("/"));
+    const second = await proxy(request("/"));
+    const policy = first.headers.get("Content-Security-Policy")!;
+    const nonce = /'nonce-([^']+)'/.exec(policy)![1];
+    expect(policy).toContain("default-src 'self'");
+    expect(passesThrough(first)).toBe(true);
+    // Next copies request-header overrides onto the page request: that is how the layout sees it.
+    expect(first.headers.get("x-middleware-request-x-nonce")).toBe(nonce);
+    expect(first.headers.get("x-middleware-request-content-security-policy")).toBe(policy);
+    expect(second.headers.get("Content-Security-Policy")).not.toBe(policy);
+  });
+
+  it("also covers the pages the proxy rewrites or redirects", async () => {
+    vi.stubEnv("FEATURE_DESIGN", "false");
+    const closed = await proxy(request("/design"));
+    expect(rewrittenTo(closed)).toContain("/not-found-disabled");
+    expect(closed.headers.get("Content-Security-Policy")).toContain("script-src");
+  });
+
+  it("does not add a page policy to forwarded API calls", async () => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    const response = await proxy(request("/api/v1/me"));
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
+  });
+
+  it("only reports when CSP_MODE=report-only", async () => {
+    vi.stubEnv("CSP_MODE", "report-only");
+    const response = await proxy(request("/"));
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
+    expect(response.headers.get("Content-Security-Policy-Report-Only")).toContain("script-src");
+  });
+
+  it("sends no policy when CSP_MODE=off", async () => {
+    vi.stubEnv("CSP_MODE", "off");
+    const response = await proxy(request("/"));
+    expect(response.headers.get("Content-Security-Policy")).toBeNull();
+    expect(response.headers.get("x-middleware-request-x-nonce")).toBeNull();
+  });
+});
