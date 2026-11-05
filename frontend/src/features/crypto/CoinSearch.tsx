@@ -11,6 +11,67 @@ const DEBOUNCE_MS = 150;
 
 type Status = "idle" | "loading" | "done";
 
+/** What a screen reader is told about the list, which it cannot see appear. Empty when nothing changed. */
+function suggestionMessage(query: string, status: Status, count: number): string {
+  if (query === "" || status !== "done") return "";
+  if (count === 0) return "No coins found. Press Enter to search the full list.";
+  const noun = count === 1 ? "suggestion" : "suggestions";
+  return `${count} ${noun}. Use the up and down arrow keys, then Enter.`;
+}
+
+/** The highlighted suggestion after an arrow key: down wraps to the first, up wraps to the last. */
+function nextActive(key: "ArrowDown" | "ArrowUp", current: number, count: number): number {
+  if (key === "ArrowDown") return (current + 1) % count;
+  return current <= 0 ? count - 1 : current - 1;
+}
+
+/** The popup list. A mouse press must not move focus out of the input, or the list would close first. */
+function SuggestionList({
+  id,
+  listId,
+  suggestions,
+  active,
+  show,
+  onChoose,
+}: {
+  id: string;
+  listId: string;
+  suggestions: CoinSuggestion[];
+  active: number;
+  show: boolean;
+  onChoose: (coin: CoinSuggestion) => void;
+}) {
+  return (
+    <ul
+      id={listId}
+      role="listbox"
+      aria-label="Coin suggestions"
+      hidden={!show}
+      className="border-border bg-surface-raised absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border py-1 shadow-lg"
+    >
+      {show &&
+        suggestions.map((coin, index) => (
+          <li
+            key={coin.slug}
+            id={`${id}-option-${index}`}
+            role="option"
+            aria-selected={index === active}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => onChoose(coin)}
+            className={clsx(
+              "cursor-pointer px-3 py-2 text-sm",
+              index === active ? "bg-brand text-on-accent" : "hover:bg-surface",
+            )}
+          >
+            {/* One text run with a real space, so the name reads "Bitcoin BTC", not "BitcoinBTC". */}
+            <span className="font-medium">{coin.name}</span>{" "}
+            <span className={index === active ? "" : "text-fg-muted"}>{coin.symbol}</span>
+          </li>
+        ))}
+    </ul>
+  );
+}
+
 /**
  * Search for a coin by name or symbol, with suggestions. An editable combobox with a list popup
  * (WAI-ARIA 1.2): the input keeps focus, the arrow keys move through the suggestions, Enter opens
@@ -64,12 +125,7 @@ export function CoinSearch({
 
   const query = text.trim();
   const showList = open && query !== "" && status === "done" && suggestions.length > 0;
-  const message =
-    query === "" || status !== "done"
-      ? ""
-      : suggestions.length === 0
-        ? "No coins found. Press Enter to search the full list."
-        : `${suggestions.length} ${suggestions.length === 1 ? "suggestion" : "suggestions"}. Use the up and down arrow keys, then Enter.`;
+  const message = suggestionMessage(query, status, suggestions.length);
 
   const go = (coin: CoinSuggestion) => {
     setOpen(false);
@@ -85,10 +141,8 @@ export function CoinSearch({
       if (suggestions.length === 0) return;
       event.preventDefault();
       setOpen(true);
-      const count = suggestions.length;
-      setActive((current) =>
-        event.key === "ArrowDown" ? (current + 1) % count : current <= 0 ? count - 1 : current - 1,
-      );
+      const { key } = event;
+      setActive((current) => nextActive(key, current, suggestions.length));
     } else if (event.key === "Enter" && showList && active >= 0 && active < suggestions.length) {
       event.preventDefault();
       go(suggestions[active]!);
@@ -158,34 +212,14 @@ export function CoinSearch({
       <p role="status" className="sr-only">
         {message}
       </p>
-      <ul
-        id={listId}
-        role="listbox"
-        aria-label="Coin suggestions"
-        hidden={!showList}
-        className="border-border bg-surface-raised absolute inset-x-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border py-1 shadow-lg"
-      >
-        {showList &&
-          suggestions.map((coin, index) => (
-            <li
-              key={coin.slug}
-              id={`${id}-option-${index}`}
-              role="option"
-              aria-selected={index === active}
-              // The mouse press must not move focus out of the input, or the list would close first.
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => go(coin)}
-              className={clsx(
-                "cursor-pointer px-3 py-2 text-sm",
-                index === active ? "bg-brand text-on-accent" : "hover:bg-surface",
-              )}
-            >
-              {/* One text run with a real space, so the name reads "Bitcoin BTC", not "BitcoinBTC". */}
-              <span className="font-medium">{coin.name}</span>{" "}
-              <span className={index === active ? "" : "text-fg-muted"}>{coin.symbol}</span>
-            </li>
-          ))}
-      </ul>
+      <SuggestionList
+        id={id}
+        listId={listId}
+        suggestions={suggestions}
+        active={active}
+        show={showList}
+        onChoose={go}
+      />
     </div>
   );
 }

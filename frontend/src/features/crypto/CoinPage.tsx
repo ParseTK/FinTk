@@ -12,6 +12,9 @@ import { compactUsd, updatedLabel } from "./crypto";
 import { getCoin } from "./data";
 import type { CoinDetail } from "./types";
 
+// min-h-6: a link on its own line is at least 24 CSS pixels tall (WCAG 2.2, target size).
+const BACK_LINK =
+  "text-brand inline-flex min-h-6 items-center font-medium underline underline-offset-2";
 const NOT_AVAILABLE = <span className="text-fg-muted">Not available</span>;
 
 /** A coin count: whole coins with separators, or "Not available". Never zero for a missing one. */
@@ -101,11 +104,15 @@ export async function CoinPage({
   return (
     <Container className="space-y-6 py-8">
       <p className="text-sm">
-        <Feature flag="crypto_markets" fallback={<Link href="/crypto">Crypto overview</Link>}>
-          <Link
-            href="/crypto/markets"
-            className="text-brand font-medium underline underline-offset-2"
-          >
+        <Feature
+          flag="crypto_markets"
+          fallback={
+            <Link href="/crypto" className={BACK_LINK}>
+              Crypto overview
+            </Link>
+          }
+        >
+          <Link href="/crypto/markets" className={BACK_LINK}>
             Back to the markets
           </Link>
         </Feature>
