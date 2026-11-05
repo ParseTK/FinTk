@@ -204,6 +204,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My holdings, valued at today's prices
+         * @description For our own website only: requires the internal token (the prices are licensed data) as well as a signed-in session. The gain counts only holdings that have a cost.
+         */
+        get: operations["get_portfolio_api_v1_portfolio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portfolio/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Record how much of a coin I hold (replaces the earlier entry) */
+        put: operations["hold_coin_api_v1_portfolio__slug__put"];
+        post?: never;
+        /** Remove a coin from my holdings */
+        delete: operations["release_coin_api_v1_portfolio__slug__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/watchlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My watched coins, with today's prices
+         * @description For our own website only: requires the internal token (the prices are licensed data) as well as a signed-in session. The response carries the attribution to show with them.
+         */
+        get: operations["get_watchlist_api_v1_watchlist_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/watchlist/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Watch a coin (safe to repeat) */
+        put: operations["add_to_watchlist_api_v1_watchlist__slug__put"];
+        post?: never;
+        /** Stop watching a coin */
+        delete: operations["remove_from_watchlist_api_v1_watchlist__slug__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -304,6 +380,24 @@ export interface components {
             rank: number;
             /** Slug */
             slug: string;
+            /** Symbol */
+            symbol: string;
+        };
+        /**
+         * CoinQuoteResponse
+         * @description The coin's name and today's figures, for a row that could be priced.
+         */
+        CoinQuoteResponse: {
+            /** Change 24H */
+            change_24h: string | null;
+            /** Market Cap */
+            market_cap: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: string;
+            /** Rank */
+            rank: number;
             /** Symbol */
             symbol: string;
         };
@@ -458,6 +552,60 @@ export interface components {
              */
             status: "ok";
         };
+        /**
+         * HoldInput
+         * @description What the client sends to record (or replace) how much of a coin is held.
+         */
+        HoldInput: {
+            /**
+             * Amount
+             * @description How many coins are held. Must be greater than zero.
+             */
+            amount: string;
+            /**
+             * Cost
+             * @description Total US dollars paid for them, if known. Zero is allowed, for a gift.
+             */
+            cost?: string | null;
+        };
+        /**
+         * HoldingSavedResponse
+         * @description A holding as entered. No prices: those come only from the read endpoint.
+         */
+        HoldingSavedResponse: {
+            /** Amount */
+            amount: string;
+            /** Cost */
+            cost: string | null;
+            /** Slug */
+            slug: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** HoldingValueResponse */
+        HoldingValueResponse: {
+            /** Amount */
+            amount: string;
+            coin: components["schemas"]["CoinQuoteResponse"] | null;
+            /** Cost */
+            cost: string | null;
+            /** Gain */
+            gain: string | null;
+            /** Gain Percent */
+            gain_percent: string | null;
+            /** Slug */
+            slug: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Value */
+            value: string | null;
+        };
         /** MajorCoinResponse */
         MajorCoinResponse: {
             /** Change 24H */
@@ -527,6 +675,17 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** PortfolioResponse */
+        PortfolioResponse: {
+            /** As Of */
+            as_of: string | null;
+            attribution: components["schemas"]["AttributionResponse"];
+            /** Holdings */
+            holdings: components["schemas"]["HoldingValueResponse"][];
+            /** Prices Available */
+            prices_available: boolean;
+            totals: components["schemas"]["TotalsResponse"];
+        };
         /** ReadinessResponse */
         ReadinessResponse: {
             /**
@@ -551,6 +710,23 @@ export interface components {
             providers: string[];
             user: components["schemas"]["UserResponse"] | null;
         };
+        /** TotalsResponse */
+        TotalsResponse: {
+            /** Cost */
+            cost: string;
+            /** Gain */
+            gain: string | null;
+            /** Gain Percent */
+            gain_percent: string | null;
+            /** Priced */
+            priced: number;
+            /** Total Value */
+            total_value: string;
+            /** Unpriced */
+            unpriced: number;
+            /** Value With Cost */
+            value_with_cost: string;
+        };
         /** UserResponse */
         UserResponse: {
             /** Avatar Url */
@@ -564,6 +740,37 @@ export interface components {
             id: string;
             /** Name */
             name: string | null;
+        };
+        /** WatchSavedResponse */
+        WatchSavedResponse: {
+            /**
+             * Added At
+             * Format: date-time
+             */
+            added_at: string;
+            /** Slug */
+            slug: string;
+        };
+        /** WatchlistItemResponse */
+        WatchlistItemResponse: {
+            /**
+             * Added At
+             * Format: date-time
+             */
+            added_at: string;
+            coin: components["schemas"]["CoinQuoteResponse"] | null;
+            /** Slug */
+            slug: string;
+        };
+        /** WatchlistResponse */
+        WatchlistResponse: {
+            /** As Of */
+            as_of: string | null;
+            attribution: components["schemas"]["AttributionResponse"];
+            /** Items */
+            items: components["schemas"]["WatchlistItemResponse"][];
+            /** Prices Available */
+            prices_available: boolean;
         };
     };
     responses: never;
@@ -1363,6 +1570,552 @@ export interface operations {
             };
             /** @description The request was not valid. */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_portfolio_api_v1_portfolio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioResponse"];
+                };
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    hold_coin_api_v1_portfolio__slug__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The name of the coin in addresses. */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HoldInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldingSavedResponse"];
+                };
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A coin this site does not cover. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The portfolio is full. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    release_coin_api_v1_portfolio__slug__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The name of the coin in addresses. */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_watchlist_api_v1_watchlist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchlistResponse"];
+                };
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    add_to_watchlist_api_v1_watchlist__slug__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The name of the coin in addresses. */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchSavedResponse"];
+                };
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A coin this site does not cover. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The watchlist is full. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    remove_from_watchlist_api_v1_watchlist__slug__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The name of the coin in addresses. */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not signed in. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request failed CSRF verification. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

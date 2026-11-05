@@ -224,6 +224,59 @@
         "title": "CoinHitResponse",
         "type": "object"
       },
+      "CoinQuoteResponse": {
+        "description": "The coin's name and today's figures, for a row that could be priced.",
+        "properties": {
+          "change_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change 24H"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "string"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "symbol",
+          "rank",
+          "price",
+          "change_24h",
+          "market_cap"
+        ],
+        "title": "CoinQuoteResponse",
+        "type": "object"
+      },
       "CoinSearchResponse": {
         "properties": {
           "as_of": {
@@ -740,6 +793,156 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HoldInput": {
+        "additionalProperties": false,
+        "description": "What the client sends to record (or replace) how much of a coin is held.",
+        "properties": {
+          "amount": {
+            "description": "How many coins are held. Must be greater than zero.",
+            "pattern": "^\\d{1,12}(\\.\\d{1,18})?$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Total US dollars paid for them, if known. Zero is allowed, for a gift.",
+            "title": "Cost"
+          }
+        },
+        "required": [
+          "amount"
+        ],
+        "title": "HoldInput",
+        "type": "object"
+      },
+      "HoldingSavedResponse": {
+        "description": "A holding as entered. No prices: those come only from the read endpoint.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "amount",
+          "cost",
+          "updated_at"
+        ],
+        "title": "HoldingSavedResponse",
+        "type": "object"
+      },
+      "HoldingValueResponse": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "string"
+          },
+          "coin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CoinQuoteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          },
+          "gain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gain"
+          },
+          "gain_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gain Percent"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "slug",
+          "amount",
+          "cost",
+          "updated_at",
+          "coin",
+          "value",
+          "gain",
+          "gain_percent"
+        ],
+        "title": "HoldingValueResponse",
+        "type": "object"
+      },
       "MajorCoinResponse": {
         "properties": {
           "change_24h": {
@@ -979,6 +1182,48 @@
         "title": "NewsItemResponse",
         "type": "object"
       },
+      "PortfolioResponse": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingValueResponse"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "prices_available": {
+            "title": "Prices Available",
+            "type": "boolean"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/TotalsResponse"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "prices_available",
+          "totals",
+          "holdings"
+        ],
+        "title": "PortfolioResponse",
+        "type": "object"
+      },
       "ReadinessResponse": {
         "properties": {
           "failed": {
@@ -1044,6 +1289,63 @@
         "title": "SessionResponse",
         "type": "object"
       },
+      "TotalsResponse": {
+        "properties": {
+          "cost": {
+            "title": "Cost",
+            "type": "string"
+          },
+          "gain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gain"
+          },
+          "gain_percent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gain Percent"
+          },
+          "priced": {
+            "title": "Priced",
+            "type": "integer"
+          },
+          "total_value": {
+            "title": "Total Value",
+            "type": "string"
+          },
+          "unpriced": {
+            "title": "Unpriced",
+            "type": "integer"
+          },
+          "value_with_cost": {
+            "title": "Value With Cost",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_value",
+          "priced",
+          "unpriced",
+          "cost",
+          "value_with_cost",
+          "gain",
+          "gain_percent"
+        ],
+        "title": "TotalsResponse",
+        "type": "object"
+      },
       "UserResponse": {
         "properties": {
           "avatar_url": {
@@ -1085,6 +1387,93 @@
           "avatar_url"
         ],
         "title": "UserResponse",
+        "type": "object"
+      },
+      "WatchSavedResponse": {
+        "properties": {
+          "added_at": {
+            "format": "date-time",
+            "title": "Added At",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "added_at"
+        ],
+        "title": "WatchSavedResponse",
+        "type": "object"
+      },
+      "WatchlistItemResponse": {
+        "properties": {
+          "added_at": {
+            "format": "date-time",
+            "title": "Added At",
+            "type": "string"
+          },
+          "coin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CoinQuoteResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "added_at",
+          "coin"
+        ],
+        "title": "WatchlistItemResponse",
+        "type": "object"
+      },
+      "WatchlistResponse": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "attribution": {
+            "$ref": "#/components/schemas/AttributionResponse"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WatchlistItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "prices_available": {
+            "title": "Prices Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "attribution",
+          "as_of",
+          "prices_available",
+          "items"
+        ],
+        "title": "WatchlistResponse",
         "type": "object"
       }
     }
@@ -2107,6 +2496,642 @@
         "summary": "Official crypto-related announcements and filings",
         "tags": [
           "news"
+        ]
+      }
+    },
+    "/api/v1/portfolio": {
+      "get": {
+        "description": "For our own website only: requires the internal token (the prices are licensed data) as well as a signed-in session. The gain counts only holdings that have a cost.",
+        "operationId": "get_portfolio_api_v1_portfolio_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "My holdings, valued at today's prices",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/v1/portfolio/{slug}": {
+      "delete": {
+        "operationId": "release_coin_api_v1_portfolio__slug__delete",
+        "parameters": [
+          {
+            "description": "The name of the coin in addresses.",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "The name of the coin in addresses.",
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Remove a coin from my holdings",
+        "tags": [
+          "portfolio"
+        ]
+      },
+      "put": {
+        "operationId": "hold_coin_api_v1_portfolio__slug__put",
+        "parameters": [
+          {
+            "description": "The name of the coin in addresses.",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "The name of the coin in addresses.",
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HoldInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldingSavedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A coin this site does not cover."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The portfolio is full."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Record how much of a coin I hold (replaces the earlier entry)",
+        "tags": [
+          "portfolio"
+        ]
+      }
+    },
+    "/api/v1/watchlist": {
+      "get": {
+        "description": "For our own website only: requires the internal token (the prices are licensed data) as well as a signed-in session. The response carries the attribution to show with them.",
+        "operationId": "get_watchlist_api_v1_watchlist_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "My watched coins, with today's prices",
+        "tags": [
+          "watchlist"
+        ]
+      }
+    },
+    "/api/v1/watchlist/{slug}": {
+      "delete": {
+        "operationId": "remove_from_watchlist_api_v1_watchlist__slug__delete",
+        "parameters": [
+          {
+            "description": "The name of the coin in addresses.",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "The name of the coin in addresses.",
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Stop watching a coin",
+        "tags": [
+          "watchlist"
+        ]
+      },
+      "put": {
+        "operationId": "add_to_watchlist_api_v1_watchlist__slug__put",
+        "parameters": [
+          {
+            "description": "The name of the coin in addresses.",
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "description": "The name of the coin in addresses.",
+              "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$",
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchSavedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not signed in."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request failed CSRF verification."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A coin this site does not cover."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The watchlist is full."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The request was not valid."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many requests."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unexpected server error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A data provider failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The service is unavailable."
+          }
+        },
+        "summary": "Watch a coin (safe to repeat)",
+        "tags": [
+          "watchlist"
         ]
       }
     },
