@@ -56,18 +56,18 @@ describe("PalettePicker", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults to Dark, Mint and Inter, with the accents in order", async () => {
+  it("defaults to Dark, Gold and Inter, with the accents in order", async () => {
     const user = userEvent.setup();
     render(<PalettePicker />);
     await user.click(openButton());
 
     expect(screen.getByRole("button", { name: "Dark", pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Mint/, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Gold/, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Inter/, pressed: true })).toBeInTheDocument();
     const accents = within(screen.getByRole("group", { name: "Accent" })).getAllByRole("button");
     expect(accents.map((button) => button.textContent?.replace("✓", "").trim())).toEqual([
-      "Mint",
       "Gold",
+      "Mint",
       "Pink",
       "Blue",
       "Violet",
@@ -94,7 +94,7 @@ describe("PalettePicker", () => {
     expect(localStorage.getItem(STORAGE_KEYS.accent)).toBe("violet");
     expect(localStorage.getItem(STORAGE_KEYS.font)).toBe("plex");
     expect(screen.getByRole("button", { name: /Violet/, pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Mint/, pressed: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Gold/, pressed: false })).toBeInTheDocument();
   });
 
   it("offers a Motion setting that follows the device until chosen", async () => {
