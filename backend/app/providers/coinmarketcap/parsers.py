@@ -27,6 +27,7 @@ _SPACES = re.compile(r"\s+")
 _SLUG = re.compile(r"^[a-z0-9][a-z0-9._-]{0,79}$")
 _MONEY_STEP = Decimal("1e-10")  # a price needs more places than cents (tiny coins), but not 30
 _PERCENT_STEP = Decimal("0.01")
+_SUPPLY_STEP = Decimal("1e-4")
 
 
 def _dict(value: object) -> Json:
@@ -73,6 +74,11 @@ def _decimal(value: object, step: Decimal) -> Decimal | None:
 
 def _money(value: object) -> Decimal | None:
     number = _decimal(value, _MONEY_STEP)
+    return number if number is not None and number >= 0 else None
+
+
+def _supply(value: object) -> Decimal | None:
+    number = _decimal(value, _SUPPLY_STEP)
     return number if number is not None and number >= 0 else None
 
 
@@ -128,6 +134,11 @@ def _asset(row: object) -> CryptoAsset | None:
         cmc_id=_id(data.get("id")),
         change_30d=_percent(quote.get("percent_change_30d")),
         change_90d=_percent(quote.get("percent_change_90d")),
+        change_1h=_percent(quote.get("percent_change_1h")),
+        circulating_supply=_supply(data.get("circulating_supply")),
+        total_supply=_supply(data.get("total_supply")),
+        max_supply=_supply(data.get("max_supply")),
+        fully_diluted_market_cap=_money(quote.get("fully_diluted_market_cap")),
     )
 
 

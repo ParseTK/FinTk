@@ -72,6 +72,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crypto/coins/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One coin's price, changes, market value and supply
+         * @description For our own website only: requires the internal token. Only coins in the cached listing of the largest coins are known; anything else is a 404.
+         */
+        get: operations["get_coin_api_v1_crypto_coins__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crypto/markets": {
         parameters: {
             query?: never;
@@ -104,6 +124,26 @@ export interface paths {
          * @description For our own website only: requires the internal token. The response carries the attribution that must be shown with the data.
          */
         get: operations["get_overview_api_v1_crypto_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crypto/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find a coin by name or symbol among the largest coins
+         * @description For our own website only: requires the internal token. Matches come from the cached listing, so a search costs no provider call. The response carries the attribution.
+         */
+        get: operations["search_coins_api_v1_crypto_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -208,6 +248,75 @@ export interface components {
             text: string;
             /** Url */
             url: string;
+        };
+        /**
+         * CoinDetailResponse
+         * @description Everything the coin page shows. A figure the provider did not send is null, never zero.
+         */
+        CoinDetailResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            attribution: components["schemas"]["AttributionResponse"];
+            /** Change 1H */
+            change_1h: string | null;
+            /** Change 24H */
+            change_24h: string | null;
+            /** Change 30D */
+            change_30d: string | null;
+            /** Change 7D */
+            change_7d: string | null;
+            /** Change 90D */
+            change_90d: string | null;
+            /** Circulating Supply */
+            circulating_supply: string | null;
+            /** Fully Diluted Market Cap */
+            fully_diluted_market_cap: string | null;
+            /** Market Cap */
+            market_cap: string | null;
+            /** Max Supply */
+            max_supply: string | null;
+            /** Name */
+            name: string;
+            /** Price */
+            price: string;
+            /** Rank */
+            rank: number;
+            /** Slug */
+            slug: string;
+            /** Symbol */
+            symbol: string;
+            /** Total Supply */
+            total_supply: string | null;
+            /** Volume 24H */
+            volume_24h: string | null;
+        };
+        /**
+         * CoinHitResponse
+         * @description One search result: just enough to show in a list and link to the coin's page.
+         */
+        CoinHitResponse: {
+            /** Name */
+            name: string;
+            /** Rank */
+            rank: number;
+            /** Slug */
+            slug: string;
+            /** Symbol */
+            symbol: string;
+        };
+        /** CoinSearchResponse */
+        CoinSearchResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            attribution: components["schemas"]["AttributionResponse"];
+            /** Results */
+            results: components["schemas"]["CoinHitResponse"][];
         };
         /** CompositionResponse */
         CompositionResponse: {
@@ -801,6 +910,64 @@ export interface operations {
             };
         };
     };
+    get_coin_api_v1_crypto_coins__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinDetailResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_markets_api_v1_crypto_markets_get: {
         parameters: {
             query?: never;
@@ -873,6 +1040,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CryptoOverviewResponse"];
+                };
+            };
+            /** @description The request was not valid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description A data provider failed. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The service is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    search_coins_api_v1_crypto_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoinSearchResponse"];
                 };
             };
             /** @description The request was not valid. */
