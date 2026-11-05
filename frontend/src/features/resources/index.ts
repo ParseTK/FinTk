@@ -5,3 +5,4 @@ export { ResourcePlaceholder } from "./ResourcePlaceholder";
 export { ResourcesOverview } from "./ResourcesOverview";
 export { DataMethodology } from "./DataMethodology";
 export { SourceDirectory } from "./SourceDirectory";
+export { ResearchTools } from "./ResearchTools";
