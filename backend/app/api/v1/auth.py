@@ -21,22 +21,15 @@ from app.api.auth_deps import (
     optional_auth,
 )
 from app.auth.cookies import (
-    FLOW_MAX_AGE_SECONDS,
     clear_cookie,
     flow_cookie_name,
     session_cookie_name,
     set_flow_cookie,
     set_session_cookie,
 )
+from app.auth.flow import encode_flow, read_flow, start_flow
 from app.auth.providers import EmailNotVerifiedError, OAuthProvider, SignInRejectedError
-from app.auth.security import (
-    new_pkce_pair,
-    new_state,
-    safe_equals,
-    safe_redirect_path,
-    sign,
-    verify,
-)
+from app.auth.security import safe_redirect_path
 from app.core.errors import ErrorResponse, NotFoundError, UnavailableError, UpstreamError
 from app.domain.accounts import AuthContext
 from app.schemas.auth import SessionResponse, UserResponse
@@ -123,17 +116,17 @@ async def login(
 ) -> RedirectResponse:
     settings = get_settings_from(request)
     oauth = _provider(request, provider)
-    state = new_state()
-    verifier, challenge = new_pkce_pair()
-    flow = {"s": state, "v": verifier, "p": provider, "n": safe_redirect_path(next)}
+    flow, challenge = start_flow(provider, next)
     secret = _secret(request)
     response = RedirectResponse(
         oauth.authorize_url(
-            state=state, code_challenge=challenge, redirect_uri=_redirect_uri(request, provider)
+            state=flow.state,
+            code_challenge=challenge,
+            redirect_uri=_redirect_uri(request, provider),
         ),
         REDIRECT_STATUS,
     )
-    set_flow_cookie(response, settings, sign(flow, secret))
+    set_flow_cookie(response, settings, encode_flow(flow, secret))
     return response
 
 
@@ -155,19 +148,14 @@ async def callback(
     settings = get_settings_from(request)
     oauth = _provider(request, provider)
 
-    cookie = request.cookies.get(flow_cookie_name(settings), "")
-    flow = (
-        verify(cookie, _secret(request), max_age_seconds=FLOW_MAX_AGE_SECONDS) if cookie else None
+    # The state in the URL must equal the one in the signed cookie for *this* browser (see flow.py).
+    flow = read_flow(
+        request.cookies.get(flow_cookie_name(settings)),
+        _secret(request),
+        provider=provider,
+        state=state,
     )
-    # The state in the URL must equal the one we put in the signed cookie for *this* browser.
-    # This is what stops someone else's authorization code being fed into your session.
-    if (
-        flow is None
-        or flow.get("p") != provider
-        or not state
-        or not isinstance(flow.get("s"), str)
-        or not safe_equals(state, flow["s"])
-    ):
+    if flow is None:
         return _failure(request, "invalid")
     if error is not None or not code:
         return _failure(request, "denied")  # the person said no, or the provider refused
@@ -175,7 +163,7 @@ async def callback(
     try:
         profile = await oauth.fetch_profile(
             code=code,
-            code_verifier=str(flow.get("v", "")),
+            code_verifier=flow.verifier,
             redirect_uri=_redirect_uri(request, provider),
         )
         token, _ = await service.sign_in(profile)
@@ -186,7 +174,7 @@ async def callback(
     except UpstreamError:
         return _failure(request, "unavailable")
 
-    response = RedirectResponse(_local_target(flow.get("n")), REDIRECT_STATUS)
+    response = RedirectResponse(_local_target(flow.next_path), REDIRECT_STATUS)
     clear_cookie(response, settings, flow_cookie_name(settings))
     set_session_cookie(response, settings, token)
     return response
