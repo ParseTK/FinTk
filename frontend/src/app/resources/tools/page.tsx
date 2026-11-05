@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { ResourcePlaceholder, areaById } from "@/features/resources";
+import { ResearchTools, areaById, parseCompare } from "@/features/resources";
 
 const area = areaById("tools");
 
 export const metadata: Metadata = { title: area.title, description: area.summary };
 
-export default function ToolsPage() {
-  return <ResourcePlaceholder area="tools" />;
+export default async function ToolsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ compare?: string | string[] }>;
+}) {
+  const { compare } = await searchParams;
+  return <ResearchTools compare={parseCompare(compare)} />;
 }

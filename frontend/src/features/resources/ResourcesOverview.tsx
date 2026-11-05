@@ -20,7 +20,7 @@ const ICONS: Record<AreaId, ComponentType<{ className?: string }>> = {
 const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
 
 /**
- * The Resources overview: a heading, the four areas as numbered cards, then a few questions that
+ * The Resources overview: a heading, the four areas as cards, then a few questions that
  * point at the right area. Each area has its own page (listed in the sidebar), so the cards are the
  * same links shown larger, not a second navigation to maintain.
  */
@@ -46,22 +46,17 @@ export function ResourcesOverview() {
             Explore the resources
           </h2>
         </div>
-        <ol className="grid gap-4 md:grid-cols-2">
-          {AREAS.map((area, index) => {
+        <ul className="grid gap-4 md:grid-cols-2">
+          {AREAS.map((area) => {
             const Icon = ICONS[area.id];
             return (
               <li
                 key={area.id}
                 className="border-border bg-surface hover:border-border-strong relative flex flex-col rounded-2xl border p-6 transition-colors"
               >
-                <div className="flex items-start justify-between">
-                  <span className="border-border text-fg-muted flex size-9 items-center justify-center rounded-lg border">
-                    <Icon className="size-4" />
-                  </span>
-                  <span aria-hidden="true" className="text-brand text-lg italic">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
+                <span className="border-border text-fg-muted flex size-9 items-center justify-center rounded-lg border">
+                  <Icon className="size-4" />
+                </span>
                 <h3 className="mt-5 text-2xl font-semibold tracking-tight">{area.title}</h3>
                 <p className="text-fg-muted mt-2 max-w-sm text-sm">{area.blurb}</p>
                 <ul aria-label="Topics" className="mt-4 flex flex-wrap gap-2">
@@ -87,7 +82,7 @@ export function ResourcesOverview() {
               </li>
             );
           })}
-        </ol>
+        </ul>
       </section>
 
       <section

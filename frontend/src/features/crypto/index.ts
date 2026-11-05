@@ -1,8 +1,11 @@
 /** Public API of the crypto feature: top coins, market totals and Fear and Greed. */
-export { compactUsd, formatCoinPrice } from "./crypto";
+export { compactUsd, formatCoinPrice, updatedLabel } from "./crypto";
 export { getCoin, getCryptoMarkets, getCryptoNews, getCryptoOverview } from "./data";
 export { CoinPage } from "./CoinPage";
 export { CoinSearch } from "./CoinSearch";
+export type { CoinSuggestion } from "./CoinSearch";
+export { CoinPicker } from "./CoinPicker";
+export type { PickedCoin } from "./CoinPicker";
 export { SearchResults } from "./SearchResults";
 export { CompositionPanel } from "./CompositionPanel";
 export { CryptoMarkets } from "./CryptoMarkets";
@@ -19,6 +22,7 @@ export { CryptoPageBody } from "./CryptoPageBody";
 export { CryptoTable } from "./CryptoTable";
 export { MarketMood } from "./MarketMood";
 export type {
+  CoinDetail,
   CryptoAsset,
   CryptoMarkets as CryptoMarketsData,
   CryptoNews as CryptoNewsData,
