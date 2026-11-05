@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 import type { CryptoNewsData } from "./index";
@@ -59,13 +60,52 @@ describe("getCryptoNews", () => {
 });
 
 describe("CryptoNews", () => {
-  it("lists the items as links to the source and prints the basis", async () => {
+  it("features the newest story and lists the rest as links to the source", async () => {
     GET.mockResolvedValue({ data: news() });
     const { container } = render(await CryptoNews());
+    const featured = screen.getByRole("article");
+    expect(within(featured).getByRole("link")).toHaveAttribute(
+      "href",
+      "https://www.sec.gov/newsroom/press-releases/example",
+    );
     const list = screen.getByRole("list", { name: /official crypto announcements/i });
-    const links = within(list).getAllByRole("link");
-    expect(links[0]).toHaveAttribute("href", "https://www.sec.gov/newsroom/press-releases/example");
+    expect(within(list).getByRole("link")).toHaveAttribute(
+      "href",
+      "https://www.sec.gov/Archives/example",
+    );
+    expect(screen.getByRole("heading", { level: 2, name: "Further reading" })).toBeInTheDocument();
     expect(screen.getByText(/No opinions/)).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it("features the newest by date even when the API sends it last", async () => {
+    const data = news();
+    GET.mockResolvedValue({ data: { ...data, items: [...data.items].reverse() } });
+    render(await CryptoNews());
+    expect(within(screen.getByRole("article")).getByRole("link")).toHaveTextContent(
+      "SEC charges a crypto platform",
+    );
+  });
+
+  it("filters by category with toggle buttons, keeps the counts, and announces the result", async () => {
+    GET.mockResolvedValue({ data: news() });
+    const { container } = render(await CryptoNews());
+    const user = userEvent.setup();
+    const group = screen.getByRole("group", { name: "Story type" });
+    // Only categories that have stories get a tab.
+    expect(within(group).queryByRole("button", { name: /CFTC/ })).not.toBeInTheDocument();
+    expect(within(group).getByRole("button", { name: "All stories (2)" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(within(group).getByRole("button", { name: "Company filings (1)" }));
+    expect(within(group).getByRole("button", { name: /Company filings/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(screen.getByRole("article")).getByRole("link")).toHaveTextContent("Other Events");
+    expect(screen.queryByRole("heading", { name: "Further reading" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Showing 1 story: Company filings");
     await expectNoA11yViolations(container);
   });
 

@@ -1,8 +1,7 @@
 import { Alert } from "@/components/ui/Alert";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { NewsList } from "./NewsList";
+import { NewsBrowser } from "./NewsBrowser";
 import { getCryptoNews } from "./data";
 
 /**
@@ -22,7 +21,7 @@ export async function CryptoNews() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <p className="text-fg-muted text-sm">{news.basis}</p>
       {news.unavailable.length > 0 && (
         <Alert title="Some sources are unavailable">
@@ -30,16 +29,14 @@ export async function CryptoNews() {
           the other sources.
         </Alert>
       )}
-      <Card className="rounded-2xl">
-        {news.items.length > 0 ? (
-          <NewsList items={news.items} label="Official crypto announcements, newest first" />
-        ) : (
-          <EmptyState
-            title="Nothing to show right now"
-            description="No official announcement or listed-company filing matches the rules below at the moment."
-          />
-        )}
-      </Card>
+      {news.items.length > 0 ? (
+        <NewsBrowser items={news.items} />
+      ) : (
+        <EmptyState
+          title="Nothing to show right now"
+          description="No official announcement or listed-company filing matches the rules below at the moment."
+        />
+      )}
       <details className="text-fg-muted text-sm">
         <summary className="text-fg cursor-pointer font-medium">How items are chosen</summary>
         <div className="mt-2 space-y-2">
