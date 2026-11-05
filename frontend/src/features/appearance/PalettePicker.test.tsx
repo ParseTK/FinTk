@@ -56,7 +56,7 @@ describe("PalettePicker", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults to Dark, Mint and Inter, and Mint is the first accent", async () => {
+  it("defaults to Dark, Mint and Inter, with the accents in order", async () => {
     const user = userEvent.setup();
     render(<PalettePicker />);
     await user.click(openButton());
@@ -67,6 +67,8 @@ describe("PalettePicker", () => {
     const accents = within(screen.getByRole("group", { name: "Accent" })).getAllByRole("button");
     expect(accents.map((button) => button.textContent?.replace("✓", "").trim())).toEqual([
       "Mint",
+      "Gold",
+      "Pink",
       "Blue",
       "Violet",
       "Rose",

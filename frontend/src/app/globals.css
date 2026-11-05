@@ -54,6 +54,28 @@
   --chart-other: #64748b;
 }
 
+/* Gold and Pink: soft, muted tones from the reference. Pale shades on dark; deeper ones on light, where
+   the pale ones would be under 2:1 on white. */
+[data-accent="gold"] {
+  --brand: #7f6124;
+  --focus: #7f6124;
+}
+.dark[data-accent="gold"],
+.dark [data-accent="gold"] {
+  --brand: #d9c49a;
+  --focus: #e7dabf;
+}
+
+[data-accent="pink"] {
+  --brand: #a13a60;
+  --focus: #a13a60;
+}
+.dark[data-accent="pink"],
+.dark [data-accent="pink"] {
+  --brand: #d99aaf;
+  --focus: #e7bfcc;
+}
+
 [data-accent="violet"] {
   --brand: #6d28d9;
   --focus: #6d28d9;

@@ -30,7 +30,10 @@ function Items({ items, copy }: { items: readonly TickerItem[]; copy?: boolean }
   return (
     <ul
       aria-hidden={copy || undefined}
-      className={clsx("flex shrink-0 items-center gap-8 pr-8", copy && "motion-reduce:hidden")}
+      className={clsx(
+        "flex shrink-0 items-center gap-8 pr-8 motion-reduce:shrink motion-reduce:flex-wrap motion-reduce:gap-x-6 motion-reduce:gap-y-1 motion-reduce:pr-0",
+        copy && "motion-reduce:hidden",
+      )}
     >
       {items.map(({ symbol, price, change }) => (
         <li key={symbol} className="flex items-baseline gap-2 whitespace-nowrap tabular-nums">
@@ -45,7 +48,8 @@ function Items({ items, copy }: { items: readonly TickerItem[]; copy?: boolean }
 
 /**
  * A slow marquee of quotes. It has a pause button (WCAG 2.2.2), also pauses on hover and keyboard
- * focus, and does not move at all under reduced motion (the list becomes scrollable).
+ * focus, and does not move at all under reduced motion: the quotes then wrap onto as many rows as
+ * they need, so there is nothing to scroll (a scroller keyboard users cannot reach is a defect).
  */
 export function Ticker({ label, lead, items, pauseLabel, playLabel }: TickerProps) {
   const [paused, setPaused] = useState(false);
@@ -54,10 +58,10 @@ export function Ticker({ label, lead, items, pauseLabel, playLabel }: TickerProp
     <section aria-label={label} className="border-border bg-surface-raised/60 border-y">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
         <div className="shrink-0">{lead}</div>
-        <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:overflow-x-auto">
+        <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)] motion-reduce:overflow-visible motion-reduce:[mask-image:none]">
           <div
             className={clsx(
-              "motion-safe:animate-marquee flex w-max focus-within:[animation-play-state:paused] hover:[animation-play-state:paused]",
+              "motion-safe:animate-marquee flex w-max focus-within:[animation-play-state:paused] hover:[animation-play-state:paused] motion-reduce:w-auto",
               paused && "[animation-play-state:paused]",
             )}
           >
