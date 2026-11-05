@@ -356,6 +356,20 @@ describe("CryptoMarkets", () => {
     return render(await CryptoMarkets());
   }
 
+  it("links each coin's name to its page only while the coin pages exist", async () => {
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "false");
+    const view = await renderPage(markets());
+    expect(screen.queryByRole("link", { name: "Bitcoin" })).not.toBeInTheDocument();
+    view.unmount();
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "true");
+    await renderPage(markets());
+    expect(screen.getAllByRole("link", { name: "Bitcoin" })[0]).toHaveAttribute(
+      "href",
+      "/crypto/coins/bitcoin",
+    );
+    vi.unstubAllEnvs();
+  });
+
   it("shows the provider's credit as a real link, above the data", async () => {
     await renderPage(markets());
     const link = screen.getByRole("link", { name: "CoinMarketCap.com" });

@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
 import { formatDate } from "@/lib/format";
+import { CoinName, coinHref } from "./CoinName";
 import { formatCoinPrice } from "./crypto";
 import type { MajorCoin } from "./types";
 
@@ -8,15 +9,6 @@ const NOT_AVAILABLE = <span className="text-fg-muted whitespace-nowrap">Not avai
 
 const Percent = ({ value }: { value: string | null }) =>
   value === null ? NOT_AVAILABLE : <Change value={value} />;
-
-function Name({ coin }: { coin: MajorCoin }) {
-  return (
-    <>
-      <span className="font-medium">{coin.name}</span>{" "}
-      <span className="text-fg-muted text-sm">{coin.symbol}</span>
-    </>
-  );
-}
 
 /** "since Jan 1, 2026", or null when that day is not known. */
 const since = (day: string | null): string | null =>
@@ -33,11 +25,14 @@ export function MajorsTable({
   yearStart,
   pastYearStart,
   caption,
+  linkCoins = false,
 }: {
   coins: readonly MajorCoin[];
   yearStart: string | null;
   pastYearStart: string | null;
   caption: string;
+  /** Link each name to the coin's page (only while that page exists). */
+  linkCoins?: boolean;
 }) {
   const columns = [
     { key: "change_30d", label: "30 days", note: null },
@@ -79,7 +74,11 @@ export function MajorsTable({
               <tr key={coin.slug} className="border-border border-t">
                 <td className="text-fg-muted px-3 py-3 text-right tabular-nums">{coin.rank}</td>
                 <th scope="row" className="px-3 py-3 text-left font-normal">
-                  <Name coin={coin} />
+                  <CoinName
+                    name={coin.name}
+                    symbol={coin.symbol}
+                    href={linkCoins ? coinHref(coin.slug) : undefined}
+                  />
                 </th>
                 <td className="px-3 py-3 text-right tabular-nums">{formatCoinPrice(coin.price)}</td>
                 {columns.map((column) => (
@@ -102,7 +101,11 @@ export function MajorsTable({
                   <span className="sr-only">Rank </span>
                   {coin.rank}
                 </span>
-                <Name coin={coin} />
+                <CoinName
+                  name={coin.name}
+                  symbol={coin.symbol}
+                  href={linkCoins ? coinHref(coin.slug) : undefined}
+                />
               </h3>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 <div>

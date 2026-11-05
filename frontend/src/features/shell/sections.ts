@@ -15,6 +15,8 @@ interface Section {
   id: string;
   label: string;
   links: readonly SectionLink[];
+  /** False for a section the header already offers some other way (search has its own box). */
+  inHeader?: boolean;
 }
 
 /**
@@ -32,6 +34,13 @@ const SECTIONS: readonly Section[] = [
       { href: "/crypto/markets", label: "Markets", flags: ["crypto", "crypto_markets"] },
       { href: "/crypto/news", label: "News", flags: ["crypto", "crypto_news"] },
     ],
+  },
+  {
+    // The header has a search box instead of a link; the footer lists the search page.
+    id: "search",
+    label: "Search",
+    inHeader: false,
+    links: [{ href: "/crypto/search", label: "Search coins", flags: ["crypto", "crypto_search"] }],
   },
 ];
 
@@ -59,7 +68,8 @@ export function visibleSections(): SectionView[] {
  * section's first page and current on all of its pages.
  */
 export function headerItems(): NavItem[] {
-  return SECTIONS.map((section) => ({ section, links: shownLinks(section) }))
+  return SECTIONS.filter((section) => section.inHeader !== false)
+    .map((section) => ({ section, links: shownLinks(section) }))
     .filter(({ links }) => links.length > 0)
     .map(({ section, links }) => ({
       href: links[0]!.href,

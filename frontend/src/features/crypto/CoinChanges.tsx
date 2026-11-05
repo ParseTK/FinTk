@@ -2,19 +2,22 @@ import clsx from "clsx";
 import { Change } from "@/components/ui/Change";
 import { DataCredit } from "@/components/ui/DataCredit";
 import { formatCoinPrice } from "./crypto";
-import type { CryptoMarkets, MajorCoin } from "./types";
+import type { CryptoMarkets } from "./types";
 
-type Changes = Pick<
-  MajorCoin,
+type ChangeField =
+  | "change_1h"
   | "change_24h"
   | "change_7d"
   | "change_30d"
   | "change_90d"
   | "change_year_to_date"
-  | "change_past_year"
->;
+  | "change_past_year";
 
-const PERIODS: ReadonlyArray<readonly [label: string, field: keyof Changes]> = [
+/** Whichever of the reported changes a coin has; a period it does not have is simply left out. */
+type Changes = { [Field in ChangeField]?: string | null };
+
+const PERIODS: ReadonlyArray<readonly [label: string, field: ChangeField]> = [
+  ["1 hour", "change_1h"],
   ["24 hours", "change_24h"],
   ["7 days", "change_7d"],
   ["30 days", "change_30d"],
@@ -38,7 +41,7 @@ export function changeRows(coin: Changes): ChangeRow[] {
   const rows: ChangeRow[] = [];
   for (const [label, field] of PERIODS) {
     const change = coin[field];
-    if (change === null || change.trim() === "") continue;
+    if (change == null || change.trim() === "") continue;
     const value = Number(change);
     if (Number.isFinite(value)) rows.push({ label, change, value });
   }
