@@ -80,9 +80,9 @@ export function PalettePicker() {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={toggle}
-        className="text-fg-muted hover:text-fg hover:bg-surface-raised rounded-full p-2"
+        className="text-fg-muted hover:text-fg hover:bg-surface-raised rounded-full p-1.5"
       >
-        <PaletteIcon />
+        <PaletteIcon className="size-7" />
       </button>
 
       {open && (

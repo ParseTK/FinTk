@@ -50,6 +50,11 @@ export const FLAGS = {
     description:
       "Holdings: a portfolio of the coins a signed-in person holds (valued at today's prices) and a watchlist, at /holdings and /holdings/watchlist, plus Watch and Your holding on each coin's page. Needs the crypto and auth flags too.",
   },
+  resources: {
+    default: false,
+    description:
+      "The Resources section: an overview at /resources and four subpages (education, sources, research tools, data and methodology), in the header, sidebar and footer. Static pages; needs no other flag.",
+  },
   palette: {
     default: true,
     description:

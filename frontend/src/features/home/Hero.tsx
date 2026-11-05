@@ -53,6 +53,7 @@ export function Hero({ headline, body, actions, chart = null }: HeroProps) {
 
       {/* A centered, width-limited pair of columns, so text and chart stay close at any window size. */}
       <Container
+        size="wide"
         className={clsx(
           "grid items-center gap-12 py-14 lg:py-20",
           centered ? "justify-items-center" : "md:grid-cols-2 md:gap-10 lg:gap-16",

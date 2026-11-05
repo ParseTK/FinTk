@@ -17,6 +17,7 @@ import { isEnabled, type FlagName } from "@/lib/flag-core";
 
 const GATED_PAGES: ReadonlyArray<readonly [prefix: string, flag: FlagName]> = [
   ["/design", "design"],
+  ["/resources", "resources"],
   ["/crypto", "crypto"],
   ["/crypto/markets", "crypto_markets"],
   ["/crypto/news", "crypto_news"],
@@ -143,6 +144,8 @@ export const config = {
     "/account",
     "/holdings",
     "/holdings/:path*",
+    "/resources",
+    "/resources/:path*",
     "/api/:path*",
   ],
 };

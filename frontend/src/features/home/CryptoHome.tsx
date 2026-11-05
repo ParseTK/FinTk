@@ -1,6 +1,7 @@
 import { BitcoinChanges, CryptoTicker, getCryptoMarkets } from "@/features/crypto";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { isEnabled } from "@/lib/flags";
+import { AboutBuilder } from "./AboutBuilder";
 import { AboutSection } from "./AboutSection";
 import { Hero } from "./Hero";
 
@@ -44,7 +45,12 @@ export async function CryptoHome() {
         }
         chart={chart}
       />
-      {crypto && <AboutSection />}
+      {crypto && (
+        <>
+          <AboutSection />
+          <AboutBuilder />
+        </>
+      )}
     </>
   );
 }
