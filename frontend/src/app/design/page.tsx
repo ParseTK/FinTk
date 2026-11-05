@@ -221,7 +221,13 @@ export default function DesignPage() {
             playLabel="Play example ticker"
           />
         </div>
-        <Card as="div" className="overflow-x-auto p-0">
+        <Card
+          as="div"
+          role="region"
+          aria-label="Formatter examples"
+          tabIndex={0}
+          className="overflow-x-auto p-0"
+        >
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Formatter examples</caption>
             <thead className="border-border border-b">

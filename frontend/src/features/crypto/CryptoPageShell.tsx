@@ -29,7 +29,7 @@ export function CryptoPageShell({
         </header>
         <Suspense
           fallback={
-            <Card className="space-y-3" aria-busy="true">
+            <Card className="min-h-screen space-y-3" aria-busy="true">
               <p role="status" className="sr-only">
                 {loadingLabel}
               </p>

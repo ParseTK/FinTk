@@ -49,7 +49,7 @@ export async function CryptoNews() {
             {news.filing_days} days, at most the newest {news.per_company_limit} of each:{" "}
             {news.companies.join(", ")}.
           </p>
-          <p>Headlines are the sources&apos; own. Nothing is ranked, summarised or rewritten.</p>
+          <p>Headlines are the sources&apos; own. Nothing is ranked, summarized or rewritten.</p>
         </div>
       </details>
     </div>

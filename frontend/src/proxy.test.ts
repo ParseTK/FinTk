@@ -6,7 +6,39 @@ const request = (path: string) => new NextRequest(`http://localhost:3000${path}`
 const rewrittenTo = (response: Response) => response.headers.get("x-middleware-rewrite");
 const passesThrough = (response: Response) => response.headers.get("x-middleware-next") === "1";
 
+const withSession = (path: string) =>
+  new NextRequest(`http://localhost:3000${path}`, { headers: { cookie: "virello_session=abc" } });
+
 afterEach(() => vi.unstubAllEnvs());
+
+describe("pages for signed-in people", () => {
+  beforeEach(() => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_HOLDINGS", "true");
+  });
+
+  it.each(["/holdings", "/holdings/watchlist", "/account"])(
+    "%s sends a visitor with no session to sign in before rendering",
+    async (path) => {
+      const response = await proxy(request(path));
+      expect(response.status).toBe(307);
+      const location = new URL(response.headers.get("location")!);
+      expect(location.pathname).toBe("/sign-in");
+      expect(location.searchParams.get("next")).toBe(path);
+    },
+  );
+
+  it("lets a visitor with a session cookie through (the page checks it)", async () => {
+    expect(passesThrough(await proxy(withSession("/holdings")))).toBe(true);
+    expect(passesThrough(await proxy(withSession("/holdings/watchlist")))).toBe(true);
+  });
+
+  it("still answers 404 for a closed page rather than redirecting", async () => {
+    vi.stubEnv("FEATURE_HOLDINGS", "false");
+    expect(rewrittenTo(await proxy(request("/holdings")))).toContain("/not-found-disabled");
+  });
+});
 
 describe("pages behind a flag", () => {
   it.each(["/design", "/design/colors", "/sign-in", "/account", "/crypto", "/crypto/news"])(
@@ -21,7 +53,7 @@ describe("pages behind a flag", () => {
   it("lets sign-in pages through when the auth flag is on", async () => {
     vi.stubEnv("FEATURE_AUTH", "true");
     expect(passesThrough(await proxy(request("/sign-in")))).toBe(true);
-    expect(passesThrough(await proxy(request("/account")))).toBe(true);
+    expect(passesThrough(await proxy(withSession("/account")))).toBe(true);
   });
 
   it("does not let the auth flag open the design gallery", async () => {
@@ -220,7 +252,7 @@ describe("holdings pages and calls", () => {
       vi.stubEnv("FEATURE_AUTH", "true");
       expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND); // crypto still off
       vi.stubEnv("FEATURE_CRYPTO", "true");
-      expect(passesThrough(await proxy(request(path)))).toBe(true);
+      expect(passesThrough(await proxy(withSession(path)))).toBe(true);
     },
   );
 

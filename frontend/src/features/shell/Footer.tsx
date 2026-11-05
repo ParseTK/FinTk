@@ -28,7 +28,7 @@ export function Footer() {
   return (
     <footer className="border-border mt-16 border-t py-10">
       <Container size="wide" className="space-y-8 text-sm">
-        <div className="flex flex-wrap gap-x-16 gap-y-8">
+        <div className="flex flex-wrap gap-x-16 gap-y-8 lg:justify-between">
           {columns.length > 0 && (
             <nav aria-label="Footer" className="contents">
               {columns.map((column) => (
@@ -39,7 +39,7 @@ export function Footer() {
                       <li key={href}>
                         <Link
                           href={href}
-                          className="text-fg-muted hover:text-fg underline-offset-4 hover:underline"
+                          className="text-fg-muted hover:text-fg inline-flex min-h-6 items-center underline-offset-4 hover:underline"
                         >
                           {label}
                         </Link>
@@ -59,7 +59,7 @@ export function Footer() {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-fg-muted hover:text-fg underline-offset-4 hover:underline"
+                    className="text-fg-muted hover:text-fg inline-flex min-h-6 items-center underline-offset-4 hover:underline"
                   >
                     {label}
                     <span className="sr-only"> (opens in a new tab)</span>
@@ -79,7 +79,7 @@ export function Footer() {
               href={SITE.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-fg inline-flex items-center gap-2 underline underline-offset-4 hover:no-underline"
+              className="text-fg inline-flex min-h-6 items-center gap-2 underline underline-offset-4 hover:no-underline"
             >
               <GitHubIcon className="size-5" />
               View the source on GitHub

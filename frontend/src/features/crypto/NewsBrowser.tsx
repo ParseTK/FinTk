@@ -39,7 +39,7 @@ function Meta({ item }: { item: NewsItem }) {
 /**
  * Official announcements and filings as a reading list: category tabs, the newest story in the
  * category featured, the rest listed under "Further reading". Everything is the source's own
- * headline and date, newest first; nothing is ranked, summarised or rewritten, and "featured" only
+ * headline and date, newest first; nothing is ranked, summarized or rewritten, and "featured" only
  * means newest. The tabs are plain toggle buttons (not links), and a status line tells screen
  * readers what the list now shows.
  */
@@ -66,7 +66,7 @@ export function NewsBrowser({ items }: { items: readonly NewsItem[] }) {
                 : "border-border text-fg-muted hover:bg-surface-raised hover:text-fg",
             )}
           >
-            {label} <span className="font-normal opacity-80">({count})</span>
+            {label} <span className="font-normal">({count})</span>
           </button>
         ))}
       </div>
