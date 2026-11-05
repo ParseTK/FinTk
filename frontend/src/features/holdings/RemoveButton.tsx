@@ -1,10 +1,11 @@
 "use client";
 
+import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/Button";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { sendJson } from "@/lib/apiRequest";
+import { actionClass } from "./actionStyles";
 
 export interface RemoveButtonProps {
   /** What is removed, for the button's name: "Bitcoin from your portfolio". */
@@ -15,9 +16,11 @@ export interface RemoveButtonProps {
 }
 
 /**
- * Removes one saved row, with a second press to confirm (nothing is undoable). The first press
- * asks, the second removes; leaving the button cancels. The name says what will go, because a row of
- * identical "Remove" buttons tells a screen-reader user nothing.
+ * Removes one saved row, with a second press to confirm (nothing is undoable). It looks like the
+ * Edit action beside it; the first press turns it into a "Confirm remove" button, the second
+ * removes, and leaving it cancels. It stays one element so keyboard focus is not lost between the
+ * presses. The name says what will go, because a row of identical "Remove" buttons tells a
+ * screen-reader user nothing, and the change is announced without adding text to the page.
  */
 export function RemoveButton({ what, path, csrfToken }: RemoveButtonProps) {
   const router = useRouter();
@@ -26,6 +29,7 @@ export function RemoveButton({ what, path, csrfToken }: RemoveButtonProps) {
   const [problem, setProblem] = useState("");
 
   async function remove() {
+    if (busy) return;
     setBusy(true);
     setProblem("");
     const result = await sendJson("DELETE", path, csrfToken);
@@ -36,17 +40,23 @@ export function RemoveButton({ what, path, csrfToken }: RemoveButtonProps) {
   }
 
   return (
-    <span className="inline-flex flex-col items-end gap-1">
-      <Button
-        variant={confirming ? "danger" : "ghost"}
-        size="sm"
-        loading={busy}
+    <span className="inline-flex flex-col items-end">
+      <button
+        type="button"
+        aria-busy={busy || undefined}
+        className={clsx(
+          actionClass,
+          confirming &&
+            "bg-loss text-on-accent rounded-lg px-3 font-semibold whitespace-nowrap no-underline hover:opacity-90",
+        )}
         onClick={() => (confirming ? remove() : setConfirming(true))}
         onBlur={() => setConfirming(false)}
       >
         {confirming ? "Confirm remove" : "Remove"} <span className="sr-only">{what}</span>
-      </Button>
-      <LiveMessage tone="success">{confirming ? `Press again to remove ${what}.` : ""}</LiveMessage>
+      </button>
+      <span className="sr-only" role="status">
+        {confirming ? `Press again to remove ${what}.` : ""}
+      </span>
       <LiveMessage>{problem}</LiveMessage>
     </span>
   );

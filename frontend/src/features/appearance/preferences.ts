@@ -11,8 +11,8 @@ export const MODES = [
 
 /** The first accent is the one a visitor gets until they choose another. */
 export const ACCENTS = [
-  { id: "mint", label: "Mint" },
   { id: "gold", label: "Gold" },
+  { id: "mint", label: "Mint" },
   { id: "pink", label: "Pink" },
   { id: "blue", label: "Blue" },
   { id: "violet", label: "Violet" },
@@ -47,7 +47,7 @@ export interface Preferences {
 /** What a first-time visitor gets. Only an unset motion resolves from the device setting instead. */
 export const DEFAULT_PREFERENCES: Preferences = {
   mode: "dark",
-  accent: "mint",
+  accent: "gold",
   font: "inter",
   motion: "full",
 };
@@ -121,4 +121,4 @@ export function applyPreferences(prefs: Preferences, root: HTMLElement = documen
  * the constants above.
  */
 export const PREFERENCES_INIT_SCRIPT =
-  '(function(){var d=document.documentElement;d.classList.add("dark");try{var s=localStorage,t=s.getItem("theme"),a=s.getItem("accent"),f=s.getItem("font"),m=s.getItem("motion");d.classList.toggle("dark",t!=="light");d.dataset.accent=["mint","gold","pink","blue","violet","rose"].indexOf(a)>-1?a:"mint";d.dataset.font=["inter","plex","serif"].indexOf(f)>-1?f:"inter";d.dataset.motion=m==="full"||m==="reduced"?m:(window.matchMedia("(prefers-reduced-motion: reduce)").matches?"reduced":"full")}catch(e){}})()';
+  '(function(){var d=document.documentElement;d.classList.add("dark");try{var s=localStorage,t=s.getItem("theme"),a=s.getItem("accent"),f=s.getItem("font"),m=s.getItem("motion");d.classList.toggle("dark",t!=="light");d.dataset.accent=["gold","mint","pink","blue","violet","rose"].indexOf(a)>-1?a:"gold";d.dataset.font=["inter","plex","serif"].indexOf(f)>-1?f:"inter";d.dataset.motion=m==="full"||m==="reduced"?m:(window.matchMedia("(prefers-reduced-motion: reduce)").matches?"reduced":"full")}catch(e){}})()';

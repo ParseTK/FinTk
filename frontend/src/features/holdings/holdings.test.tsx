@@ -26,7 +26,7 @@ vi.mock("@/lib/api/authHeaders", () => ({
 const session = vi.fn();
 vi.mock("@/features/auth", () => ({ getSession: () => session() }));
 
-const { formatAmount } = await import("./format");
+const { formatAmount, tidyDecimal } = await import("./format");
 const { getPortfolio, getWatchlist } = await import("./data");
 const { PortfolioBody } = await import("./PortfolioBody");
 const { WatchlistBody } = await import("./WatchlistBody");
@@ -148,11 +148,43 @@ describe("PortfolioBody", () => {
       "href",
       "/crypto/coins/bitcoin",
     );
-    expect(within(table).getByRole("link", { name: "Edit Bitcoin" })).toHaveAttribute(
-      "href",
-      "/crypto/coins/bitcoin#holding-bitcoin",
-    );
+    expect(within(table).getByRole("columnheader", { name: "Symbol" })).toBeInTheDocument();
+    expect(within(table).getByRole("cell", { name: "BTC" })).toBeInTheDocument();
+    expect(within(table).getByRole("button", { name: "Edit Bitcoin" })).toBeInTheDocument();
     await expectNoA11yViolations(container);
+  });
+
+  it("edits a holding in place, without leaving the page, and tidies a missing zero", async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(ok(200, {}));
+    const { container } = render(<PortfolioBody portfolio={portfolio([row()])} csrfToken="tok" />);
+    const table = screen.getByRole("table", { name: /Your holdings/ });
+    const edit = within(table).getByRole("button", { name: "Edit Bitcoin" });
+    expect(edit).toHaveAttribute("aria-expanded", "false");
+    await user.click(edit);
+    expect(edit).toHaveAttribute("aria-expanded", "true");
+    const amount = within(table).getByRole("textbox", { name: /Amount of BTC/ });
+    expect(amount).toHaveValue("1.5");
+    await user.clear(amount);
+    await user.type(amount, ".0542");
+    await expectNoA11yViolations(container);
+    await user.click(within(table).getByRole("button", { name: "Save changes" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(fetchMock.mock.calls[0]![0]).toBe("/api/v1/portfolio/bitcoin");
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body)).toMatchObject({ amount: "0.0542" });
+    await waitFor(() =>
+      expect(within(table).queryByRole("textbox", { name: /Amount of BTC/ })).toBeNull(),
+    );
+  });
+
+  it("closes the inline form with Cancel", async () => {
+    const user = userEvent.setup();
+    render(<PortfolioBody portfolio={portfolio([row()])} csrfToken="tok" />);
+    const table = screen.getByRole("table", { name: /Your holdings/ });
+    await user.click(within(table).getByRole("button", { name: "Edit Bitcoin" }));
+    await user.click(within(table).getByRole("button", { name: "Cancel" }));
+    expect(within(table).queryByRole("textbox", { name: /Amount of BTC/ })).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("says no cost was entered instead of inventing a gain", () => {
@@ -480,5 +512,15 @@ describe("CoinHoldingsPanel", () => {
     render(await CoinHoldingsPanel({ slug: "bitcoin", name: "Bitcoin", symbol: "BTC" }));
     expect(screen.getByText("Your saved coins are not available right now.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Watch/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("tidyDecimal", () => {
+  it("adds a missing leading zero and drops a dangling point", () => {
+    expect(tidyDecimal(".0542")).toBe("0.0542");
+    expect(tidyDecimal(" 5. ")).toBe("5");
+    expect(tidyDecimal("0.5")).toBe("0.5");
+    expect(tidyDecimal("abc")).toBe("abc");
+    expect(tidyDecimal("")).toBe("");
   });
 });
