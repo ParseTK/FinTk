@@ -254,12 +254,14 @@ describe("CryptoOverview", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists the coins in a labelled section", async () => {
+  it("leaves the coin table to the Markets page and says what the section offers and its limits", async () => {
     await renderPage(overview());
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Largest coins by market cap" }),
+      screen.getByRole("heading", { level: 2, name: "What you can find here" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: /Largest coins/ })).toBeInTheDocument();
+    const limits = screen.getByRole("heading", { level: 2, name: "What to keep in mind" });
+    expect(limits.closest("section")).toHaveTextContent(/no full price history/);
   });
 
   it("says which summary is missing instead of looking complete", async () => {
@@ -267,13 +269,13 @@ describe("CryptoOverview", () => {
     expect(screen.getByText("Some figures are unavailable")).toBeInTheDocument();
     expect(screen.getByText(/Could not load: market totals/)).toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "The whole market" })).not.toBeInTheDocument();
-    expect(screen.getByRole("table", { name: /Largest coins/ })).toBeInTheDocument();
   });
 
   it("shows a plain message, not an error screen, when the API is down", async () => {
     await renderPage(null);
-    expect(screen.getByText("Crypto prices are not available right now")).toBeInTheDocument();
-    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getByText("Crypto figures are not available right now")).toBeInTheDocument();
+    // The explanation of the section does not depend on the figures, so it is still there.
+    expect(screen.getByRole("heading", { name: "What to keep in mind" })).toBeInTheDocument();
   });
 
   it("does not link an attribution address that is not https", async () => {

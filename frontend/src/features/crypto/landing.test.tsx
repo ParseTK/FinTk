@@ -1,7 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
-import { priceSeries, spanLabel } from "./bitcoinSeries";
 import type { CryptoMarketsData, MajorCoin } from "./index";
 
 vi.mock("server-only", () => ({}));
@@ -10,7 +9,7 @@ vi.mock("@/lib/api/client", () => ({
   publicApi: { GET: vi.fn() },
 }));
 
-const { BitcoinChart, CryptoTicker } = await import("./index");
+const { BitcoinChanges, changeRows, CryptoTicker } = await import("./index");
 
 const coin = (overrides: Partial<MajorCoin> = {}): MajorCoin => ({
   rank: 1,
@@ -40,105 +39,68 @@ const markets = (majors: MajorCoin[] = [coin()]): CryptoMarketsData => ({
   year_start: dates.yearStart,
 });
 
-describe("priceSeries", () => {
-  it("works the price then out from the price now and each change, oldest first, ending now", () => {
-    const series = priceSeries(coin(), dates, AS_OF)!;
-    const days = series.points.map((point) => point.daysAgo);
-    expect(days).toEqual([...days].sort((a, b) => b - a));
-    expect(days.at(-1)).toBe(0);
-    expect(series.points.at(-1)!.price).toBe(100);
-    // 100 now after +100% over the past year means 50 then; +1% over a day means 99.0099 then.
-    expect(series.points[0]!.price).toBeCloseTo(50, 6);
-    expect(series.points.find((point) => point.daysAgo === 1)!.price).toBeCloseTo(100 / 1.01, 6);
-    expect(series.spanChange).toBe("100.00");
-    expect(series.spanDays).toBe(series.points[0]!.daysAgo);
+describe("changeRows", () => {
+  it("lists every period that has a change, in order, as the API sent it", () => {
+    const rows = changeRows(coin());
+    expect(rows.map((row) => row.label)).toEqual([
+      "24 hours",
+      "7 days",
+      "30 days",
+      "90 days",
+      "Year to date",
+      "Past year",
+    ]);
+    expect(rows[5]!.change).toBe("100.00");
   });
 
-  it("skips a missing change instead of guessing it", () => {
-    const series = priceSeries(coin({ change_30d: null, change_90d: null }), dates, AS_OF)!;
-    expect(series.points.map((point) => point.daysAgo)).not.toContain(30);
-    expect(series.points.map((point) => point.daysAgo)).not.toContain(90);
+  it.each([null, "", "  ", "abc"])(
+    "leaves out a change that is %j, never showing it as zero",
+    (bad) => {
+      const rows = changeRows(coin({ change_7d: bad }));
+      expect(rows.map((row) => row.label)).not.toContain("7 days");
+    },
+  );
+});
+
+describe("BitcoinChanges", () => {
+  it("shows the price, a signed change per period, a text alternative, and the credit", async () => {
+    const { container } = render(<BitcoinChanges markets={markets()} />);
+    expect(screen.getByText("$100.00")).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: /Bitcoin price change over each period/ });
+    expect(within(table).getByRole("row", { name: /Past year.*\+100\.00%/ })).toBeInTheDocument();
+    expect(within(table).getAllByRole("row")).toHaveLength(7); // header + six periods
+    expect(screen.getByText(/no price history between these dates/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "CoinMarketCap.com" })).toHaveAttribute(
+      "href",
+      "https://coinmarketcap.com/",
+    );
+    await expectNoA11yViolations(container);
   });
 
-  it("is null when fewer than three periods can be worked out", () => {
-    const bare = coin({
-      change_24h: "1",
+  it("states a fall as a fall, with a minus sign", () => {
+    render(<BitcoinChanges markets={markets([coin({ change_past_year: "-20.00" })])} />);
+    expect(screen.getByRole("row", { name: /Past year.*-20\.00%/ })).toBeInTheDocument();
+  });
+
+  it("can leave out the credit where the page already shows it", () => {
+    render(<BitcoinChanges markets={markets()} credit={false} />);
+    expect(screen.queryByRole("link", { name: "CoinMarketCap.com" })).not.toBeInTheDocument();
+  });
+
+  it("shows nothing, never invented numbers, without the figures", () => {
+    expect(render(<BitcoinChanges markets={null} />).container).toBeEmptyDOMElement();
+    expect(
+      render(<BitcoinChanges markets={markets([coin({ symbol: "ETH" })])} />).container,
+    ).toBeEmptyDOMElement();
+    const none = coin({
+      change_24h: null,
       change_7d: null,
       change_30d: null,
       change_90d: null,
       change_year_to_date: null,
       change_past_year: null,
     });
-    expect(priceSeries(bare, dates, AS_OF)).toBeNull();
-  });
-
-  it.each(["", "abc", "-100", "-250"])("ignores an impossible change (%j)", (bad) => {
-    const series = priceSeries(coin({ change_7d: bad }), dates, AS_OF)!;
-    expect(series.points.map((point) => point.daysAgo)).not.toContain(7);
-    expect(series.points.every((point) => Number.isFinite(point.price))).toBe(true);
-  });
-
-  it.each(["0", "-1", "abc", ""])("is null for a price that cannot be drawn (%j)", (price) => {
-    expect(priceSeries(coin({ price }), dates, AS_OF)).toBeNull();
-  });
-
-  it("keeps one point when two periods end on the same day", () => {
-    const series = priceSeries(coin(), { yearStart: "2026-10-28", pastYearStart: null }, AS_OF)!;
-    const days = series.points.map((point) => point.daysAgo);
-    expect(new Set(days).size).toBe(days.length);
-  });
-
-  it("names the span", () => {
-    expect(spanLabel(358)).toBe("past year");
-    expect(spanLabel(90)).toBe("past 90 days");
-  });
-});
-
-describe("BitcoinChart", () => {
-  it("draws a line chart with the price, the change, a text alternative, and the credit", async () => {
-    const { container } = render(<BitcoinChart markets={markets()} />);
-    const chart = screen.getByRole("img", { name: /Bitcoin price over the past year/ });
-    expect(chart).toHaveAccessibleName(/now \$100\.00, up 100\.00 percent/);
-    expect(screen.getByText("$100.00")).toBeInTheDocument();
-    expect(screen.getByText(/\+100\.00%/)).toBeInTheDocument();
-    expect(screen.getByText(/not a full price history/i)).toBeInTheDocument();
-    const credit = screen.getByRole("link", { name: "CoinMarketCap.com" });
-    expect(credit).toHaveAttribute("href", "https://coinmarketcap.com/");
-    expect(container.querySelectorAll("path").length).toBe(2); // the soft fill and the line
-    await expectNoA11yViolations(container);
-  });
-
-  it("states a fall as a fall", () => {
-    render(
-      <BitcoinChart
-        markets={markets([coin({ change_past_year: "-20.00", change_year_to_date: "-10.00" })])}
-      />,
-    );
-    expect(screen.getByRole("img")).toHaveAccessibleName(/down 20\.00 percent/);
-  });
-
-  it("draws nothing, never invented numbers, without the figures", () => {
-    expect(render(<BitcoinChart markets={null} />).container).toBeEmptyDOMElement();
-    expect(
-      render(<BitcoinChart markets={markets([coin({ symbol: "ETH" })])} />).container,
-    ).toBeEmptyDOMElement();
-    expect(
-      render(<BitcoinChart markets={markets([coin({ price: "0" })])} />).container,
-    ).toBeEmptyDOMElement();
-  });
-
-  it("stays inside its drawing for a flat price", () => {
-    const flat = coin({
-      change_24h: "0",
-      change_7d: "0",
-      change_30d: "0",
-      change_90d: "0",
-      change_year_to_date: "0",
-      change_past_year: "0",
-    });
-    const { container } = render(<BitcoinChart markets={markets([flat])} />);
-    const line = container.querySelectorAll("path")[1]!.getAttribute("d")!;
-    expect(line).not.toMatch(/NaN|Infinity/);
+    expect(render(<BitcoinChanges markets={markets([none])} />).container).toBeEmptyDOMElement();
   });
 });
 

@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
-import type { Composition, CryptoMarketsData, MajorCoin } from "./index";
+import type { Composition, CryptoMarketsData, CryptoOverviewData, MajorCoin } from "./index";
 
 const GET = vi.fn();
 vi.mock("@/lib/api/client", () => ({ privateApi: { GET: (...args: unknown[]) => GET(...args) } }));
@@ -318,8 +318,41 @@ describe("getCryptoMarkets", () => {
 });
 
 describe("CryptoMarkets", () => {
-  async function renderPage(data: CryptoMarketsData | null) {
-    GET.mockResolvedValue({ data: data ?? undefined });
+  const overviewData: CryptoOverviewData = {
+    attribution: { text: "Data provided by CoinMarketCap.com", url: "https://coinmarketcap.com/" },
+    as_of: "2026-11-04T01:00:00Z",
+    unavailable: [],
+    totals: {
+      total_market_cap: "2577000000000.00",
+      total_volume_24h: "94300000000.00",
+      btc_dominance: "60.2",
+      eth_dominance: "11.0",
+    },
+    fear_greed: { value: 42, label: "Neutral" },
+    assets: [
+      ["Bitcoin", "BTC", "4.52"],
+      ["Ethereum", "ETH", "6.77"],
+      ["Solana", "SOL", "-5.10"],
+    ].map(([name, symbol, change], i) => ({
+      rank: i + 1,
+      name: name!,
+      symbol: symbol!,
+      slug: name!.toLowerCase(),
+      price: "100.00",
+      change_24h: change!,
+      change_7d: "1.00",
+      market_cap: "1000000000.00",
+      volume_24h: "1000000.00",
+    })),
+  };
+
+  async function renderPage(
+    data: CryptoMarketsData | null,
+    overview: CryptoOverviewData | null = overviewData,
+  ) {
+    GET.mockImplementation(async (path: string) =>
+      path.endsWith("/overview") ? { data: overview ?? undefined } : { data: data ?? undefined },
+    );
     return render(await CryptoMarkets());
   }
 
@@ -335,6 +368,18 @@ describe("CryptoMarkets", () => {
     expect(screen.getByText(/updated Nov 4, 2026, 1:00 AM UTC/)).toBeInTheDocument();
     expect(screen.getByText(/personal, non-commercial use/)).toBeInTheDocument();
     expect(screen.getByText(/not investment advice/)).toBeInTheDocument();
+  });
+
+  it("shows the headline figures, the day's largest gain and decline, and the coins", async () => {
+    await renderPage(markets());
+    expect(screen.getAllByText("$2.6T")).not.toHaveLength(0);
+    expect(screen.getByText("$94.3B")).toBeInTheDocument();
+    const focus = screen.getByRole("region", { name: "In focus" });
+    expect(focus).toHaveTextContent(/Largest gains*Ethereum ETH/);
+    expect(focus).toHaveTextContent(/Largest declines*Solana SOL/);
+    expect(focus).toHaveTextContent("2 advancing");
+    expect(focus).toHaveTextContent("1 declining");
+    expect(screen.getByRole("table", { name: /Largest coins/ })).toBeInTheDocument();
   });
 
   it("has the make-up section then the coins section, with headings in order", async () => {
@@ -376,9 +421,18 @@ describe("CryptoMarkets", () => {
   });
 
   it("shows a plain message, not an error screen, when the API is down", async () => {
-    await renderPage(null);
+    await renderPage(null, null);
     expect(screen.getByText("Crypto markets are not available right now")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("shows what it has and names what is missing when only one response loaded", async () => {
+    await renderPage(null);
+    expect(
+      screen.getByText(/Could not load: Bitcoin's price and the market make-up/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: /Largest coins/ })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Market make-up" })).not.toBeInTheDocument();
   });
 
   it("does not link an attribution address that is not https, but still shows the credit", async () => {
