@@ -87,3 +87,48 @@ export function ChevronDownIcon({ className = "size-5" }: { className?: string }
     </svg>
   );
 }
+
+export function BookIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+      <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
+export function LandmarkIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M3 21h18M5 21V10m4 11V10m6 11V10m4 11V10M2 10l10-7 10 7z" />
+    </svg>
+  );
+}
+
+export function SlidersIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 6h10m4 0h2M4 12h4m4 0h8M4 18h12m4 0h0" />
+      <circle cx="16" cy="6" r="2" />
+      <circle cx="10" cy="12" r="2" />
+      <circle cx="18" cy="18" r="2" />
+    </svg>
+  );
+}
+
+export function DocumentIcon({ className = "size-5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+      <path d="M14 2v5h5" />
+    </svg>
+  );
+}
+
+export function ArrowUpRightIcon({ className = "size-3.5" }: { className?: string }) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M7 17 17 7M8 7h9v9" />
+    </svg>
+  );
+}

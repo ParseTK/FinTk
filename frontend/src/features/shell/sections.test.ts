@@ -165,3 +165,20 @@ describe("sectionFor", () => {
     expect(sectionFor(sections, "/crypto/unknown")).toBeUndefined();
   });
 });
+
+describe("resources section", () => {
+  it("is hidden until its flag is on, and needs no other flag", () => {
+    expect(hrefs(visibleSections(), "resources")).toBeUndefined();
+    expect(headerItems().map((item) => item.label)).not.toContain("Resources");
+    vi.stubEnv("FEATURE_RESOURCES", "true");
+    expect(hrefs(visibleSections(), "resources")).toEqual([
+      "/resources",
+      "/resources/education",
+      "/resources/sources",
+      "/resources/tools",
+      "/resources/data",
+    ]);
+    expect(headerItems().map((item) => item.label)).toEqual(["Resources"]);
+    expect(hrefs(footerColumns(), "resources")).toHaveLength(5);
+  });
+});

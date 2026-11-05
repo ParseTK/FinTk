@@ -55,6 +55,18 @@ const SECTIONS: readonly Section[] = [
       },
     ],
   },
+  {
+    // Static guides and pointers to original sources; needs no data provider, so only its own flag.
+    id: "resources",
+    label: "Resources",
+    links: [
+      { href: "/resources", label: "Overview", flags: ["resources"], exact: true },
+      { href: "/resources/education", label: "Education", flags: ["resources"] },
+      { href: "/resources/sources", label: "Source directory", flags: ["resources"] },
+      { href: "/resources/tools", label: "Research tools", flags: ["resources"] },
+      { href: "/resources/data", label: "Data & methodology", flags: ["resources"] },
+    ],
+  },
 ];
 
 /** A section's pages that can be shown right now (every flag each needs is on). */

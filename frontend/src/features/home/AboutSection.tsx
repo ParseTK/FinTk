@@ -1,97 +1,113 @@
-import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
-import { Feature } from "@/components/ui/Feature";
+import { isEnabled } from "@/lib/flags";
+import { AboutSources, AboutSteps, type AboutSourcePanel, type AboutStep } from "./AboutExplorer";
 
-const LINK = "text-brand font-medium underline underline-offset-2";
+/** What each step says depends on which pages are switched on: a page that is off is not described. */
+function steps(): AboutStep[] {
+  const markets = isEnabled("crypto_markets");
+  const news = isEnabled("crypto_news");
+  return [
+    {
+      title: "See the wider market.",
+      body: "Start with market size, trading activity and the Fear & Greed indicator to set the broader context.",
+      tags: ["Market size", "Volume", "Sentiment"],
+    },
+    {
+      title: "Look closer at a coin.",
+      body: markets
+        ? "See the largest coins and how each has changed over 24 hours, 7, 30 and 90 days, and the year so far."
+        : "Find a coin and read its figures as reported, with nothing drawn in between.",
+      tags: markets
+        ? ["24h", "7d", "30d", "90d", "Year to date"]
+        : ["Price", "Market cap", "Supply"],
+    },
+    {
+      title: "Go back to the source.",
+      body: news
+        ? "Read official announcements and company filings that mention crypto, newest first, exactly as published."
+        : "Every figure comes from a named source, and a figure we cannot get is shown as missing, never made up.",
+      tags: news ? ["SEC", "CFTC", "Justice Dept.", "Form 8-K"] : ["Named sources", "No guesses"],
+    },
+  ];
+}
 
-function Block({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <Card as="section" aria-labelledby={id} className="space-y-3 rounded-2xl">
-      <h3 id={id} className="text-xl font-semibold">
-        {title}
-      </h3>
-      {children}
-    </Card>
-  );
+function sources(): AboutSourcePanel[] {
+  return [
+    {
+      tab: "Market figures",
+      eyebrow: "Prices & market data",
+      name: "CoinMarketCap.com",
+      href: "https://coinmarketcap.com/",
+      caption: "Prices, market size and trading activity.",
+      detail:
+        "Figures are shown as reported. Prices refresh about every ten minutes, and missing values stay visibly missing.",
+      facts: [
+        { label: "Refresh", value: "~10 min" },
+        { label: "Quotes", value: "Not live" },
+      ],
+    },
+    {
+      tab: "Official sources",
+      eyebrow: "Announcements & filings",
+      name: "SEC, CFTC, Justice Dept.",
+      caption: "Public announcements and company filings.",
+      detail:
+        "Press releases from US agencies, and Form 8-K filings of listed crypto companies, kept only when they mention crypto. Nothing is ranked or commented on.",
+      facts: [
+        { label: "Order", value: "Newest first" },
+        { label: "Opinions", value: "None" },
+      ],
+    },
+    {
+      tab: "Coverage & limits",
+      eyebrow: "What to keep in mind",
+      name: "A research aid, not a quote feed.",
+      caption: "Free, and for personal, non-commercial use.",
+      detail:
+        "Only the largest coins are covered and there is no full price history, only the change over each period. This is information, not investment advice. It can be slow or briefly unavailable.",
+      facts: [
+        { label: "Coverage", value: "Largest coins" },
+        { label: "History", value: "Period changes" },
+      ],
+    },
+  ];
 }
 
 /**
- * The landing page's plain explanation: what the site is, what it does, where the data comes from
- * and what its limits are. Static copy, written to match what the site really does today; a page
- * that is switched off is not described as available.
+ * The landing page's plain explanation: what the site is, a three-step way to use it, and where the
+ * data comes from with its limits. Static copy written to match what the site really does today.
  */
 export function AboutSection() {
   return (
     <section aria-labelledby="about-heading" className="border-border border-t">
-      <Container className="space-y-8 py-14 lg:py-20">
-        <div className="max-w-2xl space-y-3">
-          <h2 id="about-heading" className="text-3xl font-bold tracking-tight">
-            About Virello
-          </h2>
-          <p className="text-fg-muted text-lg">
-            Virello is a free research site for crypto. It puts market figures and official
-            announcements in one place, shown as published: no opinions, rankings or predictions.
-          </p>
+      <Container className="space-y-10 py-14 lg:py-20">
+        <div className="text-fg-muted border-border flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-xs tracking-[0.14em] uppercase">
+          <p className="text-brand font-semibold">About Virello</p>
+          <p>Free to explore / Built for personal research</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Block id="about-does" title="What it does">
-            <ul className="text-fg-muted list-disc space-y-2 pl-5">
-              <li>Shows the mood of the whole market: its size, volume and Fear and Greed.</li>
-              <Feature flag="crypto_markets">
-                <li>
-                  Lists the largest coins and how each has changed over 24 hours, 7, 30 and 90 days,
-                  the year so far and the past year.
-                </li>
-              </Feature>
-              <Feature flag="crypto_news">
-                <li>
-                  Collects official announcements and company filings that mention crypto, newest
-                  first.
-                </li>
-              </Feature>
-            </ul>
-          </Block>
-
-          <Block id="about-data" title="Where the data comes from">
-            <ul className="text-fg-muted list-disc space-y-2 pl-5">
-              <li>
-                Prices and market figures: Data provided by{" "}
-                <a href="https://coinmarketcap.com/" rel="noopener noreferrer" className={LINK}>
-                  CoinMarketCap.com
-                </a>
-                .
-              </li>
-              <li>
-                News: public announcements from the US SEC, CFTC and Department of Justice, and SEC
-                filings (Form 8-K) of listed crypto companies.
-              </li>
-              <li>
-                Nothing else, and nothing is made up. A figure we cannot get is shown as missing.
-              </li>
-            </ul>
-          </Block>
-
-          <Block id="about-limits" title="Limits">
-            <ul className="text-fg-muted list-disc space-y-2 pl-5">
-              <li>Prices refresh about every ten minutes, so they are not live quotes.</li>
-              <li>Only the largest coins are covered, not every coin that exists.</li>
-              <li>
-                There is no full price history: only the change over each period, with nothing drawn
-                in between.
-              </li>
-              <li>The news is official sources only, so some days there is little or none.</li>
-            </ul>
-          </Block>
-
-          <Block id="about-use" title="How to use it">
-            <ul className="text-fg-muted list-disc space-y-2 pl-5">
-              <li>For personal, non-commercial use, for research and education.</li>
-              <li>This is information, not investment advice.</li>
-              <li>It is a free project, so it can be slow or briefly unavailable.</li>
-            </ul>
-          </Block>
+        <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-16">
+          <div className="space-y-6">
+            <h2
+              id="about-heading"
+              className="text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl"
+            >
+              Market context. <br />
+              Original sources. <br />
+              <span className="text-brand font-medium italic">A clearer starting point.</span>
+            </h2>
+            <p className="text-fg-muted max-w-md text-lg">
+              Virello brings crypto market figures, public announcements and company filings into
+              one place, so you can spend more time understanding what you find.
+            </p>
+            <p className="text-fg-muted text-sm">
+              <span aria-hidden="true">&bull; </span>Published information. A source you can trace.
+            </p>
+          </div>
+          <AboutSteps steps={steps()} />
         </div>
+
+        <AboutSources title="A clear view of where it comes from." panels={sources()} />
       </Container>
     </section>
   );

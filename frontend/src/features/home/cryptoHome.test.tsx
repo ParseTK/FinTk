@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 
@@ -41,29 +42,68 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("CryptoHome about section", () => {
-  it("explains what the site is, what it does, where the data comes from and its limits", async () => {
+  it("explains what the site is, how to use it, where the data comes from and its limits", async () => {
     GET.mockResolvedValue({ data: markets });
     render(await CryptoHome());
-    const about = screen.getByRole("region", { name: "About Virello" });
-    for (const title of ["What it does", "Where the data comes from", "Limits", "How to use it"]) {
-      expect(within(about).getByRole("heading", { level: 3, name: title })).toBeInTheDocument();
+    const about = screen.getByRole("region", { name: /Market context/ });
+    for (const title of [
+      "See the wider market.",
+      "Look closer at a coin.",
+      "Go back to the source.",
+    ]) {
+      expect(within(about).getByRole("button", { name: title })).toBeInTheDocument();
     }
     expect(within(about).getByRole("link", { name: "CoinMarketCap.com" })).toHaveAttribute(
       "href",
       "https://coinmarketcap.com/",
     );
+    await userEvent.click(within(about).getByRole("tab", { name: "Coverage & limits" }));
     expect(about).toHaveTextContent(/no full price history/);
     expect(about).toHaveTextContent(/not investment advice/);
+  });
+
+  it("opens one step at a time", async () => {
+    const user = userEvent.setup();
+    GET.mockResolvedValue({ data: markets });
+    render(await CryptoHome());
+    const first = screen.getByRole("button", { name: "See the wider market." });
+    const second = screen.getByRole("button", { name: "Look closer at a coin." });
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    expect(second).toHaveAttribute("aria-expanded", "false");
+    await user.click(second);
+    expect(first).toHaveAttribute("aria-expanded", "false");
+    expect(second).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("switches the source tabs with the arrow keys", async () => {
+    const user = userEvent.setup();
+    GET.mockResolvedValue({ data: markets });
+    render(await CryptoHome());
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      "Market figures",
+      "Official sources",
+      "Coverage & limits",
+    ]);
+    tabs[0]!.focus();
+    await user.keyboard("{ArrowRight}");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
+    expect(tabs[1]).toHaveFocus();
+    expect(screen.getByRole("tabpanel")).toHaveTextContent(/Press releases from US agencies/);
+    await user.keyboard("{End}");
+    expect(tabs[2]).toHaveAttribute("aria-selected", "true");
   });
 
   it("only describes the pages that are switched on", async () => {
     GET.mockResolvedValue({ data: markets });
     const { unmount } = render(await CryptoHome());
-    expect(screen.queryByText(/Collects official announcements/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Read official announcements/)).not.toBeInTheDocument();
     unmount();
     vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
     render(await CryptoHome());
-    expect(screen.getByText(/Collects official announcements/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Go back to the source." })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Go back to the source." }));
+    expect(screen.getByText(/Read official announcements/)).toBeInTheDocument();
   });
 });
 
