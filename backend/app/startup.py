@@ -29,7 +29,7 @@ _SECONDS_PER_DAY = 86_400
 
 
 def open_resources(app: FastAPI, settings: Settings, stack: AsyncExitStack) -> None:
-    """Build each configured subsystem that was not injected. News needs companies, so it is later."""
+    """Build each configured subsystem that was not injected, news after companies."""
     _open_sign_in(app, settings, stack)
     _open_database(app, settings, stack)
     _open_companies(app, settings, stack)
