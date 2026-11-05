@@ -3,3 +3,4 @@ export { AREAS, areaById } from "./areas";
 export type { Area, AreaId } from "./areas";
 export { ResourcePlaceholder } from "./ResourcePlaceholder";
 export { ResourcesOverview } from "./ResourcesOverview";
+export { DataMethodology } from "./DataMethodology";
