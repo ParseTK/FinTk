@@ -92,6 +92,8 @@ export default defineConfig([
     ".next-*/**",
     "out/**",
     "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
     "next-env.d.ts",
     "src/lib/api/schema.d.ts", // generated
   ]),

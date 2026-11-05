@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "new:component": "node scripts/new-component.mjs",
-    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts"
+    "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -27,6 +28,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
