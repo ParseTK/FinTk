@@ -19,7 +19,8 @@
     "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts",
     "test:coverage": "vitest run --coverage",
     "license:check": "npx --yes license-checker-rseidelsohn@4.4.2 --summary --production --excludePrivatePackages --excludePackagesStartingWith \"@img/sharp\" --onlyAllow \"MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC-BY-4.0;CC0-1.0;BlueOak-1.0.0;Unlicense\"",
-    "budget": "node scripts/check-budgets.mjs"
+    "budget": "node scripts/check-budgets.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -30,6 +31,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

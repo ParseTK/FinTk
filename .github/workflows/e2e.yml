@@ -1,0 +1,70 @@
+name: E2E
+
+# Browser smoke tests: the real website, API and Postgres, with an invented data vendor (no key, no
+# network). It is a separate workflow so a slow browser run never delays the unit-test checks.
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: virello
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+          POSTGRES_DB: virello_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U virello -d virello_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VIRELLO_DATABASE_URL: postgresql+asyncpg://virello:ci-only-not-a-secret@localhost:5432/virello_e2e
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Prepare the API and its database
+        working-directory: backend
+        run: |
+          uv sync --locked
+          uv run alembic upgrade head
+      - name: Build the website
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Install the browser
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Run the smoke tests
+        working-directory: frontend
+        run: npm run e2e
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 7
