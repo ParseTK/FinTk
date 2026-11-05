@@ -37,6 +37,8 @@ jobs:
       # Runs the tests and fails if coverage drops below the floor in vitest.config.mts.
       - run: npm run test:coverage
       - run: npm run build
+      # The production bundle must stay under its size budget (scripts/check-budgets.mjs).
+      - run: npm run budget
       # Fail on high/critical advisories in production dependencies only.
       - run: npm audit --omit=dev --audit-level=high
       # Every production dependency must carry a permissive licence (the allow-list is in package.json).
@@ -159,3 +161,47 @@ jobs:
           name: frontend-image-sbom
           path: sbom.cdx.json
           retention-days: 30
+
+  backend-image:
+    # The API container, built and scanned like the frontend one. This is also what would have caught
+    # httpx being missing from the production dependencies: the image crashed on start.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: backend
+          load: true
+          push: false
+          tags: virello-api:ci
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Start the container and wait for it to report healthy
+        run: |
+          docker run -d --name api -p 8000:8000 virello-api:ci
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' api)
+            [ "$status" = "healthy" ] && break
+            sleep 2
+          done
+          echo "health: $status"
+          [ "$status" = "healthy" ]
+          curl --fail --silent http://127.0.0.1:8000/healthz
+          test "$(docker exec api id -un)" = "app"
+          # The server must not announce what it is.
+          ! curl --silent --head http://127.0.0.1:8000/healthz | grep -i '^server:'
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: virello-api:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: backend
+          severity: HIGH,CRITICAL
+          exit-code: "1"
