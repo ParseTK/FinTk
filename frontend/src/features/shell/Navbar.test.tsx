@@ -10,9 +10,25 @@ describe("Navbar", () => {
     expect(screen.getByRole("link", { name: "Virello home" })).toHaveAttribute("href", "/");
   });
 
-  it("links to search", () => {
+  it("has no section links while the crypto pages are off, so there is never a dead link", () => {
     render(<Navbar />);
-    expect(screen.getByRole("link", { name: "Search" })).toHaveAttribute("href", "/search");
+    expect(screen.queryByRole("link", { name: "Crypto" })).not.toBeInTheDocument();
+  });
+
+  it("has one Crypto link to the crypto pages, and none of the section's own pages", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
+    render(<Navbar />);
+    expect(screen.getAllByRole("link", { name: "Crypto" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Crypto" })).toHaveAttribute("href", "/crypto");
+    // The pages of the section belong to the sidebar, not the header.
+    expect(screen.queryByRole("link", { name: /news/i })).not.toBeInTheDocument();
+  });
+
+  it("has no Crypto | Stocks switch any more", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    render(<Navbar />);
+    expect(screen.queryByRole("group", { name: "Show" })).not.toBeInTheDocument();
   });
 });
 
@@ -24,9 +40,10 @@ describe("Navbar palette flag", () => {
 
   it("hides only the palette when off; the rest of the nav still works", () => {
     vi.stubEnv("FEATURE_PALETTE", "false");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
     render(<Navbar />);
     expect(screen.queryByRole("button", { name: "Appearance" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Virello home" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Search" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Crypto" })).toBeInTheDocument();
   });
 });

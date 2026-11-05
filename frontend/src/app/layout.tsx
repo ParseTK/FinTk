@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, Inter, Source_Serif_4 } from "next/font/google";
 import type { ReactNode } from "react";
-import { Footer } from "@/features/shell";
-import { Navbar } from "@/features/shell";
-import { PortfolioProvider } from "@/features/portfolio";
+import { Footer, Navbar, SectionFrame, visibleSections } from "@/features/shell";
 import { PREFERENCES_INIT_SCRIPT } from "@/features/appearance";
 import "./globals.css";
 
@@ -29,13 +27,13 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { default: "Virello", template: "%s | Virello" },
-  description: "Research public companies from primary sources.",
+  description: "Crypto market data and official filings, shown as published.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  colorScheme: "light dark",
+  colorScheme: "dark light",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -56,13 +54,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           Skip to content
         </a>
-        <PortfolioProvider>
-          <Navbar />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </PortfolioProvider>
+        <Navbar />
+        <main id="main" className="flex-1">
+          {/* Adds the sidebar when the page belongs to a section with several pages. */}
+          <SectionFrame sections={visibleSections()}>{children}</SectionFrame>
+        </main>
+        <Footer />
       </body>
     </html>
   );

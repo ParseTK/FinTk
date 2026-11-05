@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contrastRatio } from "@/lib/contrast";
+import { blend, contrastRatio } from "@/lib/contrast";
 import { ACCENTS } from "@/features/appearance";
 
 // Vitest and CI both run from the frontend/ directory.
@@ -42,6 +42,11 @@ const TEXT_ON_BACKGROUND = ["fg", "fg-muted", "brand", "gain", "loss"] as const;
 const NON_TEXT_ON_BACKGROUND = ["border-strong", "focus"] as const;
 const TEXT_ON_ACCENT_FILL = ["brand", "gain", "loss", "fg-muted"] as const;
 
+// GainChip and the "Added" confirmation tint a gain or loss colour at 6% behind its own text. That
+// is lower contrast than the same text on the plain surface, and only a real browser (axe) caught it
+// the first time: gain text was 4.43:1 on its tint.
+const TINT = 0.06;
+
 describe("accent coverage", () => {
   it("has a light and a dark rule for every accent", () => {
     expect(combos).toHaveLength(ACCENTS.length * 2);
@@ -64,6 +69,14 @@ describe.each(combos)("$name", ({ tokens }) => {
     "text %s on %s has at least 4.5:1",
     (fg, bg) => {
       expect(contrastRatio(tokens[fg]!, tokens[bg]!)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+
+  it.each(BACKGROUNDS.flatMap((bg) => (["gain", "loss"] as const).map((fg) => [fg, bg] as const)))(
+    "%s text on its own tint (6 percent) over %s has at least 4.5:1",
+    (fg, bg) => {
+      const tinted = blend(tokens[fg]!, tokens[bg]!, TINT);
+      expect(contrastRatio(tokens[fg]!, tinted)).toBeGreaterThanOrEqual(4.5);
     },
   );
 

@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   formatCompact,
   formatDate,
+  formatFiscalYearEnd,
+  formatPrice,
+  formatQuote,
+  formatShares,
   formatMoney,
   formatNumber,
   formatPercent,
@@ -98,5 +102,70 @@ describe("sign helpers", () => {
     expect(isNegative("-0.01")).toBe(true);
     expect(isNegative("abc")).toBe(false);
     expect(isPositive(null)).toBe(false);
+  });
+});
+
+describe("formatFiscalYearEnd", () => {
+  it("turns MMDD into a month and day", () => {
+    expect(formatFiscalYearEnd("0926")).toBe("September 26");
+    expect(formatFiscalYearEnd("1231")).toBe("December 31");
+  });
+
+  it.each([null, undefined, "", "926", "1326", "0132x", "0000"])("returns null for %j", (value) => {
+    expect(formatFiscalYearEnd(value)).toBeNull();
+  });
+});
+
+describe("formatShares", () => {
+  it.each([
+    ["12.500000", "12.5"],
+    ["10.000000", "10"],
+    ["0.333333", "0.333333"],
+    ["1234567.250000", "1,234,567.25"],
+    ["0.000001", "0.000001"],
+  ])("shows %s as %s", (input, expected) => {
+    expect(formatShares(input)).toBe(expected);
+  });
+
+  it("does not round through a float", () => {
+    expect(formatShares("123456789012.123456")).toBe("123,456,789,012.123456");
+  });
+
+  it.each([null, undefined, "", "abc"])("shows a dash for %j", (value) => {
+    expect(formatShares(value)).toBe(PLACEHOLDER);
+  });
+});
+
+describe("formatPrice", () => {
+  it.each([
+    ["100.000000", "$100.00"],
+    ["187.123456", "$187.123456"],
+    ["0.150000", "$0.15"],
+    ["3.333333", "$3.333333"],
+    ["1234.5", "$1,234.50"],
+  ])("shows %s as %s", (input, expected) => {
+    expect(formatPrice(input)).toBe(expected);
+  });
+
+  it.each([null, undefined, "nope"])("shows a dash for %j", (value) => {
+    expect(formatPrice(value)).toBe(PLACEHOLDER);
+  });
+});
+
+describe("formatQuote", () => {
+  it("rounds provider noise away from one dollar up", () => {
+    expect(formatQuote("94.080002")).toBe("$94.08");
+    expect(formatQuote("344.630000")).toBe("$344.63");
+    expect(formatQuote("1")).toBe("$1.00");
+  });
+
+  it("keeps the decimals of a price under a dollar", () => {
+    expect(formatQuote("0.152344")).toBe("$0.152344");
+    expect(formatQuote("0.5")).toBe("$0.50");
+  });
+
+  it("shows a dash for missing values", () => {
+    expect(formatQuote(null)).toBe("—");
+    expect(formatQuote("abc")).toBe("—");
   });
 });

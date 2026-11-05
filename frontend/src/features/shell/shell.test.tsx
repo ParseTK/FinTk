@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { expectNoA11yViolations } from "@/test/axe";
 import { Footer } from "./Footer";
 import { MobileMenu } from "./MobileMenu";
@@ -38,6 +38,29 @@ describe("Footer", () => {
   });
 });
 
+describe("Footer sections", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("lists each section with its pages underneath, like the header and sidebar", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
+    render(<Footer />);
+    const nav = screen.getByRole("navigation", { name: "Footer" });
+    expect(within(nav).getByRole("heading", { name: "Crypto" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/crypto");
+    expect(within(nav).getByRole("link", { name: "Markets" })).toHaveAttribute(
+      "href",
+      "/crypto/markets",
+    );
+    expect(within(nav).queryByRole("link", { name: "News" })).not.toBeInTheDocument();
+  });
+
+  it("has no navigation at all while every page is off", () => {
+    render(<Footer />);
+    expect(screen.queryByRole("navigation", { name: "Footer" })).not.toBeInTheDocument();
+  });
+});
+
 describe("NavLink", () => {
   it("marks the current page with aria-current", () => {
     vi.mocked(usePathname).mockReturnValue("/search");
@@ -55,6 +78,33 @@ describe("NavLink", () => {
     vi.mocked(usePathname).mockReturnValue("/");
     render(<NavLink href="/search">Search</NavLink>);
     expect(screen.getByRole("link", { name: "Search" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("with exact, is not current on a page beneath it, so two links are never both current", () => {
+    vi.mocked(usePathname).mockReturnValue("/crypto/markets");
+    render(
+      <>
+        <NavLink href="/crypto" exact>
+          Crypto
+        </NavLink>
+        <NavLink href="/crypto/markets">Crypto markets</NavLink>
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "Crypto" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Crypto markets" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  it("with exact, is still current on its own page", () => {
+    vi.mocked(usePathname).mockReturnValue("/crypto");
+    render(
+      <NavLink href="/crypto" exact>
+        Crypto
+      </NavLink>,
+    );
+    expect(screen.getByRole("link", { name: "Crypto" })).toHaveAttribute("aria-current", "page");
   });
 
   it("shows the current page with an underline, not only a color", () => {
@@ -119,5 +169,24 @@ describe("MobileMenu", () => {
     const { container } = render(<MobileMenu items={ITEMS} />);
     await user.click(menuButton());
     await expectNoA11yViolations(container);
+  });
+});
+
+describe("Footer quick links", () => {
+  it("lists external sources that open in a new tab and say so", () => {
+    render(<Footer />);
+    const nav = screen.getByRole("navigation", { name: "Quick links" });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(5);
+    for (const link of links) {
+      expect(link.getAttribute("href")).toMatch(/^https:\/\//);
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noopener noreferrer");
+      expect(link).toHaveTextContent("(opens in a new tab)");
+    }
+    expect(within(nav).getByRole("link", { name: /CoinMarketCap methodology/ })).toHaveAttribute(
+      "href",
+      "https://coinmarketcap.com/methodology/",
+    );
   });
 });

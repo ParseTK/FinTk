@@ -1,18 +1,23 @@
 import clsx from "clsx";
+import type { ReactNode } from "react";
 import { Container } from "@/components/ui/Container";
-import { Feature } from "@/components/ui/Feature";
-import { SearchBox } from "@/features/search";
 import { isEnabled } from "@/lib/flags";
-import { HeroChart } from "./HeroChart";
-import { TickerChips } from "./TickerChips";
 
-/** Entrance stagger: headline, copy, search, then the chart. Each step is a CSS delay. */
+/** Entrance stagger: headline, copy, actions, then the chart. Each step is a CSS delay. */
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
-export function Hero() {
-  // With the chart switched off, the text column is centered and takes the full width.
-  const withChart = isEnabled("hero_chart");
-  const centered = !withChart;
+export interface HeroProps {
+  /** The headline. It is the page's h1. */
+  headline: ReactNode;
+  body: string;
+  /** Links or buttons under the text. */
+  actions?: ReactNode;
+  /** Shown beside the text. Null (or left out) means no chart: the text is then centered. */
+  chart?: ReactNode | null;
+}
+
+export function Hero({ headline, body, actions, chart = null }: HeroProps) {
+  const centered = chart === null;
   // Layers lag behind the page as you scroll away from the top (scroll_motion flag, Motion setting).
   const drift = isEnabled("scroll_motion");
 
@@ -48,6 +53,7 @@ export function Hero() {
 
       {/* A centered, width-limited pair of columns, so text and chart stay close at any window size. */}
       <Container
+        size="wide"
         className={clsx(
           "grid items-center gap-12 py-14 lg:py-20",
           centered ? "justify-items-center" : "md:grid-cols-2 md:gap-10 lg:gap-16",
@@ -58,11 +64,7 @@ export function Hero() {
             id="hero-heading"
             className="animate-fade-up text-4xl leading-[1.05] font-bold tracking-tight lg:text-6xl"
           >
-            Financial data without the{" "}
-            <span className="from-brand bg-gradient-to-r to-[color-mix(in_oklab,var(--brand),var(--fg)_40%)] bg-clip-text text-transparent">
-              hype
-            </span>
-            .
+            {headline}
           </h1>
           <p
             className={clsx(
@@ -71,20 +73,23 @@ export function Hero() {
             )}
             style={delay(120)}
           >
-            Research public companies from primary filings and financials, without the noise.
+            {body}
           </p>
-          <div className="animate-fade-up space-y-4" style={delay(240)}>
-            <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
-              <SearchBox size="lg" />
+          {actions && (
+            <div
+              className={clsx(
+                "animate-fade-up flex flex-wrap justify-center gap-3",
+                !centered && "md:justify-start",
+              )}
+              style={delay(240)}
+            >
+              {actions}
             </div>
-            <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
-              <TickerChips />
-            </div>
-          </div>
+          )}
         </div>
-        <Feature flag="hero_chart">
-          {/* Outer element drifts with the page; the inner one plays the entrance. They cannot be
-              the same element because both use the CSS animation property. */}
+        {chart !== null && (
+          // Outer element drifts with the page; the inner one plays the entrance. They cannot be the
+          // same element because both use the CSS animation property.
           <div
             className={clsx(
               "w-full max-w-xl justify-self-center md:justify-self-end",
@@ -92,10 +97,10 @@ export function Hero() {
             )}
           >
             <div className="animate-fade-up" style={delay(200)}>
-              <HeroChart />
+              {chart}
             </div>
           </div>
-        </Feature>
+        )}
       </Container>
     </section>
   );

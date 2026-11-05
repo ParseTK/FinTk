@@ -108,3 +108,52 @@ export function formatDate(
   if (Number.isNaN(date.getTime())) return PLACEHOLDER;
   return new Intl.DateTimeFormat(locale, { ...DATE_OPTIONS[style], timeZone: "UTC" }).format(date);
 }
+
+/** SEC stores a fiscal year end as "MMDD" ("0926"). Returns "September 26", or null if unreadable. */
+export function formatFiscalYearEnd(value: string | null | undefined): string | null {
+  const match = /^(\d{2})(\d{2})$/.exec(value ?? "");
+  if (!match) return null;
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  // 2000 is a leap year, so every valid month/day pair (including Feb 29) exists.
+  return new Intl.DateTimeFormat(DEFAULT_LOCALE, {
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(2000, month - 1, day)));
+}
+
+/** A share count: up to six decimals, with trailing zeros dropped ("12.500000" -> "12.5"). */
+export function formatShares(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
+
+/** A price per share in dollars: at least cents, up to six decimals when the price needs them. */
+export function formatPrice(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  }).format(parsed);
+}
+
+/**
+ * A market price for display. From one dollar up, cents are enough and hide the floating-point
+ * noise some providers send ("94.080002" -> "$94.08"); below a dollar the extra decimals matter.
+ */
+export function formatQuote(value: Numeric, locale: string = DEFAULT_LOCALE): string {
+  const parsed = parse(value);
+  if (parsed === null) return PLACEHOLDER;
+  return Math.abs(Number(parsed)) >= 1
+    ? formatMoney(value, { locale })
+    : formatPrice(value, locale);
+}

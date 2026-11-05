@@ -8,6 +8,7 @@
  *    FEATURE_<NAME>=false swaps in a simpler fallback (or hides the piece) so the site stays usable
  *    while that feature is worked on.
  *
+ * A flag whose feature is finished, or removed, is deleted (with its fallback), not kept.
  * Add every new flag here and to .env.example (a test enforces the second part).
  */
 export const FLAGS = {
@@ -15,19 +16,44 @@ export const FLAGS = {
     default: false,
     description: "Component gallery at /design (internal review page; hidden and not indexed).",
   },
-  news: {
+  auth: {
     default: false,
-    description: "News section and nav link (not built yet).",
-  },
-  hero_chart: {
-    default: true,
     description:
-      "Animated, scrubbable chart in the hero. Off: the hero text is centered without it.",
+      "Sign in with Google or GitHub: header menu, /sign-in, /account and the /api sign-in proxy. Off: none of it is reachable.",
   },
-  rich_search: {
-    default: true,
+  crypto: {
+    default: false,
     description:
-      "Enhanced search field (glow, rotating hints, / shortcut). Off: a plain, fully working form.",
+      "The crypto pages: /crypto and its header link, with top coins, market totals and Fear and Greed from CoinMarketCap (needs a key and the internal token on the API). Off: the landing page shows no live data.",
+  },
+  // Depends on: crypto (the page and its sidebar link need both flags on).
+  crypto_markets: {
+    default: false,
+    description:
+      "The /crypto/markets page and its sidebar link: the market make-up, and how the ten largest coins have done over 30 days to a year. Needs the crypto flag too.",
+  },
+  // Depends on: crypto (the page and its sidebar link need both flags on).
+  crypto_news: {
+    default: false,
+    description:
+      "The /crypto/news page and its sidebar link: official SEC, CFTC and Department of Justice announcements about crypto, and SEC filings of a printed list of crypto companies. Needs the crypto flag too.",
+  },
+  // Depends on: crypto (the search box, the search page and the coin pages need both flags on).
+  crypto_search: {
+    default: false,
+    description:
+      "Search for a coin by name or symbol (header box with suggestions, and /crypto/search), and a page for each coin at /crypto/coins/<name>. Needs the crypto flag too.",
+  },
+  // Depends on: crypto, auth (it needs the crypto prices and a signed-in person).
+  holdings: {
+    default: false,
+    description:
+      "Holdings: a portfolio of the coins a signed-in person holds (valued at today's prices) and a watchlist, at /holdings and /holdings/watchlist, plus Watch and Your holding on each coin's page. Needs the crypto and auth flags too.",
+  },
+  resources: {
+    default: false,
+    description:
+      "The Resources section: an overview at /resources and four subpages (education, sources, research tools, data and methodology), in the header, sidebar and footer. Static pages; needs no other flag.",
   },
   palette: {
     default: true,
@@ -36,12 +62,7 @@ export const FLAGS = {
   },
   scroll_motion: {
     default: true,
-    description:
-      "Scroll-driven reveal, parallax depth and drawn illustrations in the feature section. Off: a plain static section.",
-  },
-  market_ticker: {
-    default: true,
-    description: "Sample market ticker strip on the home page.",
+    description: "Scroll-driven parallax depth in the landing hero. Off: a plain static hero.",
   },
 } as const satisfies Record<string, { default: boolean; description: string }>;
 

@@ -2,3 +2,6 @@
 export { Footer } from "./Footer";
 export { Logo, LogoMark } from "./Logo";
 export { Navbar } from "./Navbar";
+export { SectionFrame } from "./SectionFrame";
+export { visibleSections } from "./sections";
+export type { SectionView } from "./sectionView";

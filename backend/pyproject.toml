@@ -1,0 +1,71 @@
+[project]
+name = "virello-api"
+version = "0.1.0"
+description = "Virello API: company data, caching, and (later) accounts and portfolios."
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
+    "defusedxml>=0.7.1",
+    "fastapi>=0.162.0",
+    "pydantic-settings>=2.16.2",
+    "sqlalchemy[asyncio]>=2.0.43",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pip-audit>=2.10.1",
+    "pyright>=1.1.414",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "ruff>=0.17.3",
+    "types-defusedxml>=0.7.0.20260504",
+]
+
+# ---------------------------------------------------------------------------------------------
+# Quality gates. CI runs exactly these: ruff format --check, ruff check, pyright, pytest.
+# ---------------------------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["."]  # the project root, so `app` and `tests` are recognised as first-party
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # import order
+    "N",        # naming
+    "UP",       # modern syntax
+    "B",        # likely bugs
+    "A",        # shadowing builtins
+    "C4",       # comprehensions
+    "SIM",      # simplifications
+    "S",        # security (bandit)
+    "ASYNC",    # blocking calls inside async code
+    "PT",       # pytest style
+    "RUF",      # ruff-specific
+    "T20",      # no print()
+    "TID",      # tidy imports
+    "PERF",     # performance
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]   # assert and fake secrets are fine in tests
+"scripts/**" = ["T20"]                  # scripts may print
+
+[tool.pyright]
+include = ["app", "tests", "scripts"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"

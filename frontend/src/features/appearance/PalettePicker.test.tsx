@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { STORAGE_KEYS } from "./preferences";
@@ -41,9 +41,9 @@ describe("PalettePicker", () => {
     expect(screen.queryByRole("button", { name: "System" })).not.toBeInTheDocument();
   });
 
-  it("starts in the device's mode: Dark when the device prefers dark", async () => {
+  it("starts in Dark even when the device prefers light", async () => {
     vi.stubGlobal("matchMedia", () => ({
-      matches: true,
+      matches: false,
       addEventListener: () => {},
       removeEventListener: () => {},
     }));
@@ -56,14 +56,25 @@ describe("PalettePicker", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults to Light (device default here), Blue and Inter", async () => {
+  it("defaults to Dark, Gold and Inter, with the accents in order", async () => {
     const user = userEvent.setup();
     render(<PalettePicker />);
     await user.click(openButton());
 
-    expect(screen.getByRole("button", { name: "Light", pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Blue/, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dark", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Gold/, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Inter/, pressed: true })).toBeInTheDocument();
+    const accents = within(screen.getByRole("group", { name: "Accent" })).getAllByRole("button");
+    expect(accents.map((button) => button.textContent?.replace("✓", "").trim())).toEqual([
+      "Gold",
+      "Mint",
+      "Pink",
+      "Blue",
+      "Violet",
+      "Rose",
+    ]);
+    expect(screen.queryByRole("button", { name: /default/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Emerald/ })).not.toBeInTheDocument();
   });
 
   it("applies and saves mode, accent and typeface", async () => {
@@ -83,7 +94,7 @@ describe("PalettePicker", () => {
     expect(localStorage.getItem(STORAGE_KEYS.accent)).toBe("violet");
     expect(localStorage.getItem(STORAGE_KEYS.font)).toBe("plex");
     expect(screen.getByRole("button", { name: /Violet/, pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Blue/, pressed: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Gold/, pressed: false })).toBeInTheDocument();
   });
 
   it("offers a Motion setting that follows the device until chosen", async () => {

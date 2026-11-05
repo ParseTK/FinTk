@@ -7,9 +7,18 @@ import type { ComponentProps } from "react";
 import { isActivePath } from "./navigation";
 
 /** A nav link that marks the current page with aria-current and an underline (not color alone). */
-export function NavLink({ href, className, ...rest }: ComponentProps<typeof Link>) {
+export function NavLink({
+  href,
+  className,
+  exact = false,
+  alsoActive,
+  ...rest
+}: ComponentProps<typeof Link> & { exact?: boolean; alsoActive?: readonly string[] }) {
   const pathname = usePathname();
-  const active = typeof href === "string" && isActivePath(pathname, href);
+  const active =
+    typeof href === "string" &&
+    (isActivePath(pathname, href, exact) ||
+      (alsoActive ?? []).some((path) => isActivePath(pathname, path)));
 
   return (
     <Link

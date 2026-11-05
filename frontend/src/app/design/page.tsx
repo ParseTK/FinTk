@@ -4,15 +4,18 @@ import { LogoMark } from "@/features/shell";
 import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/Container";
 import { Alert } from "@/components/ui/Alert";
+import { LiveMessage } from "@/components/ui/LiveMessage";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
+import { DataCredit } from "@/components/ui/DataCredit";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TextField } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
+import { Ticker } from "@/components/ui/Ticker";
 import { isEnabled } from "@/lib/flags";
 import { formatCompact, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
 
@@ -107,7 +110,7 @@ export default function DesignPage() {
           <Button size="sm">Small</Button>
           <Button size="md">Medium</Button>
           <Button size="lg">Large</Button>
-          <LinkButton href="/search" variant="secondary">
+          <LinkButton href="/crypto" variant="secondary">
             Link styled as a button
           </LinkButton>
         </div>
@@ -126,7 +129,7 @@ export default function DesignPage() {
 
       <Section id="fields" title="Form fields">
         <div className="grid gap-6 sm:grid-cols-2">
-          <TextField label="Ticker" hint="For example AAPL" placeholder="AAPL" />
+          <TextField label="Coin" hint="For example BTC" placeholder="BTC" />
           <TextField label="Shares" defaultValue="-2" error="Must be greater than zero" />
           <TextField label="Disabled" defaultValue="Read only" disabled />
         </div>
@@ -142,13 +145,22 @@ export default function DesignPage() {
             Check your connection and try again.
           </Alert>
         </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            Live messages sit under a button or form and are announced when they appear. Empty ones
+            take no space.
+          </p>
+          <LiveMessage>Could not sign you out. Reload the page and try again.</LiveMessage>
+          <LiveMessage tone="success">Added 0.5 BTC.</LiveMessage>
+          <LiveMessage />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <EmptyState
               headingLevel={3}
               title="Nothing saved yet"
-              description="Search for a company to add it."
-              action={<LinkButton href="/search">Search</LinkButton>}
+              description="Add a coin to see it here."
+              action={<LinkButton href="/crypto">Browse coins</LinkButton>}
             />
           </Card>
           <Card>
@@ -170,7 +182,52 @@ export default function DesignPage() {
           <Change kind="money" value="12.3" />
           <Change kind="money" value="-4.5" />
         </div>
-        <Card as="div" className="overflow-x-auto p-0">
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            The credit line a data provider requires beside its data: a real link, readable size,
+            https only. The second line below has a non-https address, so it stays plain text.
+          </p>
+          <DataCredit
+            text="Data provided by CoinMarketCap.com"
+            href="https://coinmarketcap.com/"
+            linkText="CoinMarketCap.com"
+          />
+          <DataCredit
+            text="Data provided by Example"
+            href="http://insecure.example/"
+            linkText="Example"
+          />
+        </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            A slow strip of quotes. It pauses on hover and focus, has a pause button, and does not
+            move under Motion Reduced. Prices and the lead-in are supplied by the page. An unknown
+            change shows no figure.
+          </p>
+          <Ticker
+            label="Example ticker"
+            lead={
+              <span className="text-fg-muted text-xs font-semibold tracking-wide uppercase">
+                Example
+              </span>
+            }
+            items={[
+              { symbol: "AAA", price: "$1,234.50", change: "1.24" },
+              { symbol: "BBB", price: "$56.78", change: "-0.62" },
+              { symbol: "CCC", price: "$0.0004", change: null },
+              { symbol: "DDD", price: "$9.10", change: "0" },
+            ]}
+            pauseLabel="Pause example ticker"
+            playLabel="Play example ticker"
+          />
+        </div>
+        <Card
+          as="div"
+          role="region"
+          aria-label="Formatter examples"
+          tabIndex={0}
+          className="overflow-x-auto p-0"
+        >
           <table className="w-full text-left text-sm">
             <caption className="sr-only">Formatter examples</caption>
             <thead className="border-border border-b">
