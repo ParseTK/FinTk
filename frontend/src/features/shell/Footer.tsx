@@ -17,6 +17,13 @@ const QUICK_LINKS = [
   { href: "https://coinmarketcap.com/methodology/", label: "CoinMarketCap methodology" },
 ] as const;
 
+/** The legal pages. They are not sections of the product, so they sit beside the disclaimer. */
+const LEGAL_LINKS = [
+  { href: "/privacy", label: "Privacy policy" },
+  { href: "/terms", label: "Terms of use" },
+  { href: "/accessibility", label: "Accessibility" },
+] as const;
+
 /**
  * The footer: the same sections as the header, each with its pages listed underneath, then the
  * disclaimer and the source link. The columns come from the same list as the header and sidebar, so
@@ -74,6 +81,20 @@ export function Footer() {
             {SITE.name} shows financial information for research and education. It is not investment
             advice, and data may be delayed or incomplete.
           </p>
+          <nav aria-label="Legal">
+            <ul className="flex flex-wrap gap-x-5 gap-y-1">
+              {LEGAL_LINKS.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-fg-muted hover:text-fg inline-flex min-h-6 items-center underline underline-offset-4 hover:no-underline"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <p>
             <a
               href={SITE.repoUrl}

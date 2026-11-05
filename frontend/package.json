@@ -17,6 +17,9 @@
     "test:watch": "vitest",
     "new:component": "node scripts/new-component.mjs",
     "gen:api": "openapi-typescript ../backend/openapi.json -o src/lib/api/schema.d.ts",
+    "test:coverage": "vitest run --coverage",
+    "license:check": "npx --yes license-checker-rseidelsohn@4.4.2 --summary --production --excludePrivatePackages --excludePackagesStartingWith \"@img/sharp\" --onlyAllow \"MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;0BSD;CC-BY-4.0;CC0-1.0;BlueOak-1.0.0;Unlicense\"",
+    "budget": "node scripts/check-budgets.mjs",
     "e2e": "playwright test"
   },
   "dependencies": {
@@ -37,6 +40,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.1.2",
+    "@vitest/coverage-v8": "^5.0.5",
     "axe-core": "^4.14.0",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.4.3",

@@ -87,6 +87,12 @@ export default defineConfig([
     files: ["src/**/*.{ts,tsx}"],
     rules: { "import/no-restricted-paths": ["error", { zones }] },
   },
+  {
+    // A ceiling, not a target: new code stays easy to read and to test. Tests are exempt.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.{ts,tsx}"],
+    rules: { complexity: ["error", 15] },
+  },
   globalIgnores([
     ".next/**",
     ".next-*/**",
