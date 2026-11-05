@@ -31,7 +31,14 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <Heading className="text-xl font-semibold">{title}</Heading>
+      {/* A state that replaces the whole page is the page title, so it looks like one. */}
+      <Heading
+        className={
+          headingLevel === 1 ? "text-3xl font-bold tracking-tight" : "text-xl font-semibold"
+        }
+      >
+        {title}
+      </Heading>
       {description && <p className="text-fg-muted">{description}</p>}
       {action && <div className="pt-2">{action}</div>}
     </div>
