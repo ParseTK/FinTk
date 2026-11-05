@@ -80,7 +80,7 @@ function sources(): AboutSourcePanel[] {
 export function AboutSection() {
   return (
     <section aria-labelledby="about-heading" className="border-border border-t">
-      <Container className="space-y-10 py-14 lg:py-20">
+      <Container size="wide" className="space-y-10 py-14 lg:py-20">
         <div className="text-fg-muted border-border flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-xs tracking-[0.14em] uppercase">
           <p className="text-brand font-semibold">About Virello</p>
           <p>Free to explore / Built for personal research</p>

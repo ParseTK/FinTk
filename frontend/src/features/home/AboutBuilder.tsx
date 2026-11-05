@@ -11,7 +11,10 @@ const BUILT_WITH = ["Next.js", "FastAPI", "PostgreSQL", "Accessible by design"] 
 export function AboutBuilder() {
   return (
     <section aria-labelledby="builder-heading" className="border-border border-t">
-      <Container className="grid gap-6 py-12 md:grid-cols-[1fr_1.6fr] md:gap-16 lg:py-16">
+      <Container
+        size="wide"
+        className="grid gap-6 py-12 md:grid-cols-[1fr_1.6fr] md:gap-16 lg:py-16"
+      >
         <div className="space-y-2">
           <p className="text-brand text-xs font-semibold tracking-[0.14em] uppercase">
             About the builder
