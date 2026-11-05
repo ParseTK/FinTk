@@ -24,7 +24,7 @@ migrate:
 # The API on http://localhost:8000 (needs a database for sign-in, watchlist, portfolio and prices).
 [working-directory: 'backend']
 api:
-    uv run uvicorn app.main:app --reload --port 8000
+    uv run uvicorn app.main:app --reload --port 8000 --no-server-header
 
 # The website on http://localhost:3000.
 [working-directory: 'frontend']
