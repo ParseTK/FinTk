@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { sendJson } from "@/lib/apiRequest";
 import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
+import { tidyDecimal } from "./format";
 import { RemoveButton } from "./RemoveButton";
 
 export interface HoldingEditorProps {
@@ -20,6 +21,8 @@ export interface HoldingEditorProps {
   signInNext: string;
   /** What is saved now, if anything. */
   current?: { amount: string; cost: string | null };
+  /** Set when the form is opened from a row: called after a save, and the form offers Cancel. */
+  onDone?: () => void;
 }
 
 /**
@@ -35,7 +38,9 @@ export function HoldingEditor({
   csrfToken,
   signInNext,
   current,
+  onDone,
 }: HoldingEditorProps) {
+  const headingId = useId();
   const router = useRouter();
   const [amount, setAmount] = useState(current?.amount ?? "");
   const [cost, setCost] = useState(current?.cost ?? "");
@@ -65,7 +70,8 @@ export function HoldingEditor({
     setErrors({});
     setProblem("");
     setSaved("");
-    const body = { amount: amount.trim(), ...(cost.trim() ? { cost: cost.trim() } : {}) };
+    const tidyCost = tidyDecimal(cost);
+    const body = { amount: tidyDecimal(amount), ...(tidyCost ? { cost: tidyCost } : {}) };
     const result = await sendJson(
       "PUT",
       `/api/v1/portfolio/${encodeURIComponent(slug)}`,
@@ -81,20 +87,17 @@ export function HoldingEditor({
       else setProblem(result.message);
       return;
     }
+    setAmount(body.amount);
+    setCost(tidyCost);
     setSaved(`Saved ${body.amount} ${symbol}.`);
     router.refresh();
+    onDone?.();
   }
 
   return (
-    <form
-      ref={form}
-      onSubmit={submit}
-      noValidate
-      aria-labelledby={`holding-${slug}`}
-      className="space-y-4"
-    >
-      <h3 id={`holding-${slug}`} className="text-lg font-semibold">
-        Your holding
+    <form ref={form} onSubmit={submit} noValidate aria-labelledby={headingId} className="space-y-4">
+      <h3 id={headingId} className="text-lg font-semibold">
+        {onDone ? `Edit your ${name}` : "Your holding"}
       </h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField
@@ -121,7 +124,12 @@ export function HoldingEditor({
         <Button type="submit" loading={busy}>
           {current ? "Save changes" : "Save holding"}
         </Button>
-        {current && (
+        {onDone && (
+          <Button type="button" variant="ghost" onClick={onDone}>
+            Cancel
+          </Button>
+        )}
+        {current && !onDone && (
           <RemoveButton
             what={`${name} from your portfolio`}
             path={`/api/v1/portfolio/${encodeURIComponent(slug)}`}

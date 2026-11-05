@@ -8,7 +8,7 @@ import { LinkButton } from "@/components/ui/LinkButton";
 import { formatMoney } from "@/lib/format";
 import { formatAmount } from "./format";
 import type { HoldingValue, Portfolio } from "./data";
-import { RemoveButton } from "./RemoveButton";
+import { HoldingActions } from "./HoldingActions";
 
 const NOT_PRICED = <span className="text-fg-muted">Not priced</span>;
 const money = (value: string | null) =>
@@ -28,7 +28,7 @@ function Gain({ row }: { row: HoldingValue }) {
   );
 }
 
-function CoinLink({ row }: { row: HoldingValue }) {
+function CoinLink({ row, withSymbol = false }: { row: HoldingValue; withSymbol?: boolean }) {
   const label = row.coin ? row.coin.name : row.slug;
   return (
     <>
@@ -37,11 +37,26 @@ function CoinLink({ row }: { row: HoldingValue }) {
         className="font-medium underline-offset-2 hover:underline"
       >
         {label}
-      </Link>{" "}
-      {row.coin && <span className="text-fg-muted text-sm">{row.coin.symbol}</span>}
+      </Link>
+      {withSymbol && row.coin && (
+        <>
+          {" "}
+          <span className="text-fg-muted text-sm">{row.coin.symbol}</span>
+        </>
+      )}
     </>
   );
 }
+
+/** What the inline editor needs to know about a row. */
+const editing = (row: HoldingValue, csrfToken: string) => ({
+  slug: row.slug,
+  name: row.coin?.name ?? row.slug,
+  symbol: row.coin?.symbol ?? row.slug,
+  amount: row.amount,
+  cost: row.cost,
+  csrfToken,
+});
 
 function Summary({ portfolio }: { portfolio: Portfolio }) {
   const { totals, holdings } = portfolio;
@@ -93,8 +108,8 @@ function Summary({ portfolio }: { portfolio: Portfolio }) {
 
 /**
  * The portfolio: a summary, then each coin held with its value and, where a cost was entered, its
- * gain or loss. A real table on large screens and one labelled card per coin below that. Edit goes
- * to the coin's page, where the form lives. Values are not stored anywhere: they were worked out
+ * gain or loss. A real table on large screens and one labelled card per coin below that. Edit opens the form
+ * in place. Values are not stored anywhere: they were worked out
  * from today's prices when this page was built, and the provider's credit sits above them.
  */
 export function PortfolioBody({
@@ -122,22 +137,6 @@ export function PortfolioBody({
     );
   }
 
-  const remove = (row: HoldingValue) => (
-    <RemoveButton
-      what={`${row.coin?.name ?? row.slug} from your portfolio`}
-      path={`/api/v1/portfolio/${encodeURIComponent(row.slug)}`}
-      csrfToken={csrfToken}
-    />
-  );
-  const edit = (row: HoldingValue) => (
-    <Link
-      href={`/crypto/coins/${row.slug}#holding-${row.slug}`}
-      className="text-brand text-sm font-medium underline underline-offset-2"
-    >
-      Edit <span className="sr-only">{row.coin?.name ?? row.slug}</span>
-    </Link>
-  );
-
   return (
     <div className="space-y-6">
       <DataCredit
@@ -160,6 +159,9 @@ export function PortfolioBody({
               <th scope="col" className="px-3 py-2 font-medium">
                 Coin
               </th>
+              <th scope="col" className="px-3 py-2 font-medium">
+                Symbol
+              </th>
               <th scope="col" className="px-3 py-2 text-right font-medium">
                 Amount
               </th>
@@ -175,17 +177,18 @@ export function PortfolioBody({
               <th scope="col" className="px-3 py-2 text-right font-medium">
                 Gain or loss
               </th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">
+              <th scope="col" className="w-48 px-3 py-2 text-right font-medium">
                 <span className="sr-only">Actions</span>
               </th>
             </tr>
           </thead>
           <tbody>
             {holdings.map((row) => (
-              <tr key={row.slug} className="border-border border-t">
+              <HoldingActions key={row.slug} {...editing(row, csrfToken)} colSpan={8}>
                 <th scope="row" className="px-3 py-3 text-left font-normal">
                   <CoinLink row={row} />
                 </th>
+                <td className="text-fg-muted px-3 py-3 text-sm">{row.coin?.symbol ?? "—"}</td>
                 <td className="px-3 py-3 text-right tabular-nums">{formatAmount(row.amount)}</td>
                 <td className="px-3 py-3 text-right">
                   {row.coin ? money(row.coin.price) : NOT_PRICED}
@@ -197,13 +200,7 @@ export function PortfolioBody({
                 <td className="px-3 py-3 text-right">
                   <Gain row={row} />
                 </td>
-                <td className="px-3 py-3">
-                  <span className="flex items-start justify-end gap-3">
-                    {edit(row)}
-                    {remove(row)}
-                  </span>
-                </td>
-              </tr>
+              </HoldingActions>
             ))}
           </tbody>
         </table>
@@ -213,7 +210,7 @@ export function PortfolioBody({
         {holdings.map((row) => (
           <Card as="li" key={row.slug} className="space-y-3 rounded-2xl">
             <p className="text-lg">
-              <CoinLink row={row} />
+              <CoinLink row={row} withSymbol />
             </p>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <div>
@@ -235,10 +232,7 @@ export function PortfolioBody({
                 </dd>
               </div>
             </dl>
-            <div className="flex items-start justify-between gap-3 pt-1">
-              {edit(row)}
-              {remove(row)}
-            </div>
+            <HoldingActions {...editing(row, csrfToken)} />
           </Card>
         ))}
       </ul>
