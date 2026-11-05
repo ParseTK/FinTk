@@ -1,6 +1,8 @@
 import { Container } from "@/components/ui/Container";
+import { Feature } from "@/components/ui/Feature";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { BreakEvenCalculator, GainLossCalculator, PercentChangeCalculator } from "./Calculators";
+import { CompareSection } from "./CompareSection";
 
 const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
 
@@ -9,7 +11,7 @@ const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
  * use exact decimal arithmetic, send nothing anywhere and keep nothing, so they need no account and
  * no data from any provider.
  */
-export function ResearchTools() {
+export function ResearchTools({ compare = [] }: { compare?: readonly string[] }) {
   return (
     <Container className="space-y-8 py-8">
       <header className="space-y-3">
@@ -20,10 +22,14 @@ export function ResearchTools() {
           Nothing you enter is sent or saved, and nothing here predicts a price.
         </p>
       </header>
-      <div className="grid max-w-3xl gap-6">
+      <div className="grid max-w-3xl grid-cols-[minmax(0,1fr)] gap-6">
         <PercentChangeCalculator />
         <GainLossCalculator />
         <BreakEvenCalculator />
+        {/* Needs market data, so it appears only when the crypto pages are on. */}
+        <Feature flag="crypto">
+          <CompareSection slugs={compare} />
+        </Feature>
       </div>
       <LinkButton href="/resources" variant="secondary">
         Back to the overview
