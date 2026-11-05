@@ -58,12 +58,12 @@ describe("CryptoHome", () => {
     await expectNoA11yViolations(container);
   });
 
-  it("shows live prices and a Bitcoin chart, with one request", async () => {
+  it("shows live prices and Bitcoin's reported changes, with one request", async () => {
     GET.mockResolvedValue({ data: markets });
     render(await CryptoHome());
     expect(screen.getByRole("region", { name: /largest cryptocurrencies/i })).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: /Bitcoin price over the past year/ }),
+      screen.getByRole("table", { name: /Bitcoin price change over each period/ }),
     ).toBeInTheDocument();
     expect(GET).toHaveBeenCalledTimes(1);
     expect(GET).toHaveBeenCalledWith("/api/v1/crypto/markets");

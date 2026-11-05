@@ -1,17 +1,17 @@
-import { BitcoinChart, CryptoTicker, getCryptoMarkets } from "@/features/crypto";
+import { BitcoinChanges, CryptoTicker, getCryptoMarkets } from "@/features/crypto";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { isEnabled } from "@/lib/flags";
 import { Hero } from "./Hero";
 
 /**
- * The landing page: a strip of live prices, then the hero with a plain Bitcoin chart. Both come from
+ * The landing page: a strip of live prices, then the hero with Bitcoin's reported changes. Both come from
  * one request for the market figures; if that fails (or the crypto pages are off) they are simply
  * left out and the hero is centered, never replaced with invented numbers.
  */
 export async function CryptoHome() {
   const crypto = isEnabled("crypto");
   const markets = crypto ? await getCryptoMarkets() : null;
-  const chart = BitcoinChart({ markets });
+  const chart = BitcoinChanges({ markets });
 
   return (
     <>
