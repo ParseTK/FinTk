@@ -32,6 +32,23 @@ describe("Footer", () => {
     expect(link).toHaveAccessibleName(/opens in a new tab/i);
   });
 
+  it("links the legal pages", () => {
+    render(<Footer />);
+    const legal = screen.getByRole("navigation", { name: "Legal" });
+    expect(within(legal).getByRole("link", { name: "Privacy policy" })).toHaveAttribute(
+      "href",
+      "/privacy",
+    );
+    expect(within(legal).getByRole("link", { name: "Terms of use" })).toHaveAttribute(
+      "href",
+      "/terms",
+    );
+    expect(within(legal).getByRole("link", { name: "Accessibility" })).toHaveAttribute(
+      "href",
+      "/accessibility",
+    );
+  });
+
   it("has no accessibility violations", async () => {
     const { container } = render(<Footer />);
     await expectNoA11yViolations(container);
