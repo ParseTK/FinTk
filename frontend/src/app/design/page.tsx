@@ -110,7 +110,7 @@ export default function DesignPage() {
           <Button size="sm">Small</Button>
           <Button size="md">Medium</Button>
           <Button size="lg">Large</Button>
-          <LinkButton href="/search" variant="secondary">
+          <LinkButton href="/crypto" variant="secondary">
             Link styled as a button
           </LinkButton>
         </div>
@@ -129,7 +129,7 @@ export default function DesignPage() {
 
       <Section id="fields" title="Form fields">
         <div className="grid gap-6 sm:grid-cols-2">
-          <TextField label="Ticker" hint="For example AAPL" placeholder="AAPL" />
+          <TextField label="Coin" hint="For example BTC" placeholder="BTC" />
           <TextField label="Shares" defaultValue="-2" error="Must be greater than zero" />
           <TextField label="Disabled" defaultValue="Read only" disabled />
         </div>
@@ -151,7 +151,7 @@ export default function DesignPage() {
             take no space.
           </p>
           <LiveMessage>Could not sign you out. Reload the page and try again.</LiveMessage>
-          <LiveMessage tone="success">Added 10 shares of AAPL.</LiveMessage>
+          <LiveMessage tone="success">Added 0.5 BTC.</LiveMessage>
           <LiveMessage />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -159,8 +159,8 @@ export default function DesignPage() {
             <EmptyState
               headingLevel={3}
               title="Nothing saved yet"
-              description="Search for a company to add it."
-              action={<LinkButton href="/search">Search</LinkButton>}
+              description="Add a coin to see it here."
+              action={<LinkButton href="/crypto">Browse coins</LinkButton>}
             />
           </Card>
           <Card>

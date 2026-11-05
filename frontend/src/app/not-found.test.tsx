@@ -11,7 +11,10 @@ describe("not found page", () => {
   it("explains and offers a way back", async () => {
     const { container } = render(<NotFound />);
     expect(screen.getByRole("heading", { level: 1, name: "Not found" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to search" })).toHaveAttribute("href", "/search");
+    expect(screen.getByRole("link", { name: "Back to the home page" })).toHaveAttribute(
+      "href",
+      "/",
+    );
     await expectNoA11yViolations(container);
   });
 });

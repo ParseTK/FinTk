@@ -1,42 +1,25 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Container } from "@/components/ui/Container";
-import { Feature } from "@/components/ui/Feature";
-import { SearchBox } from "@/features/search";
 import { isEnabled } from "@/lib/flags";
-import { HeroChart } from "./HeroChart";
-import { TickerChips } from "./TickerChips";
 
-/** Entrance stagger: headline, copy, search, then the chart. Each step is a CSS delay. */
+/** Entrance stagger: headline, copy, actions, then the chart. Each step is a CSS delay. */
 const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 export interface HeroProps {
-  /** Replaces the headline, the text and the search with your own (the headline is the h1). */
-  copy?: { headline: ReactNode; body: string; actions: ReactNode };
-  /** Replaces the sample chart. Null means no chart at all (the text is then centered). */
+  /** The headline. It is the page's h1. */
+  headline: ReactNode;
+  body: string;
+  /** Links or buttons under the text. */
+  actions?: ReactNode;
+  /** Shown beside the text. Null (or left out) means no chart: the text is then centered. */
   chart?: ReactNode | null;
 }
 
-export function Hero({ copy, chart }: HeroProps = {}) {
-  // With the chart switched off, the text column is centered and takes the full width.
-  const withChart = chart === undefined ? isEnabled("hero_chart") : chart !== null;
-  const centered = !withChart;
+export function Hero({ headline, body, actions, chart = null }: HeroProps) {
+  const centered = chart === null;
   // Layers lag behind the page as you scroll away from the top (scroll_motion flag, Motion setting).
   const drift = isEnabled("scroll_motion");
-  // Outer element drifts with the page; the inner one plays the entrance. They cannot be the same
-  // element because both use the CSS animation property.
-  const chartBox = (node: ReactNode) => (
-    <div
-      className={clsx(
-        "w-full max-w-xl justify-self-center md:justify-self-end",
-        drift && "parallax-page [--parallax-from:0px] [--parallax-to:70px]",
-      )}
-    >
-      <div className="animate-fade-up" style={delay(200)}>
-        {node}
-      </div>
-    </div>
-  );
 
   return (
     // overflow-clip, not overflow-hidden: hidden would make this a scroll container and capture the
@@ -80,17 +63,7 @@ export function Hero({ copy, chart }: HeroProps = {}) {
             id="hero-heading"
             className="animate-fade-up text-4xl leading-[1.05] font-bold tracking-tight lg:text-6xl"
           >
-            {copy ? (
-              copy.headline
-            ) : (
-              <>
-                Financial data without the{" "}
-                <span className="from-brand bg-gradient-to-r to-[color-mix(in_oklab,var(--brand),var(--fg)_40%)] bg-clip-text text-transparent">
-                  hype
-                </span>
-                .
-              </>
-            )}
+            {headline}
           </h1>
           <p
             className={clsx(
@@ -99,36 +72,33 @@ export function Hero({ copy, chart }: HeroProps = {}) {
             )}
             style={delay(120)}
           >
-            {copy
-              ? copy.body
-              : "Research public companies from primary filings and financials, without the noise."}
+            {body}
           </p>
-          <div className="animate-fade-up space-y-4" style={delay(240)}>
-            {copy ? (
-              <div
-                className={clsx(
-                  "flex flex-wrap justify-center gap-3",
-                  !centered && "md:justify-start",
-                )}
-              >
-                {copy.actions}
-              </div>
-            ) : (
-              <>
-                <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
-                  <SearchBox size="lg" />
-                </div>
-                <div className={clsx("flex justify-center", !centered && "md:justify-start")}>
-                  <TickerChips />
-                </div>
-              </>
-            )}
-          </div>
+          {actions && (
+            <div
+              className={clsx(
+                "animate-fade-up flex flex-wrap justify-center gap-3",
+                !centered && "md:justify-start",
+              )}
+              style={delay(240)}
+            >
+              {actions}
+            </div>
+          )}
         </div>
-        {chart === undefined ? (
-          <Feature flag="hero_chart">{chartBox(<HeroChart />)}</Feature>
-        ) : (
-          chart !== null && chartBox(chart)
+        {chart !== null && (
+          // Outer element drifts with the page; the inner one plays the entrance. They cannot be the
+          // same element because both use the CSS animation property.
+          <div
+            className={clsx(
+              "w-full max-w-xl justify-self-center md:justify-self-end",
+              drift && "parallax-page [--parallax-from:0px] [--parallax-to:70px]",
+            )}
+          >
+            <div className="animate-fade-up" style={delay(200)}>
+              {chart}
+            </div>
+          </div>
         )}
       </Container>
     </section>

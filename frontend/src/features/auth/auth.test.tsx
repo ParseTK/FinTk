@@ -35,7 +35,7 @@ beforeEach(() => {
 describe("SignInPanel", () => {
   it("offers a link per configured provider that carries the destination", async () => {
     const { container } = render(
-      <SignInPanel providers={["github", "google"]} next="/company/AAPL" />,
+      <SignInPanel providers={["github", "google"]} next="/crypto/news" />,
     );
 
     expect(
@@ -43,11 +43,11 @@ describe("SignInPanel", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Continue with GitHub" })).toHaveAttribute(
       "href",
-      "/api/v1/auth/github/login?next=%2Fcompany%2FAAPL",
+      "/api/v1/auth/github/login?next=%2Fcrypto%2Fnews",
     );
     expect(screen.getByRole("link", { name: "Continue with Google" })).toHaveAttribute(
       "href",
-      "/api/v1/auth/google/login?next=%2Fcompany%2FAAPL",
+      "/api/v1/auth/google/login?next=%2Fcrypto%2Fnews",
     );
     await expectNoA11yViolations(container);
   });
@@ -164,7 +164,7 @@ describe("AccountMenuView", () => {
     expect(button).toHaveAttribute("data-initials", initials(user));
   });
 
-  it("links to the portfolio, the watchlist and the account, in the Holdings sidebar's order, then Sign out", async () => {
+  it("links to the account, then Sign out (Portfolio and Watchlist join when they exist)", async () => {
     render(<AccountMenuView user={user} csrfToken="c" />);
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
 
@@ -172,15 +172,10 @@ describe("AccountMenuView", () => {
       .getAllByRole("link")
       .map((link) => [link.textContent, link.getAttribute("href")]);
 
-    expect(links).toEqual([
-      ["Portfolio", "/portfolio"],
-      ["Watchlist", "/watchlist"],
-      ["Account", "/account"],
-    ]);
+    expect(links).toEqual([["Account", "/account"]]);
     const panel = screen.getByRole("navigation", { name: "Your pages" }).parentElement!;
     const order = [...panel.querySelectorAll("a, button")].map((element) => element.textContent);
-    expect(order.slice(-4)).toEqual(["Portfolio", "Watchlist", "Account", "Sign out"]);
-    expect(screen.getByRole("navigation", { name: "Your pages" })).toBeInTheDocument();
+    expect(order.slice(-2)).toEqual(["Account", "Sign out"]);
   });
 
   it("closes on Escape and returns focus to the button", async () => {

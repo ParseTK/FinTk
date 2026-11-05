@@ -4,30 +4,31 @@ import { isEnabled } from "@/lib/flags";
 import { Hero } from "./Hero";
 
 /**
- * The landing page when it leads with crypto: a strip of live prices, then the hero with a plain
- * Bitcoin chart. Both come from one request for the market figures; if that fails they are simply
- * left out (the hero is then centered), never replaced with invented numbers.
+ * The landing page: a strip of live prices, then the hero with a plain Bitcoin chart. Both come from
+ * one request for the market figures; if that fails (or the crypto pages are off) they are simply
+ * left out and the hero is centered, never replaced with invented numbers.
  */
 export async function CryptoHome() {
-  const markets = await getCryptoMarkets();
+  const crypto = isEnabled("crypto");
+  const markets = crypto ? await getCryptoMarkets() : null;
   const chart = BitcoinChart({ markets });
 
   return (
     <>
       <CryptoTicker markets={markets} />
       <Hero
-        copy={{
-          headline: (
-            <>
-              Digital{" "}
-              <span className="from-brand bg-gradient-to-r to-[color-mix(in_oklab,var(--brand),var(--fg)_40%)] bg-clip-text text-transparent">
-                financial
-              </span>{" "}
-              data.
-            </>
-          ),
-          body: "Research crypto markets, coins and official filings.",
-          actions: (
+        headline={
+          <>
+            Digital{" "}
+            <span className="from-brand bg-gradient-to-r to-[color-mix(in_oklab,var(--brand),var(--fg)_40%)] bg-clip-text text-transparent">
+              financial
+            </span>{" "}
+            data.
+          </>
+        }
+        body="Research crypto markets, coins and official filings."
+        actions={
+          crypto && (
             <>
               <LinkButton href="/crypto" size="lg">
                 Explore the market
@@ -38,8 +39,8 @@ export async function CryptoHome() {
                 </LinkButton>
               )}
             </>
-          ),
-        }}
+          )
+        }
         chart={chart}
       />
     </>

@@ -52,7 +52,7 @@ describe("sendJson requests", () => {
     const fetcher = json(201, { id: "1" });
 
     await sendJson("POST", "/api/v1/portfolio/lots", "tok", {
-      body: { symbol: "AAPL" },
+      body: { symbol: "BTC" },
       idempotencyKey: "same-same-same",
       fetcher,
     });
@@ -65,14 +65,14 @@ describe("sendJson requests", () => {
         "Idempotency-Key": "same-same-same",
       },
       credentials: "same-origin",
-      body: JSON.stringify({ symbol: "AAPL" }),
+      body: JSON.stringify({ symbol: "BTC" }),
     });
   });
 
   it("sends no body and no content type when there is none", async () => {
     const fetcher = json(204);
-    await sendJson("DELETE", "/api/v1/watchlist/AAPL", "tok", { fetcher });
-    expect(fetcher).toHaveBeenCalledWith("/api/v1/watchlist/AAPL", {
+    await sendJson("DELETE", "/api/v1/watchlist/BTC", "tok", { fetcher });
+    expect(fetcher).toHaveBeenCalledWith("/api/v1/watchlist/BTC", {
       method: "DELETE",
       headers: { "X-CSRF-Token": "tok" },
       credentials: "same-origin",
@@ -183,7 +183,7 @@ describe("sendJson results", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(Object.keys(result.rows)).toEqual(["1", "2"]);
-      expect(result.rows[1]).toEqual({ symbol: "We could not find a company with that ticker." });
+      expect(result.rows[1]).toEqual({ symbol: "We could not find a coin with that symbol." });
       expect(result.rows[2]?.acquired_on).toBe("The purchase date cannot be in the future.");
       expect(result.rows[2]?.shares).toMatch(/shares above zero/);
     }

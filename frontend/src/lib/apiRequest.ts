@@ -74,7 +74,7 @@ export interface Success<T> {
 export type JsonResult<T> = Success<T> | Failure;
 
 const FIELD_MESSAGES: Record<string, string> = {
-  symbol: "Enter a ticker symbol such as AAPL.",
+  symbol: "Enter a coin symbol such as BTC.",
   shares: "Enter a number of shares above zero, with at most 6 decimals.",
   unit_cost: "Enter a price above zero, with at most 6 decimals.",
   acquired_on: "Use a date like 2024-05-31.",
@@ -102,7 +102,7 @@ function failure(
 
 /** What to say about a problem the API located. Its own `type` wins where we know a better line. */
 const TYPE_MESSAGES: Record<string, string> = {
-  unknown_symbol: "We could not find a company with that ticker.",
+  unknown_symbol: "We could not find a coin with that symbol.",
   future_date: "The purchase date cannot be in the future.",
 };
 
