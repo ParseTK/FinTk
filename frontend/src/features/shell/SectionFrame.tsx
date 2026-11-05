@@ -27,7 +27,9 @@ export function SectionFrame({
   if (!section) return <>{children}</>;
 
   return (
-    <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-2 lg:px-4">
+    // Same wide width as the header and footer. Only the left side is padded here: the page's own
+    // container pads its right side, so the right edges line up with the header too.
+    <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-2 lg:pl-8">
       <nav
         aria-label={`${section.label} pages`}
         className="px-4 pt-2 sm:px-6 lg:sticky lg:top-4 lg:self-start lg:px-0 lg:pt-8"

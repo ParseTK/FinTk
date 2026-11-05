@@ -1,9 +1,10 @@
+import { Container } from "@/components/ui/Container";
 import { SITE } from "@/lib/site";
 
 export function Footer() {
   return (
-    <footer className="border-border mt-16 border-t px-4 py-8 sm:px-6 lg:px-8">
-      <div className="text-fg-muted space-y-2 text-sm">
+    <footer className="border-border mt-16 border-t py-8">
+      <Container size="wide" className="text-fg-muted space-y-2 text-sm">
         <p>
           {SITE.name} shows financial information for research and education. It is not investment
           advice, and data may be delayed or incomplete.
@@ -19,7 +20,7 @@ export function Footer() {
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </p>
-      </div>
+      </Container>
     </footer>
   );
 }
