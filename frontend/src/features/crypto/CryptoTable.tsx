@@ -1,18 +1,10 @@
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
+import { CoinName, coinHref } from "./CoinName";
 import { compactUsd, formatCoinPrice } from "./crypto";
 import type { CryptoAsset } from "./types";
 
 const NOT_AVAILABLE = <span className="text-fg-muted whitespace-nowrap">Not available</span>;
-
-function Name({ asset }: { asset: CryptoAsset }) {
-  return (
-    <>
-      <span className="font-medium">{asset.name}</span>{" "}
-      <span className="text-fg-muted text-sm">{asset.symbol}</span>
-    </>
-  );
-}
 
 const Percent = ({ value }: { value: string | null }) =>
   value === null ? NOT_AVAILABLE : <Change value={value} />;
@@ -32,9 +24,12 @@ const HEADINGS = ["Price", "24 hours", "7 days", "Market cap", "Volume (24 hours
 export function CryptoTable({
   caption,
   assets,
+  linkCoins = false,
 }: {
   caption: string;
   assets: readonly CryptoAsset[];
+  /** Link each name to the coin's page (only while that page exists). */
+  linkCoins?: boolean;
 }) {
   return (
     <>
@@ -61,7 +56,11 @@ export function CryptoTable({
               <tr key={asset.slug} className="border-border border-t">
                 <td className="text-fg-muted px-3 py-3 text-right tabular-nums">{asset.rank}</td>
                 <th scope="row" className="px-3 py-3 text-left font-normal">
-                  <Name asset={asset} />
+                  <CoinName
+                    name={asset.name}
+                    symbol={asset.symbol}
+                    href={linkCoins ? coinHref(asset.slug) : undefined}
+                  />
                 </th>
                 <td className="px-3 py-3 text-right tabular-nums">
                   {formatCoinPrice(asset.price)}
@@ -93,7 +92,11 @@ export function CryptoTable({
                   <span className="sr-only">Rank </span>
                   {asset.rank}
                 </span>
-                <Name asset={asset} />
+                <CoinName
+                  name={asset.name}
+                  symbol={asset.symbol}
+                  href={linkCoins ? coinHref(asset.slug) : undefined}
+                />
               </h3>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 <div>

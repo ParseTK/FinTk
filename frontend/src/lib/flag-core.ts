@@ -38,6 +38,12 @@ export const FLAGS = {
     description:
       "The /crypto/news page and its sidebar link: official SEC, CFTC and Department of Justice announcements about crypto, and SEC filings of a printed list of crypto companies. Needs the crypto flag too.",
   },
+  // Depends on: crypto (the search box, the search page and the coin pages need both flags on).
+  crypto_search: {
+    default: false,
+    description:
+      "Search for a coin by name or symbol (header box with suggestions, and /crypto/search), and a page for each coin at /crypto/coins/<name>. Needs the crypto flag too.",
+  },
   palette: {
     default: true,
     description:

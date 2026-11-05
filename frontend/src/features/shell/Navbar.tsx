@@ -10,6 +10,7 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { PalettePicker } from "@/features/appearance";
 import { AccountMenu } from "@/features/auth";
+import { CoinSearch } from "@/features/crypto";
 
 /**
  * The header: the logo, one link per section (a section's own pages are in the sidebar), then the
@@ -31,6 +32,10 @@ export function Navbar() {
           <Link href="/" aria-label="Virello home">
             <Logo />
           </Link>
+          <Feature flag="crypto_search">
+            {/* Under the logo row on phones, between the logo and the links from the small breakpoint. */}
+            <CoinSearch className="order-last w-full sm:order-none sm:mx-4 sm:w-auto sm:max-w-sm sm:flex-1" />
+          </Feature>
           <div className="flex items-center gap-4 sm:gap-6">
             <div
               className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}

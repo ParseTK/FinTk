@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isForwardedApiPath, proxy } from "./proxy";
 
 const request = (path: string) => new NextRequest(`http://localhost:3000${path}`);
@@ -138,5 +138,65 @@ describe("the crypto news page", () => {
     vi.stubEnv("FEATURE_CRYPTO", "true");
     expect(rewrittenTo(await proxy(request("/crypto/news")))).toContain("/not-found-disabled");
     expect(passesThrough(await proxy(request("/crypto")))).toBe(true);
+  });
+});
+
+describe("coin and search pages", () => {
+  const NOT_FOUND = "http://localhost:3000/not-found-disabled";
+
+  it.each(["/crypto/search", "/crypto/coins/bitcoin"])(
+    "%s is a real 404 while the search flag is off, even with crypto on",
+    async (path) => {
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND);
+    },
+  );
+
+  it("lets the search page through when both flags are on", async () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "true");
+    expect(passesThrough(await proxy(request("/crypto/search?q=bit")))).toBe(true);
+  });
+
+  describe("an unknown coin", () => {
+    const fetchSpy = vi.fn();
+    beforeEach(() => {
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      vi.stubEnv("FEATURE_CRYPTO_SEARCH", "true");
+      vi.stubGlobal("fetch", fetchSpy);
+      fetchSpy.mockReset();
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("is a real 404 when the API says the coin is not covered", async () => {
+      fetchSpy.mockResolvedValue(new Response("{}", { status: 404 }));
+      expect(rewrittenTo(await proxy(request("/crypto/coins/nope")))).toBe(NOT_FOUND);
+    });
+
+    it("lets a covered coin through, sending the internal token only to the API", async () => {
+      vi.stubEnv("INTERNAL_API_TOKEN", "same-same-same-same-same-same-same-same");
+      fetchSpy.mockResolvedValue(new Response("{}", { status: 200 }));
+      expect(passesThrough(await proxy(request("/crypto/coins/bitcoin")))).toBe(true);
+      const [url, init] = fetchSpy.mock.calls[0]!;
+      expect(String(url)).toContain("/api/v1/crypto/coins/bitcoin");
+      expect(init.headers["X-Internal-Token"]).toBe("same-same-same-same-same-same-same-same");
+    });
+
+    it("fails open: an API outage does not turn a good link into a 404", async () => {
+      fetchSpy.mockRejectedValue(new Error("down"));
+      expect(passesThrough(await proxy(request("/crypto/coins/bitcoin")))).toBe(true);
+      fetchSpy.mockResolvedValue(new Response("{}", { status: 502 }));
+      expect(passesThrough(await proxy(request("/crypto/coins/bitcoin")))).toBe(true);
+    });
+
+    it.each([
+      "/crypto/coins/UPPER",
+      "/crypto/coins/-x",
+      "/crypto/coins/%E0%A4%A",
+      "/crypto/coins/a.b%2F",
+    ])("%s is refused without asking the API", async (path) => {
+      expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
   });
 });

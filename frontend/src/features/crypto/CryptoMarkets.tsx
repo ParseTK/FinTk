@@ -1,3 +1,4 @@
+import { isEnabled } from "@/lib/flags";
 import { Alert } from "@/components/ui/Alert";
 import { DataCredit } from "@/components/ui/DataCredit";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -39,6 +40,7 @@ export async function CryptoMarkets() {
     ...(markets === null ? ["Bitcoin's price and the market make-up"] : []),
     ...unavailable,
   ];
+  const linkCoins = isEnabled("crypto_search");
   const chart = BitcoinChanges({ markets, credit: false });
 
   return (
@@ -75,7 +77,11 @@ export async function CryptoMarkets() {
           <h2 id="coins-heading" className="text-xl font-semibold">
             Largest coins by market cap
           </h2>
-          <CryptoTable caption="Largest coins by market capitalization" assets={overview.assets} />
+          <CryptoTable
+            caption="Largest coins by market capitalization"
+            assets={overview.assets}
+            linkCoins={linkCoins}
+          />
         </section>
       )}
 
@@ -102,6 +108,7 @@ export async function CryptoMarkets() {
             yearStart={markets.year_start}
             pastYearStart={markets.past_year_start}
             caption="How the ten largest coins have done"
+            linkCoins={linkCoins}
           />
         </section>
       )}

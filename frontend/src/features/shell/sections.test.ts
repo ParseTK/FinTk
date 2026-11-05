@@ -80,6 +80,24 @@ describe("footerColumns", () => {
   });
 });
 
+describe("the search section", () => {
+  it("is in the footer but not the header (the header has the search box) or the sidebar", () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "true");
+    expect(hrefs(footerColumns(), "search")).toEqual(["/crypto/search"]);
+    expect(headerItems().map((item) => item.label)).toEqual(["Crypto"]);
+    expect(visibleSections()).toEqual([]);
+  });
+
+  it("needs both the crypto and the search flag", () => {
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "true");
+    expect(footerColumns()).toEqual([]);
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_CRYPTO_SEARCH", "false");
+    expect(hrefs(footerColumns(), "search")).toBeUndefined();
+  });
+});
+
 describe("sectionFor", () => {
   const sections: SectionView[] = [
     {
