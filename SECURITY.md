@@ -8,7 +8,7 @@ Please do not open a public issue. Use GitHub's private vulnerability reporting:
 ## Handling secrets
 
 - Never commit secrets. `.env*` files are git-ignored; only `.env.example` (no values) is tracked.
-- Server-only keys (for example `FMP_API_KEY`) must never use the `NEXT_PUBLIC_` prefix, which ships
+- Server-only keys (for example `VIRELLO_CMC_API_KEY`) must never use the `NEXT_PUBLIC_` prefix, which ships
   the value to the browser.
 - Production secrets live in the hosting platform's secret store and GitHub Actions secrets.
 - If a secret is ever committed, treat it as compromised: rotate it first, then clean history.
