@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { apiBaseUrl } from "@/lib/api/url";
+import { buildCsp, cspHeaderName, cspMode, newNonce } from "@/lib/csp";
 import { isEnabled, type FlagName } from "@/lib/flag-core";
 
 /**
@@ -13,6 +14,10 @@ import { isEnabled, type FlagName } from "@/lib/flag-core";
  *    the session cookie stays same-site (no CORS, no third-party cookie rules). The destination is
  *    read at request time. Only the paths below are forwarded: the rest of the API (crypto data and
  *    so on) is called by the server directly and is not exposed to browsers through here.
+ *
+ * 3. Gives every page its Content-Security-Policy with a fresh nonce (see lib/csp). The nonce also
+ *    travels to the page as a request header, so the framework and the layout can stamp it on the
+ *    scripts they emit; a script without it is refused by the browser.
  */
 
 const GATED_PAGES: ReadonlyArray<readonly [prefix: string, flag: FlagName]> = [
@@ -67,8 +72,10 @@ const isUnder = (pathname: string, prefix: string) =>
   pathname === prefix || pathname.startsWith(`${prefix}/`);
 
 /** Rewriting to a path that does not exist renders the app's not-found page with status 404. */
-function notFound(request: NextRequest) {
-  return NextResponse.rewrite(new URL("/not-found-disabled", request.url));
+function notFound(request: NextRequest, headers: Headers) {
+  return NextResponse.rewrite(new URL("/not-found-disabled", request.url), {
+    request: { headers },
+  });
 }
 
 /** Whether a browser call to this API path, with this method, is forwarded (given the flags). */
@@ -118,17 +125,36 @@ async function coinMissing(raw: string): Promise<boolean> {
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  // The API sets its own headers (a strict default-src none), so only pages get this policy.
   if (pathname.startsWith("/api/")) {
-    if (!isForwardedApiPath(pathname, request.method)) return notFound(request);
+    if (!isForwardedApiPath(pathname, request.method)) return notFound(request, request.headers);
     return NextResponse.rewrite(new URL(`${pathname}${search}`, apiBaseUrl()));
   }
+
+  const name = cspHeaderName(cspMode());
+  const nonce = newNonce();
+  const policy = name ? buildCsp(nonce) : null;
+  const headers = new Headers(request.headers);
+  if (name && policy) {
+    // Next reads the nonce out of the request's policy and stamps it on its own scripts; the layout
+    // reads x-nonce for the one inline script it writes itself.
+    headers.set(name, policy);
+    headers.set("x-nonce", nonce);
+  }
+  const response = await route(request, headers);
+  if (policy && name) response.headers.set(name, policy);
+  return response;
+}
+
+async function route(request: NextRequest, headers: Headers) {
+  const { pathname } = request.nextUrl;
 
   // Every gate that matches must be open: /crypto/markets needs both the crypto and the crypto_markets
   // flags, so turning the markets page on never opens it while the crypto page itself is off.
   const closed = GATED_PAGES.some(
     ([prefix, flag]) => isUnder(pathname, prefix) && !isEnabled(flag),
   );
-  if (closed) return notFound(request);
+  if (closed) return notFound(request, headers);
 
   // Pages that are only for a signed-in person send a visitor with no session cookie to sign in
   // before anything renders. Left to the page, the shell and sidebar would stream first and flash.
@@ -143,25 +169,11 @@ export async function proxy(request: NextRequest) {
   }
 
   const coin = COIN_PAGE.exec(pathname);
-  if (coin && (await coinMissing(coin[1]!))) return notFound(request);
-  return NextResponse.next();
+  if (coin && (await coinMissing(coin[1]!))) return notFound(request, headers);
+  return NextResponse.next({ request: { headers } });
 }
 
 export const config = {
-  matcher: [
-    "/design",
-    "/design/:path*",
-    "/crypto",
-    "/crypto/markets",
-    "/crypto/news",
-    "/crypto/search",
-    "/crypto/coins/:path*",
-    "/sign-in",
-    "/account",
-    "/holdings",
-    "/holdings/:path*",
-    "/resources",
-    "/resources/:path*",
-    "/api/:path*",
-  ],
+  // Every page gets the policy (and keeps the gates above). Static files and images need neither.
+  matcher: ["/((?!_next/static|_next/image|icon.svg|robots.txt|llms.txt).*)"],
 };
