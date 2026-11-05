@@ -156,6 +156,33 @@ describe("AccountMenuView", () => {
     await expectNoA11yViolations(container);
   });
 
+  it("lists Portfolio, Watchlist, Account, then Sign out when the holdings pages are on", async () => {
+    render(
+      <AccountMenuView
+        user={user}
+        csrfToken="c"
+        holdingsLinks={[
+          { href: "/holdings", label: "Portfolio" },
+          { href: "/holdings/watchlist", label: "Watchlist" },
+        ]}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    const nav = screen.getByRole("navigation", { name: "Your pages" });
+    const entries = [...nav.querySelectorAll("a")].map((a) => [
+      a.textContent,
+      a.getAttribute("href"),
+    ]);
+    expect(entries).toEqual([
+      ["Portfolio", "/holdings"],
+      ["Watchlist", "/holdings/watchlist"],
+      ["Account", "/account"],
+    ]);
+    // Sign out is last in the menu.
+    const buttons = screen.getAllByRole("button");
+    expect(buttons[buttons.length - 1]).toHaveAccessibleName("Sign out");
+  });
+
   it("draws the initials as decoration, so the visible label does not clash with the name", () => {
     render(<AccountMenuView user={user} csrfToken="c" />);
     const button = screen.getByRole("button", { name: "Account menu" });
@@ -164,7 +191,7 @@ describe("AccountMenuView", () => {
     expect(button).toHaveAttribute("data-initials", initials(user));
   });
 
-  it("links to the account, then Sign out (Portfolio and Watchlist join when they exist)", async () => {
+  it("links to the account, then Sign out, when there are no holdings pages", async () => {
     render(<AccountMenuView user={user} csrfToken="c" />);
     await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
 

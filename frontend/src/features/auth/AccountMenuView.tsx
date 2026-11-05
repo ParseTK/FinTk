@@ -16,13 +16,25 @@ export function initials(user: Pick<User, "name" | "email">): string {
   return letters.toUpperCase();
 }
 
-const MENU_LINKS = [
-  // Holdings pages (Portfolio, Watchlist) join this list, in the sidebar's order, when they exist.
-  // Sign out comes after them.
-  { href: "/account", label: "Account" },
-] as const;
+export interface MenuLink {
+  href: string;
+  label: string;
+}
 
-export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: string }) {
+/** The pages every signed-in person has. The holdings pages come before it, in the sidebar's order. */
+const ACCOUNT_LINK: MenuLink = { href: "/account", label: "Account" };
+
+export function AccountMenuView({
+  user,
+  csrfToken,
+  holdingsLinks = [],
+}: {
+  user: User;
+  csrfToken: string;
+  /** Portfolio and Watchlist, when the holdings pages are on. Shown first, then Account. */
+  holdingsLinks?: readonly MenuLink[];
+}) {
+  const links = [...holdingsLinks, ACCOUNT_LINK];
   const { open, toggle, close, buttonRef, containerProps } = useDisclosure();
   const panelId = useId();
 
@@ -52,7 +64,7 @@ export function AccountMenuView({ user, csrfToken }: { user: User; csrfToken: st
             <p className="text-fg-muted truncate text-sm">{user.email}</p>
           </div>
           <nav aria-label="Your pages" className="space-y-1">
-            {MENU_LINKS.map(({ href, label }) => (
+            {links.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}

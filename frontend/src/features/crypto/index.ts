@@ -1,4 +1,5 @@
 /** Public API of the crypto feature: top coins, market totals and Fear and Greed. */
+export { compactUsd, formatCoinPrice } from "./crypto";
 export { getCoin, getCryptoMarkets, getCryptoNews, getCryptoOverview } from "./data";
 export { CoinPage } from "./CoinPage";
 export { CoinSearch } from "./CoinSearch";

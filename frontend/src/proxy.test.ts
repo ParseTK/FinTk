@@ -79,6 +79,7 @@ describe("forwarding sign-in calls to the API", () => {
   });
 
   it("matches only exact allowlisted paths", async () => {
+    vi.stubEnv("FEATURE_AUTH", "true");
     expect(isForwardedApiPath("/api/v1/me")).toBe(true);
     expect(isForwardedApiPath("/api/v1/auth/session")).toBe(true);
     expect(isForwardedApiPath("/api/v1/meta")).toBe(false);
@@ -198,5 +199,61 @@ describe("coin and search pages", () => {
       expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND);
       expect(fetchSpy).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe("holdings pages and calls", () => {
+  const NOT_FOUND = "http://localhost:3000/not-found-disabled";
+  const allOn = () => {
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_HOLDINGS", "true");
+  };
+  const call = (path: string, method: string) =>
+    proxy(new NextRequest(`http://localhost:3000${path}`, { method }));
+
+  it.each(["/holdings", "/holdings/watchlist"])(
+    "%s is a real 404 until every flag it needs is on",
+    async (path) => {
+      expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND);
+      vi.stubEnv("FEATURE_HOLDINGS", "true");
+      vi.stubEnv("FEATURE_AUTH", "true");
+      expect(rewrittenTo(await proxy(request(path)))).toBe(NOT_FOUND); // crypto still off
+      vi.stubEnv("FEATURE_CRYPTO", "true");
+      expect(passesThrough(await proxy(request(path)))).toBe(true);
+    },
+  );
+
+  it("forwards a browser's writes to the watchlist and portfolio", async () => {
+    allOn();
+    for (const method of ["PUT", "DELETE"]) {
+      for (const path of ["/api/v1/watchlist/bitcoin", "/api/v1/portfolio/bitcoin"]) {
+        expect(rewrittenTo(await call(path, method))).toBe(`http://localhost:8000${path}`);
+      }
+    }
+  });
+
+  it("never forwards a read: priced data is for our own pages only", async () => {
+    allOn();
+    for (const path of ["/api/v1/watchlist", "/api/v1/portfolio", "/api/v1/watchlist/bitcoin"]) {
+      for (const method of ["GET", "HEAD", "POST", "PATCH"]) {
+        expect(rewrittenTo(await call(path, method))).toBe(NOT_FOUND);
+      }
+    }
+  });
+
+  it("forwards nothing while any of its flags is off", async () => {
+    for (const off of ["FEATURE_AUTH", "FEATURE_CRYPTO", "FEATURE_HOLDINGS"]) {
+      allOn();
+      vi.stubEnv(off, "false");
+      expect(rewrittenTo(await call("/api/v1/portfolio/bitcoin", "PUT"))).toBe(NOT_FOUND);
+    }
+  });
+
+  it("does not forward anything outside those prefixes", async () => {
+    allOn();
+    for (const path of ["/api/v1/portfolio", "/api/v1/portfolios/x", "/api/v1/watchlisted/x"]) {
+      expect(rewrittenTo(await call(path, "PUT"))).toBe(NOT_FOUND);
+    }
   });
 });

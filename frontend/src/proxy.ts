@@ -24,14 +24,39 @@ const GATED_PAGES: ReadonlyArray<readonly [prefix: string, flag: FlagName]> = [
   ["/crypto/coins", "crypto_search"],
   ["/sign-in", "auth"],
   ["/account", "auth"],
+  // The holdings pages need prices (crypto), a person (auth) and their own flag.
+  ["/holdings", "crypto"],
+  ["/holdings", "auth"],
+  ["/holdings", "holdings"],
 ];
 
-/** API paths a browser may reach through this proxy, and the flag that switches them on. */
-const FORWARDED = {
-  flag: "auth",
-  exact: ["/api/v1/me"],
-  prefixes: ["/api/v1/auth/"],
-} as const;
+/**
+ * API paths a browser may reach through this proxy, and the flags that switch them on.
+ *
+ * Sign-in calls pass in every method. The holdings and watchlist are different: a browser may only
+ * WRITE them (PUT, DELETE, which answer with what the person entered and nothing else). Reading
+ * them returns the data provider's prices, which our licence allows only inside our own pages, so
+ * those reads are made by the website server and are not forwarded for browsers at all.
+ */
+const FORWARDED = [
+  {
+    flags: ["auth"],
+    exact: ["/api/v1/me"],
+    prefixes: ["/api/v1/auth/"],
+    methods: null,
+  },
+  {
+    flags: ["auth", "crypto", "holdings"],
+    exact: [],
+    prefixes: ["/api/v1/watchlist/", "/api/v1/portfolio/"],
+    methods: ["PUT", "DELETE"],
+  },
+] as const satisfies ReadonlyArray<{
+  flags: readonly FlagName[];
+  exact: readonly string[];
+  prefixes: readonly string[];
+  methods: readonly string[] | null;
+}>;
 
 const isUnder = (pathname: string, prefix: string) =>
   pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -41,10 +66,14 @@ function notFound(request: NextRequest) {
   return NextResponse.rewrite(new URL("/not-found-disabled", request.url));
 }
 
-export function isForwardedApiPath(pathname: string): boolean {
-  return (
-    (FORWARDED.exact as readonly string[]).includes(pathname) ||
-    FORWARDED.prefixes.some((prefix) => pathname.startsWith(prefix))
+/** Whether a browser call to this API path, with this method, is forwarded (given the flags). */
+export function isForwardedApiPath(pathname: string, method = "GET"): boolean {
+  return FORWARDED.some(
+    (rule) =>
+      rule.flags.every((flag) => isEnabled(flag)) &&
+      (rule.methods === null || (rule.methods as readonly string[]).includes(method)) &&
+      ((rule.exact as readonly string[]).includes(pathname) ||
+        rule.prefixes.some((prefix) => pathname.startsWith(prefix))),
   );
 }
 
@@ -85,7 +114,7 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (pathname.startsWith("/api/")) {
-    if (!isEnabled(FORWARDED.flag) || !isForwardedApiPath(pathname)) return notFound(request);
+    if (!isForwardedApiPath(pathname, request.method)) return notFound(request);
     return NextResponse.rewrite(new URL(`${pathname}${search}`, apiBaseUrl()));
   }
 
@@ -112,6 +141,8 @@ export const config = {
     "/crypto/coins/:path*",
     "/sign-in",
     "/account",
+    "/holdings",
+    "/holdings/:path*",
     "/api/:path*",
   ],
 };

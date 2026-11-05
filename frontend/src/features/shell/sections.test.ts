@@ -80,6 +80,41 @@ describe("footerColumns", () => {
   });
 });
 
+describe("the holdings section", () => {
+  const on = () => {
+    vi.stubEnv("FEATURE_CRYPTO", "true");
+    vi.stubEnv("FEATURE_AUTH", "true");
+    vi.stubEnv("FEATURE_HOLDINGS", "true");
+  };
+
+  it("needs the crypto, auth and holdings flags: it is a person's own coins, valued at live prices", () => {
+    for (const missing of ["FEATURE_CRYPTO", "FEATURE_AUTH", "FEATURE_HOLDINGS"]) {
+      on();
+      vi.stubEnv(missing, "false");
+      expect(hrefs(footerColumns(), "holdings")).toBeUndefined();
+      expect(headerItems().map((item) => item.label)).not.toContain("Holdings");
+    }
+  });
+
+  it("is one header link to the portfolio, with Portfolio and Watchlist in the sidebar", () => {
+    on();
+    expect(headerItems().map((item) => [item.label, item.href])).toContainEqual([
+      "Holdings",
+      "/holdings",
+    ]);
+    expect(hrefs(visibleSections(), "holdings")).toEqual(["/holdings", "/holdings/watchlist"]);
+    expect(hrefs(footerColumns(), "holdings")).toEqual(["/holdings", "/holdings/watchlist"]);
+  });
+
+  it("makes the portfolio current only on its own page, not on the watchlist beneath it", () => {
+    on();
+    const section = visibleSections().find((entry) => entry.id === "holdings")!;
+    expect(sectionFor([section], "/holdings/watchlist")).toBe(section);
+    const portfolio = section.links.find((link) => link.href === "/holdings")!;
+    expect(portfolio.exact).toBe(true);
+  });
+});
+
 describe("the search section", () => {
   it("is in the footer but not the header (the header has the search box) or the sidebar", () => {
     vi.stubEnv("FEATURE_CRYPTO", "true");

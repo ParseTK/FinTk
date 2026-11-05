@@ -42,6 +42,19 @@ const SECTIONS: readonly Section[] = [
     inHeader: false,
     links: [{ href: "/crypto/search", label: "Search coins", flags: ["crypto", "crypto_search"] }],
   },
+  {
+    // A signed-in person's own coins. The pages need prices (crypto) and a person (auth).
+    id: "holdings",
+    label: "Holdings",
+    links: [
+      { href: "/holdings", label: "Portfolio", flags: ["crypto", "auth", "holdings"], exact: true },
+      {
+        href: "/holdings/watchlist",
+        label: "Watchlist",
+        flags: ["crypto", "auth", "holdings"],
+      },
+    ],
+  },
 ];
 
 /** A section's pages that can be shown right now (every flag each needs is on). */
