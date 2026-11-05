@@ -68,7 +68,7 @@ export const AREAS: readonly Area[] = [
   },
 ];
 
-/** "Follow your question": a question a reader might have, and the area that answers it. */
+/** "Common questions": a question a reader might have, and the area that answers it. */
 export const QUESTIONS: ReadonlyArray<{ question: string; area: AreaId; label: string }> = [
   { question: "What does this figure actually represent?", area: "data", label: "Methodology" },
   { question: "Where can I find the original document?", area: "sources", label: "Sources" },

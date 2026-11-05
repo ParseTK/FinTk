@@ -36,17 +36,15 @@ export function ResourcesOverview() {
           </h1>
         </div>
         <p className="text-fg-muted">
-          Learn the concepts, find the original material, and understand the figures. Choose the
-          resource that fits your question.
+          Learn the concepts, find the original material, and understand the figures.
         </p>
       </header>
 
       <section aria-labelledby="start-heading" className="space-y-5">
-        <div className="border-border flex flex-wrap items-baseline justify-between gap-2 border-b pb-3">
+        <div className="border-border border-b pb-3">
           <h2 id="start-heading" className="text-lg font-semibold">
-            Four places to start.
+            Explore the resources
           </h2>
-          <p className="text-fg-muted text-sm">Choose by purpose, not by headline.</p>
         </div>
         <ol className="grid gap-4 md:grid-cols-2">
           {AREAS.map((area, index) => {
@@ -97,7 +95,7 @@ export function ResourcesOverview() {
         className="border-border grid gap-6 border-t pt-8 md:grid-cols-[1fr_1.6fr]"
       >
         <div className="space-y-2">
-          <p className={EYEBROW}>Follow your question</p>
+          <p className={EYEBROW}>Common questions</p>
           <h2 id="question-heading" className="text-2xl font-semibold tracking-tight">
             Not sure where <br />
             to begin?

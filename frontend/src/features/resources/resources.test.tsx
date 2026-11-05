@@ -12,7 +12,7 @@ describe("ResourcesOverview", () => {
       "A clearer route to your research.",
     );
     const cards = screen
-      .getByRole("heading", { level: 2, name: "Four places to start." })
+      .getByRole("heading", { level: 2, name: "Explore the resources" })
       .closest("section")!;
     for (const area of AREAS) {
       expect(

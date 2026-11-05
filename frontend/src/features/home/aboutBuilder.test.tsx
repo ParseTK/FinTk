@@ -11,6 +11,10 @@ describe("AboutBuilder", () => {
       "href",
       "https://github.com/ParseTK/FinTk",
     );
+    expect(screen.getByRole("link", { name: /My portfolio/ })).toHaveAttribute(
+      "href",
+      "https://parsetk.github.io",
+    );
     await expectNoA11yViolations(container);
   });
 });

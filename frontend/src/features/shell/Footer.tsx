@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { GitHubIcon } from "@/components/ui/icons";
 import { SITE } from "@/lib/site";
 import { footerColumns } from "./sections";
 
@@ -78,8 +79,9 @@ export function Footer() {
               href={SITE.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-fg underline underline-offset-4 hover:no-underline"
+              className="text-fg inline-flex items-center gap-2 underline underline-offset-4 hover:no-underline"
             >
+              <GitHubIcon className="size-5" />
               View the source on GitHub
               <span className="sr-only"> (opens in a new tab)</span>
             </a>

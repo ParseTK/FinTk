@@ -1,8 +1,13 @@
 import { Container } from "@/components/ui/Container";
-import { ArrowUpRightIcon } from "@/components/ui/icons";
+import { ArrowUpRightIcon, GitHubIcon, GlobeIcon } from "@/components/ui/icons";
 import { SITE } from "@/lib/site";
 
 const BUILT_WITH = ["Next.js", "FastAPI", "PostgreSQL", "Accessible by design"] as const;
+
+const LINKS = [
+  { href: SITE.repoUrl, label: "View the source on GitHub", Icon: GitHubIcon },
+  { href: SITE.portfolioUrl, label: "My portfolio", Icon: GlobeIcon },
+] as const;
 
 /**
  * A short note on who made the site. First name only, and nothing that is not in the project itself:
@@ -39,16 +44,23 @@ export function AboutBuilder() {
               </li>
             ))}
           </ul>
-          <a
-            href={SITE.repoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline"
-          >
-            View the source on GitHub
-            <ArrowUpRightIcon />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
+          <ul aria-label="Links" className="flex flex-wrap gap-x-6 gap-y-2">
+            {LINKS.map(({ href, label, Icon }) => (
+              <li key={href}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand inline-flex items-center gap-2 text-sm font-medium underline-offset-4 hover:underline"
+                >
+                  <Icon className="size-4" />
+                  {label}
+                  <ArrowUpRightIcon />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </Container>
     </section>
