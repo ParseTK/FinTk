@@ -23,7 +23,7 @@ function withInternalToken(request: Request): Request {
 /**
  * Typed clients generated from the API contract (`schema.d.ts`). Every call has a timeout.
  *
- * - `publicApi`: the same answer for everyone (company data), cached by Next for a few minutes.
+ * - `publicApi`: the same answer for everyone (official crypto news), cached by Next for a few minutes.
  * - `privateApi`: anything that depends on who is asking (the signed-in user). Never cached: a
  *   cached response could be served to a different visitor.
  */

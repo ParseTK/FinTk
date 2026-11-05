@@ -2,7 +2,7 @@ import clsx from "clsx";
 
 /**
  * Decorative loading placeholder. It is hidden from assistive tech, so wherever you show skeletons
- * also render a live status such as <p role="status" className="sr-only">Loading company</p>.
+ * also render a live status such as <p role="status" className="sr-only">Loading prices</p>.
  */
 export function Skeleton({ className }: { className?: string }) {
   return (

@@ -9,7 +9,7 @@ const passesThrough = (response: Response) => response.headers.get("x-middleware
 afterEach(() => vi.unstubAllEnvs());
 
 describe("pages behind a flag", () => {
-  it.each(["/design", "/design/colors", "/sign-in", "/account", "/markets", "/crypto", "/news"])(
+  it.each(["/design", "/design/colors", "/sign-in", "/account", "/crypto", "/crypto/news"])(
     "%s is a real 404 while its flag is off",
     async (path) => {
       expect(rewrittenTo(await proxy(request(path)))).toBe(
@@ -59,6 +59,8 @@ describe("forwarding sign-in calls to the API", () => {
 
   it.each([
     "/api/v1/companies/AAPL", // company data is called by the server, never by browsers
+    "/api/v1/watchlist", // the stock watchlist and portfolio are gone
+    "/api/v1/portfolio/lots",
     "/api/v1/meta", // starts with /api/v1/me but is a different route
     "/api/v1/auth", // no trailing slash: not a sign-in path
     "/api/v1/mesomething",
@@ -85,120 +87,8 @@ describe("forwarding sign-in calls to the API", () => {
   });
 });
 
-describe("watchlist and portfolio paths", () => {
-  it.each(["/watchlist", "/portfolio"])(
-    "%s is a real 404 while the auth flag is off",
-    async (path) => {
-      expect(rewrittenTo(await proxy(request(path)))).toContain("/not-found-disabled");
-    },
-  );
-
-  it.each(["/watchlist", "/portfolio"])("%s is reachable once the flag is on", async (path) => {
-    vi.stubEnv("FEATURE_AUTH", "true");
-    expect(passesThrough(await proxy(request(path)))).toBe(true);
-  });
-
-  it.each([
-    "/api/v1/watchlist",
-    "/api/v1/watchlist/AAPL",
-    "/api/v1/portfolio",
-    "/api/v1/portfolio/lots",
-    "/api/v1/portfolio/lots/2f6ac1d6-0d0e-4c52-a3e6-0f0f2f9f3b11?x=1",
-  ])("forwards %s to the API when the flag is on", async (path) => {
-    vi.stubEnv("FEATURE_AUTH", "true");
-    vi.stubEnv("API_URL", "https://api.virello.example");
-    expect(rewrittenTo(await proxy(request(path)))).toBe(`https://api.virello.example${path}`);
-  });
-
-  it.each(["/api/v1/watchlist", "/api/v1/portfolio/lots"])(
-    "does not forward %s while the flag is off",
-    async (path) => {
-      expect(rewrittenTo(await proxy(request(path)))).toContain("/not-found-disabled");
-    },
-  );
-
-  it.each([
-    "/api/v1/watchlistx",
-    "/api/v1/portfolioish",
-    "/api/v1/portfolio/../companies/AAPL",
-    "/api/v1/watchlist/%2e%2e/companies/AAPL",
-    "/api/v1/watchlist/%2E%2E/%2E%2E/healthz",
-  ])("never forwards the look-alike or traversal path %s", async (path) => {
-    vi.stubEnv("FEATURE_AUTH", "true");
-    const target = rewrittenTo(await proxy(request(path)));
-    expect(target).toContain("/not-found-disabled");
-    expect(target).not.toContain("8000");
-  });
-});
-
-describe("company pages", () => {
-  const apiAnswers = (response: Response | Error) => {
-    const fetchMock = vi.fn(async () => {
-      if (response instanceof Error) throw response;
-      return response;
-    });
-    vi.stubGlobal("fetch", fetchMock);
-    return fetchMock;
-  };
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("answers a real 404 for a ticker the API does not know", async () => {
-    apiAnswers(new Response(null, { status: 404 }));
-    expect(rewrittenTo(await proxy(request("/company/ZZZZ")))).toBe(
-      "http://localhost:3000/not-found-disabled",
-    );
-  });
-
-  it("lets a known company through", async () => {
-    apiAnswers(new Response("{}", { status: 200 }));
-    expect(passesThrough(await proxy(request("/company/AAPL")))).toBe(true);
-  });
-
-  it("checks the API for the ticker in the path, escaped, at the configured address", async () => {
-    vi.stubEnv("API_URL", "https://api.virello.example");
-    const fetchMock = apiAnswers(new Response("{}", { status: 200 }));
-    await proxy(request("/company/brk-b"));
-    const [url, options] = fetchMock.mock.calls[0] as unknown as [URL, RequestInit];
-    expect(String(url)).toBe("https://api.virello.example/api/v1/companies/brk-b");
-    expect(options.cache).toBe("no-store");
-    expect(options.signal).toBeInstanceOf(AbortSignal); // never waits indefinitely
-  });
-
-  it.each([
-    "/company/",
-    "/company/..%2Fetc",
-    "/company/AAPL1",
-    "/company/%41%",
-    "/company/ABCDEFGH",
-  ])("refuses %s without asking the API", async (path) => {
-    const fetchMock = apiAnswers(new Response("{}", { status: 200 }));
-    expect(rewrittenTo(await proxy(request(path)))).toContain("/not-found-disabled");
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it.each([
-    ["the API errors", new Response(null, { status: 500 })],
-    ["the API is unreachable", new Error("connection refused")],
-    ["the API is too slow", new DOMException("timed out", "TimeoutError")],
-    ["the API rate-limits", new Response(null, { status: 429 })],
-  ])("never turns an outage into a 404: %s", async (_, outcome) => {
-    apiAnswers(outcome as Response | Error);
-    expect(passesThrough(await proxy(request("/company/AAPL")))).toBe(true);
-  });
-});
-
-describe("the markets page", () => {
-  it("opens with its own flag, and the auth flag does not open it", async () => {
-    vi.stubEnv("FEATURE_AUTH", "true");
-    expect(rewrittenTo(await proxy(request("/markets")))).toContain("/not-found-disabled");
-    vi.stubEnv("FEATURE_MARKETS", "true");
-    expect(passesThrough(await proxy(request("/markets")))).toBe(true);
-  });
-});
-
 describe("the crypto page", () => {
-  it("opens with its own flag, and neither the markets nor the auth flag opens it", async () => {
-    vi.stubEnv("FEATURE_MARKETS", "true");
+  it("opens with its own flag, and the auth flag does not open it", async () => {
     vi.stubEnv("FEATURE_AUTH", "true");
     expect(rewrittenTo(await proxy(request("/crypto")))).toContain("/not-found-disabled");
     vi.stubEnv("FEATURE_CRYPTO", "true");
@@ -232,15 +122,6 @@ describe("the crypto markets page", () => {
   it("does not open the crypto page", async () => {
     vi.stubEnv("FEATURE_CRYPTO_MARKETS", "true");
     expect(rewrittenTo(await proxy(request("/crypto")))).toContain("/not-found-disabled");
-  });
-});
-
-describe("the news page", () => {
-  it("opens with its own flag, and the markets flag does not open it", async () => {
-    vi.stubEnv("FEATURE_MARKETS", "true");
-    expect(rewrittenTo(await proxy(request("/news")))).toContain("/not-found-disabled");
-    vi.stubEnv("FEATURE_NEWS", "true");
-    expect(passesThrough(await proxy(request("/news")))).toBe(true);
   });
 });
 

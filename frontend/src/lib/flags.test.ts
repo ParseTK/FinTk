@@ -17,24 +17,24 @@ describe("isEnabled", () => {
   });
 
   it.each(["true", "TRUE", "1", "on", " yes "])("turns on for %j", (value) => {
-    expect(isEnabled("news", { FEATURE_NEWS: value })).toBe(true);
+    expect(isEnabled("crypto_news", { FEATURE_CRYPTO_NEWS: value })).toBe(true);
   });
 
   it.each(["false", "0", "off", "", "nope"])("turns off for %j", (value) => {
-    expect(isEnabled("hero_chart", { FEATURE_HERO_CHART: value })).toBe(false);
+    expect(isEnabled("scroll_motion", { FEATURE_SCROLL_MOTION: value })).toBe(false);
   });
 
   it("only changes the flag it names", () => {
     const env = { FEATURE_PALETTE: "false" };
     expect(isEnabled("palette", env)).toBe(false);
-    expect(isEnabled("rich_search", env)).toBe(true);
+    expect(isEnabled("scroll_motion", env)).toBe(true);
   });
 });
 
 describe("flagEnvName", () => {
   it("is FEATURE_ plus the upper-case name", () => {
-    expect(flagEnvName("hero_chart")).toBe("FEATURE_HERO_CHART");
-    expect(flagEnvName("news")).toBe("FEATURE_NEWS");
+    expect(flagEnvName("scroll_motion")).toBe("FEATURE_SCROLL_MOTION");
+    expect(flagEnvName("crypto_news")).toBe("FEATURE_CRYPTO_NEWS");
   });
 });
 

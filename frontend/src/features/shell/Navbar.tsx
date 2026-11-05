@@ -9,15 +9,13 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { PalettePicker } from "@/features/appearance";
 import { AccountMenu } from "@/features/auth";
-import type { Mode } from "@/lib/mode";
-import { ModeSwitch } from "./ModeSwitch";
 
 /**
- * The header. With the Crypto | Stocks switch on, `mode` narrows the links to that mode and the switch
- * is shown (centred on wide screens, on its own row on phones). With no mode it is the plain header.
+ * The header: the logo, one link per section (a section's own pages are in the sidebar), then the
+ * account menu and the appearance picker.
  */
-export function Navbar({ mode = null }: { mode?: Mode | null }) {
-  const items = headerItems(mode);
+export function Navbar() {
+  const items = headerItems();
   const collapse = items.length > COLLAPSE_AFTER;
 
   return (
@@ -29,11 +27,6 @@ export function Navbar({ mode = null }: { mode?: Mode | null }) {
         <Link href="/" aria-label="Virello home">
           <Logo />
         </Link>
-        {mode && (
-          <div className="order-last flex w-full justify-center sm:order-none sm:w-auto">
-            <ModeSwitch mode={mode} />
-          </div>
-        )}
         <div className="flex items-center gap-4 sm:gap-6">
           <div
             className={clsx("items-center gap-4 sm:gap-6", collapse ? "hidden sm:flex" : "flex")}

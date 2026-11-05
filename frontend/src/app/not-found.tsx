@@ -10,8 +10,8 @@ export default function NotFound() {
     <EmptyState
       headingLevel={1}
       title="Not found"
-      description="We could not find that page or company."
-      action={<LinkButton href="/search">Back to search</LinkButton>}
+      description="We could not find that page."
+      action={<LinkButton href="/">Back to the home page</LinkButton>}
     />
   );
 }

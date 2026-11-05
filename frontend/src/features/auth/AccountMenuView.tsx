@@ -17,9 +17,8 @@ export function initials(user: Pick<User, "name" | "email">): string {
 }
 
 const MENU_LINKS = [
-  // The same order as the Holdings sidebar; Sign out comes after them.
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/watchlist", label: "Watchlist" },
+  // Holdings pages (Portfolio, Watchlist) join this list, in the sidebar's order, when they exist.
+  // Sign out comes after them.
   { href: "/account", label: "Account" },
 ] as const;
 

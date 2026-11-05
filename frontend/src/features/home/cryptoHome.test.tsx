@@ -35,6 +35,7 @@ const markets = {
 };
 
 beforeEach(() => {
+  vi.stubEnv("FEATURE_CRYPTO", "true");
   GET.mockReset(); // braces: a returned function would be run by vitest as a cleanup hook
 });
 afterEach(() => vi.unstubAllEnvs());
@@ -85,6 +86,18 @@ describe("CryptoHome", () => {
     const { container } = render(await CryptoHome());
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Digital financial data.");
     expect(screen.queryByRole("region", { name: /largest cryptocurrencies/i })).toBeNull();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe("CryptoHome with the crypto pages off", () => {
+  it("does not ask for any figures, shows no links to pages that are not there, and keeps the hero", async () => {
+    vi.stubEnv("FEATURE_CRYPTO", "false");
+    const { container } = render(await CryptoHome());
+    expect(GET).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Digital financial data.");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     await expectNoA11yViolations(container);
   });

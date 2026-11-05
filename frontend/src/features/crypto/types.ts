@@ -13,3 +13,5 @@ export type Composition = Schemas["CompositionResponse"];
 export type CompositionRow = Schemas["CompositionRowResponse"];
 
 export type CryptoNews = Schemas["CryptoNewsResponse"];
+
+export type NewsItem = Schemas["NewsItemResponse"];

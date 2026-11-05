@@ -6,17 +6,17 @@ afterEach(() => vi.unstubAllEnvs());
 
 describe("Feature", () => {
   it("renders children when the flag is on and the fallback when it is off", () => {
-    vi.stubEnv("FEATURE_NEWS", "true");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "true");
     const { rerender } = render(
-      <Feature flag="news" fallback={<p>fallback</p>}>
+      <Feature flag="crypto_news" fallback={<p>fallback</p>}>
         <p>new thing</p>
       </Feature>,
     );
     expect(screen.getByText("new thing")).toBeInTheDocument();
 
-    vi.stubEnv("FEATURE_NEWS", "false");
+    vi.stubEnv("FEATURE_CRYPTO_NEWS", "false");
     rerender(
-      <Feature flag="news" fallback={<p>fallback</p>}>
+      <Feature flag="crypto_news" fallback={<p>fallback</p>}>
         <p>new thing</p>
       </Feature>,
     );
@@ -26,7 +26,7 @@ describe("Feature", () => {
 
   it("renders nothing by default when off and no fallback is given", () => {
     const { container } = render(
-      <Feature flag="news">
+      <Feature flag="crypto_news">
         <p>new thing</p>
       </Feature>,
     );

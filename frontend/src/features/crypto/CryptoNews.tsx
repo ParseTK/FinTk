@@ -2,7 +2,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { NewsList } from "@/features/news";
+import { NewsList } from "./NewsList";
 import { getCryptoNews } from "./data";
 
 /**
