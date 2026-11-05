@@ -1,4 +1,4 @@
-"""API response models for the news endpoints."""
+"""API response models for the news endpoint."""
 
 from datetime import date
 from typing import Literal
@@ -7,12 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from app.domain.crypto_news import CRYPTO_COMPANIES, CRYPTO_TERMS, FILING_DAYS, PER_COMPANY_LIMIT
 from app.domain.news import NewsItem
-from app.services.news import MarketNews
-
-NEWS_BASIS = (
-    "Only what official sources published themselves: Federal Reserve and SEC announcements, and "
-    "the SEC filings companies make. No opinions, summaries or forecasts."
-)
+from app.services.news import NewsDigest
 
 
 class NewsItemResponse(BaseModel):
@@ -37,23 +32,6 @@ class NewsItemResponse(BaseModel):
         )
 
 
-class MarketNewsResponse(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    basis: str
-    items: list[NewsItemResponse]
-    # Sources that could not be read this time, so the page can say so rather than look complete.
-    unavailable: list[str]
-
-    @classmethod
-    def from_domain(cls, news: MarketNews) -> "MarketNewsResponse":
-        return cls(
-            basis=NEWS_BASIS,
-            items=[NewsItemResponse.from_domain(item) for item in news.items],
-            unavailable=list(news.unavailable),
-        )
-
-
 CRYPTO_NEWS_BASIS = (
     "Only what official sources published themselves: SEC, CFTC and Department of Justice "
     "announcements whose headline contains one of the listed crypto terms, and the SEC filings "
@@ -73,10 +51,11 @@ class CryptoNewsResponse(BaseModel):
     filing_days: int
     per_company_limit: int
     items: list[NewsItemResponse]
+    # Sources that could not be read this time, so the page can say so rather than look complete.
     unavailable: list[str]
 
     @classmethod
-    def from_domain(cls, news: MarketNews) -> "CryptoNewsResponse":
+    def from_domain(cls, news: NewsDigest) -> "CryptoNewsResponse":
         return cls(
             basis=CRYPTO_NEWS_BASIS,
             terms=list(CRYPTO_TERMS),
@@ -86,11 +65,3 @@ class CryptoNewsResponse(BaseModel):
             items=[NewsItemResponse.from_domain(item) for item in news.items],
             unavailable=list(news.unavailable),
         )
-
-
-class CompanyNewsResponse(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    ticker: str
-    basis: str
-    items: list[NewsItemResponse]

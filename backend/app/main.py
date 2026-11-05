@@ -26,17 +26,13 @@ from app.core.middleware import (
 )
 from app.core.rate_limit import KeyedRateLimiter, SlidingWindowBudget
 from app.db.engine import Database
-from app.providers.base import PriceProvider
 from app.providers.coinmarketcap.client import CoinMarketCapProvider
 from app.providers.coinmarketcap.client import build_http_client as build_crypto_client
 from app.providers.feeds import FeedProvider
-from app.providers.sample_prices import SamplePriceProvider
 from app.providers.sec.client import SecProvider, build_http_client, build_user_agent
 from app.services.companies import CompanyService
 from app.services.crypto import CryptoService
-from app.services.markets import MarketService
 from app.services.news import NewsService
-from app.services.prices import StoredPriceProvider
 
 _DOCS_PATHS = ("/docs", "/openapi.json")
 
@@ -63,19 +59,10 @@ def _lifespan(settings: Settings):
             app.state.database = owned_database
             checks: dict[str, ReadinessCheck] = app.state.readiness_checks
             checks["database"] = owned_database.ping
-        # No real price provider is configured: the app serves clearly labelled SAMPLE prices, so
-        # the features built on prices (seasonality, markets, portfolio value) are dormant and off.
-        # To add a licensed provider: implement PriceProvider (providers/base.py), wrap it in
-        # StoredPriceProvider(provider, app.state.database) and assign it to `prices` here, and set
-        # its key in the settings. Read the dormant-features notes (local planning docs) first.
-        prices: PriceProvider = SamplePriceProvider()
-        if app.state.market_service is None:
-            app.state.market_service = MarketService(prices)
         if app.state.company_service is None and settings.sec_contact_email:
             client = build_http_client(settings.sec_contact_email)
             sec = SecProvider(client)
-            latest = prices if isinstance(prices, StoredPriceProvider) else None
-            app.state.company_service = CompanyService(sec, sec, sec, prices, latest)
+            app.state.company_service = CompanyService(sec, sec)
         if app.state.news_service is None:
             feed_client = httpx.AsyncClient(
                 headers={
@@ -118,7 +105,6 @@ def create_app(
     *,
     extra_routers: Sequence[APIRouter] = (),
     company_service: CompanyService | None = None,
-    market_service: MarketService | None = None,
     news_service: NewsService | None = None,
     crypto_service: CryptoService | None = None,
     database: Database | None = None,
@@ -143,7 +129,6 @@ def create_app(
     readiness_checks: dict[str, ReadinessCheck] = {}
     app.state.readiness_checks = readiness_checks
     app.state.company_service = company_service
-    app.state.market_service = market_service
     app.state.news_service = news_service
     app.state.crypto_service = crypto_service
     app.state.database = database

@@ -34,8 +34,6 @@ class Upstream:
             return httpx.Response(200, content=fixture_bytes("company_tickers_exchange.json"))
         if "/submissions/" in url:
             return httpx.Response(200, content=fixture_bytes("submissions_aapl.json"))
-        if "/companyfacts/" in url:
-            return httpx.Response(200, content=fixture_bytes("companyfacts_aapl.json"))
         return httpx.Response(404)
 
 
@@ -58,12 +56,12 @@ def test_the_user_agent_identifies_the_app_with_a_contact() -> None:
     assert client.headers["User-Agent"] == "Virello/0.1 (ops@example.test)"
 
 
-async def test_lookup_and_search_use_one_directory_download() -> None:
+async def test_lookups_use_one_directory_download() -> None:
     upstream = Upstream()
     provider = make_provider(upstream)
 
     assert (await provider.lookup("aapl")) == APPLE
-    assert [c.ticker for c in await provider.search("micro", 5)] == ["MSFT"]
+    assert (await provider.lookup("msft")) is not None
     assert await provider.lookup("NOPE") is None
 
     assert len(upstream.requests) == 1
@@ -76,30 +74,17 @@ async def test_requests_carry_the_identifying_user_agent() -> None:
     assert upstream.requests[0].headers["user-agent"] == "Virello/0.1 (ops@example.test)"
 
 
-async def test_profile_and_filings_share_one_submissions_download() -> None:
+async def test_repeated_filing_lists_share_one_submissions_download() -> None:
     upstream = Upstream()
     provider = make_provider(upstream)
 
-    profile = await provider.profile(APPLE)
-    filings = await provider.filings(APPLE, "10-K", 2)
+    tenks = await provider.filings(APPLE, "10-K", 2)
+    eightks = await provider.filings(APPLE, "8-K", 5)
 
-    assert profile.industry == "Electronic Computers"
-    assert len(filings) == 2
+    assert len(tenks) == 2
+    assert eightks
     urls = [str(r.url) for r in upstream.requests]
     assert urls == ["https://data.sec.gov/submissions/CIK0000320193.json"]
-
-
-async def test_annual_metrics_are_read_from_company_facts() -> None:
-    provider = make_provider(Upstream())
-    series = await provider.annual_metrics(APPLE, 3)
-    revenue = next(s for s in series if s.metric == "revenue")
-    assert len(revenue.values) == 3
-
-
-async def test_a_company_without_facts_gives_an_empty_result_not_an_error() -> None:
-    upstream = Upstream()
-    upstream.overrides["/companyfacts/"] = lambda _: httpx.Response(404)
-    assert await make_provider(upstream).annual_metrics(APPLE, 3) == []
 
 
 async def test_a_transient_failure_is_retried_once() -> None:
@@ -114,10 +99,10 @@ async def test_a_transient_failure_is_retried_once() -> None:
         return httpx.Response(200, content=fixture_bytes("submissions_aapl.json"))
 
     upstream.overrides["/submissions/"] = flaky
-    profile = await make_provider(upstream).profile(APPLE)
+    filings = await make_provider(upstream).filings(APPLE, None, 1)
 
     assert attempts == 2
-    assert profile.name == "Apple Inc."
+    assert len(filings) == 1
 
 
 async def test_a_dropped_connection_is_retried_then_reported_as_an_upstream_error() -> None:
@@ -129,7 +114,7 @@ async def test_a_dropped_connection_is_retried_then_reported_as_an_upstream_erro
 
     upstream.overrides["/submissions/"] = broken
     with pytest.raises(UpstreamError):
-        await make_provider(upstream).profile(APPLE)
+        await make_provider(upstream).filings(APPLE, None, 1)
     assert len(upstream.requests) == 2
 
 
@@ -139,7 +124,7 @@ async def test_a_client_error_is_not_retried(status: int) -> None:
     upstream.overrides["/submissions/"] = lambda _: httpx.Response(status)
 
     with pytest.raises(UpstreamError):
-        await make_provider(upstream).profile(APPLE)
+        await make_provider(upstream).filings(APPLE, None, 1)
     assert len(upstream.requests) == 1
 
 
@@ -148,7 +133,7 @@ async def test_a_persistent_server_error_gives_up_after_two_attempts() -> None:
     upstream.overrides["/submissions/"] = lambda _: httpx.Response(500)
 
     with pytest.raises(UpstreamError):
-        await make_provider(upstream).profile(APPLE)
+        await make_provider(upstream).filings(APPLE, None, 1)
     assert len(upstream.requests) == 2
 
 
@@ -158,7 +143,7 @@ async def test_an_unreadable_or_unexpected_body_is_an_upstream_error(body: bytes
     upstream.overrides["/submissions/"] = lambda _: httpx.Response(200, content=body)
 
     with pytest.raises(UpstreamError):
-        await make_provider(upstream).profile(APPLE)
+        await make_provider(upstream).filings(APPLE, None, 1)
 
 
 async def test_a_malformed_directory_is_an_upstream_error() -> None:
