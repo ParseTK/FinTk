@@ -6,3 +6,4 @@ export { ResourcesOverview } from "./ResourcesOverview";
 export { DataMethodology } from "./DataMethodology";
 export { SourceDirectory } from "./SourceDirectory";
 export { EducationGuides } from "./EducationGuides";
+export { ResearchTools } from "./ResearchTools";
