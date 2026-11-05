@@ -11,6 +11,7 @@ import { Change } from "@/components/ui/Change";
 import { DataCredit } from "@/components/ui/DataCredit";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { ExternalLink } from "@/components/ui/ExternalLink";
 import { TextField } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
 import { LinkButton } from "@/components/ui/LinkButton";
@@ -197,6 +198,16 @@ export default function DesignPage() {
             href="http://insecure.example/"
             linkText="Example"
           />
+        </div>
+        <div className="space-y-2">
+          <p className="text-fg-muted text-sm">
+            A link to another site: opens in a new tab, and says so to screen readers.
+          </p>
+          <p>
+            Read the{" "}
+            <ExternalLink href="https://www.sec.gov/edgar/search/">SEC filings search</ExternalLink>{" "}
+            to check a company yourself.
+          </p>
         </div>
         <div className="space-y-2">
           <p className="text-fg-muted text-sm">

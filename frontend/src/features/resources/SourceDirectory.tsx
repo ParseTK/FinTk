@@ -1,6 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { LinkButton } from "@/components/ui/LinkButton";
-import { ExternalLink } from "./ExternalLink";
+import { ExternalLink } from "@/components/ui/ExternalLink";
 import { FILING_TYPES, SOURCE_GROUPS } from "./sources";
 
 const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
