@@ -16,10 +16,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "import-linter>=2.15",
     "pip-audit>=2.10.1",
     "pyright>=1.1.414",
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1.post1",
+    "pytest-cov>=7.1.0",
     "ruff>=0.17.3",
     "types-defusedxml>=0.7.0.20260504",
 ]
@@ -51,7 +53,11 @@ select = [
     "T20",      # no print()
     "TID",      # tidy imports
     "PERF",     # performance
+    "C90",      # cyclomatic complexity, capped below
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15  # a ceiling for new code, not a target
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]   # assert and fake secrets are fine in tests
@@ -69,3 +75,71 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+
+# The architecture, enforced: route -> service -> repository / provider -> domain. Each contract
+# says what a layer must NOT import, so a change that crosses a layer fails CI instead of review.
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Domain rules are pure: no web, database, HTTP, or other layers"
+type = "forbidden"
+allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+source_modules = ["app.domain"]
+forbidden_modules = [
+    "app.api",
+    "app.services",
+    "app.repositories",
+    "app.providers",
+    "app.schemas",
+    "app.db",
+    "fastapi",
+    "starlette",
+    "sqlalchemy",
+    "httpx",
+]
+
+[[tool.importlinter.contracts]]
+name = "Services do not know about the web"
+type = "forbidden"
+allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+source_modules = ["app.services"]
+forbidden_modules = ["app.api", "app.schemas", "fastapi", "starlette"]
+
+[[tool.importlinter.contracts]]
+name = "Repositories hold SQL only"
+type = "forbidden"
+allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+source_modules = ["app.repositories"]
+forbidden_modules = ["app.api", "app.services", "app.providers", "fastapi", "starlette", "httpx"]
+
+[[tool.importlinter.contracts]]
+name = "Providers talk to vendors only: no web, database, or services"
+type = "forbidden"
+allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+source_modules = ["app.providers"]
+forbidden_modules = [
+    "app.api",
+    "app.services",
+    "app.repositories",
+    "app.db",
+    "fastapi",
+    "starlette",
+    "sqlalchemy",
+]
+
+[[tool.importlinter.contracts]]
+name = "Schemas describe the API only: no database or provider code"
+type = "forbidden"
+allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+source_modules = ["app.schemas"]
+forbidden_modules = ["app.db", "app.repositories", "app.providers", "sqlalchemy", "httpx"]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+fail_under = 92  # a floor just under today's 95%, so coverage can only be lowered on purpose
+show_missing = true
+skip_covered = true
