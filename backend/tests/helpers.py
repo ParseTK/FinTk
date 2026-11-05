@@ -15,6 +15,7 @@ from app.providers.sec.client import SecProvider
 from app.repositories.accounts import AccountRepository, SessionRepository
 from app.services.auth import AuthService
 from app.services.companies import CompanyService
+from app.services.crypto import CryptoService
 from tests.conftest import make_settings
 from tests.conftest import test_router as routes_for_tests
 from tests.test_sec_provider import NoWait, Upstream
@@ -40,12 +41,14 @@ def build_app(
     *,
     with_companies: bool = True,
     companies: CompanyService | None = None,
+    crypto: CryptoService | None = None,
 ) -> FastAPI:
     return create_app(
         settings or make_settings(),
         extra_routers=[routes_for_tests],
         database=database,
         company_service=companies or (company_service() if with_companies else None),
+        crypto_service=crypto,
     )
 
 
@@ -98,10 +101,15 @@ class World:
 
 
 async def make_world(
-    database: Database, companies: CompanyService | None = None, **settings_overrides: object
+    database: Database,
+    companies: CompanyService | None = None,
+    crypto: CryptoService | None = None,
+    **settings_overrides: object,
 ) -> World:
     """An app with two different signed-in people, for tests about who can see what."""
-    app = build_app(database, make_settings(**settings_overrides), companies=companies)
+    app = build_app(
+        database, make_settings(**settings_overrides), companies=companies, crypto=crypto
+    )
     return World(
         app=app,
         alice=await sign_in_person(app, database, "alice@example.com"),

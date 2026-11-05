@@ -171,6 +171,14 @@ class CryptoService:
             unavailable=tuple(down),
         )
 
+    async def listing(self) -> tuple[tuple[CryptoAsset, ...], datetime]:
+        """The cached listing of the largest coins and when it was taken (the provider is asked at
+        most once per lifetime, however many callers). Raises the provider's error if there is
+        nothing cached and it cannot be reached."""
+        return await self._listings.get_or_load(
+            "top", self._load_listings, ttl=LISTINGS_TTL, stale_ttl=STALE
+        )
+
     async def search(self, query: str, limit: int) -> tuple[list[CryptoAsset], datetime]:
         """Listed coins matching a name or symbol, from the cached listing (no provider call)."""
         assets, as_of = await self._listings.get_or_load(

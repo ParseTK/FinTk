@@ -1,18 +1,11 @@
-"""ORM models: the database's view of the data. Never returned from the API (see app.schemas).
-
-RETIRED TABLES. `price_series`, `monthly_price`, `watchlist_item` and `holding_lot` belong to the
-stock features that were removed when the product became crypto-only. Nothing reads or writes them.
-They are kept here, and in the migrations, only so the schema and the models still agree; a later
-migration drops them together with the crypto holdings that replace them (expand, then contract).
-"""
+"""ORM models: the database's view of the data. Never returned from the API (see app.schemas)."""
 
 import uuid
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     CheckConstraint,
-    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -28,32 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
-SYMBOL_LENGTH = 12
-SOURCE_LENGTH = 32
-
-
-class PriceSeries(Base):
-    __tablename__ = "price_series"
-
-    symbol: Mapped[str] = mapped_column(String(SYMBOL_LENGTH), primary_key=True)
-    source: Mapped[str] = mapped_column(String(SOURCE_LENGTH))
-    refreshed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-
-
-class MonthlyPrice(Base):
-    __tablename__ = "monthly_price"
-    __table_args__ = (CheckConstraint("close > 0", name="close_positive"),)
-
-    symbol: Mapped[str] = mapped_column(
-        String(SYMBOL_LENGTH),
-        ForeignKey("price_series.symbol", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    month_end: Mapped[date] = mapped_column(Date, primary_key=True)
-    # NUMERIC, never float: money is exact. Six decimals covers split-adjusted history.
-    close: Mapped[Decimal] = mapped_column(Numeric(18, 6))
+SLUG_LENGTH = 80  # the data provider's URL-safe coin name, for example "bitcoin"
 
 
 # -- Accounts ---------------------------------------------------------------------------------
@@ -115,50 +83,44 @@ class UserSession(Base):
     absolute_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))  # hard limit
 
 
-# -- Watchlist and portfolio ------------------------------------------------------------------
+# -- Crypto watchlist and holdings ------------------------------------------------------------
 #
 # Every row belongs to one user and goes with them when the account is deleted (ON DELETE CASCADE).
+# Only what the person entered is stored: a coin's slug, an amount, an optional cost. No prices:
+# the data provider's licence allows its data to be kept only temporarily, so values are worked out
+# from the live listing when a page is built.
 
 
-class WatchlistItem(Base):
-    __tablename__ = "watchlist_item"
+class CryptoWatch(Base):
+    __tablename__ = "crypto_watch"
 
     # The primary key doubles as the "is it already there" check, so adding twice is a no-op, and
     # as the index for "everything this user watches".
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
     )
-    symbol: Mapped[str] = mapped_column(String(SYMBOL_LENGTH), primary_key=True)
+    slug: Mapped[str] = mapped_column(String(SLUG_LENGTH), primary_key=True)
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
-class HoldingLot(Base):
-    """One purchase: some shares at one price per share (US dollars).
+class CryptoHolding(Base):
+    """How much of one coin a person holds, and optionally what they paid in total (US dollars).
 
-    A holding is the sum of its lots, and its average cost is computed from them, never typed.
-    NUMERIC, not float: money is exact. Six decimals allow fractional shares and split-adjusted
-    prices.
+    One row per coin: changing the amount or cost replaces the row. NUMERIC, not float: amounts and
+    money are exact.
     """
 
-    __tablename__ = "holding_lot"
+    __tablename__ = "crypto_holding"
     __table_args__ = (
-        CheckConstraint("shares > 0", name="shares_positive"),
-        CheckConstraint("unit_cost > 0", name="unit_cost_positive"),
-        # One row per (user, client key): a repeated submit with the same Idempotency-Key finds the
-        # lot it already created instead of making a second one. NULL keys are never compared.
-        UniqueConstraint("user_id", "client_key"),
-        # Serves "my holdings" (group by symbol) and "the lots of one symbol".
-        Index("ix_holding_lot_user_id_symbol", "user_id", "symbol"),
+        CheckConstraint("amount > 0", name="amount_positive"),
+        CheckConstraint("cost IS NULL OR cost >= 0", name="cost_not_negative"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"), primary_key=True
     )
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user_account.id", ondelete="CASCADE"))
-    symbol: Mapped[str] = mapped_column(String(SYMBOL_LENGTH))
-    shares: Mapped[Decimal] = mapped_column(Numeric(20, 6))
-    unit_cost: Mapped[Decimal] = mapped_column(Numeric(18, 6))
-    acquired_on: Mapped[date | None] = mapped_column(Date)
-    client_key: Mapped[str | None] = mapped_column(String(64))
+    slug: Mapped[str] = mapped_column(String(SLUG_LENGTH), primary_key=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric(30, 18))
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 2))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

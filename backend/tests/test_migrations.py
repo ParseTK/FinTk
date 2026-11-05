@@ -32,13 +32,20 @@ async def test_the_models_and_the_migrations_agree(database: Database) -> None:
 
 
 async def test_the_schema_has_the_expected_tables_and_keys(database: Database) -> None:
-    def describe(connection: Connection) -> tuple[set[str], list[str]]:
+    def describe(connection: Connection) -> tuple[set[str], list[str], list[str]]:
         inspector = inspect(connection)
-        pk = inspector.get_pk_constraint("monthly_price")["constrained_columns"]
-        return set(inspector.get_table_names()), pk
+        return (
+            set(inspector.get_table_names()),
+            inspector.get_pk_constraint("crypto_holding")["constrained_columns"],
+            inspector.get_pk_constraint("crypto_watch")["constrained_columns"],
+        )
 
     async with database.engine.connect() as connection:
-        tables, primary_key = await connection.run_sync(describe)
+        tables, holding_key, watch_key = await connection.run_sync(describe)
 
-    assert {"price_series", "monthly_price"} <= tables
-    assert primary_key == ["symbol", "month_end"]
+    assert {"crypto_holding", "crypto_watch", "user_account", "user_session"} <= tables
+    # The stock tables are gone: nothing reads or writes them any more.
+    assert not tables & {"price_series", "monthly_price", "watchlist_item", "holding_lot"}
+    # One holding and one watch per coin per person: the key is the person plus the coin.
+    assert holding_key == ["user_id", "slug"]
+    assert watch_key == ["user_id", "slug"]

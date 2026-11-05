@@ -54,12 +54,12 @@ def test_pool_limits_are_bounded(name: str, value: int) -> None:
 
 async def test_a_session_commits_on_success_and_rolls_back_on_error(database: Database) -> None:
     async with database.session() as session:
-        await session.execute(text("INSERT INTO price_series (symbol, source) VALUES ('OK', 'x')"))
+        await session.execute(text("INSERT INTO user_account (email) VALUES ('ok@example.com')"))
 
     async def insert_then_fail() -> None:
         async with database.session() as session:
             await session.execute(
-                text("INSERT INTO price_series (symbol, source) VALUES ('LOST', 'x')")
+                text("INSERT INTO user_account (email) VALUES ('lost@example.com')")
             )
             raise RuntimeError
 
@@ -67,8 +67,8 @@ async def test_a_session_commits_on_success_and_rolls_back_on_error(database: Da
         await insert_then_fail()
 
     async with database.session() as session:
-        rows = (await session.execute(text("SELECT symbol FROM price_series"))).scalars().all()
-    assert rows == ["OK"]
+        rows = (await session.execute(text("SELECT email FROM user_account"))).scalars().all()
+    assert rows == ["ok@example.com"]
 
 
 async def test_ping_succeeds_against_a_live_database(database: Database) -> None:

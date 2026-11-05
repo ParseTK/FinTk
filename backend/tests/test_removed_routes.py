@@ -19,9 +19,6 @@ from tests.conftest import make_settings
         "/api/v1/companies/AAPL/news",
         "/api/v1/markets",
         "/api/v1/news",
-        "/api/v1/watchlist",
-        "/api/v1/portfolio",
-        "/api/v1/portfolio/lots",
     ],
 )
 async def test_a_removed_stock_endpoint_is_a_plain_404(path: str) -> None:
@@ -42,4 +39,7 @@ async def test_the_remaining_api_is_what_the_crypto_product_needs() -> None:
     assert "/api/v1/crypto/overview" in paths
     assert "/api/v1/crypto/markets" in paths
     assert "/api/v1/news/crypto" in paths
-    assert not [path for path in paths if "/companies" in path or "portfolio" in path]
+    # The stock watchlist and portfolio are gone; the crypto ones took their place.
+    assert "/api/v1/watchlist" in paths
+    assert "/api/v1/portfolio" in paths
+    assert not [path for path in paths if "/companies" in path or "/lots" in path]

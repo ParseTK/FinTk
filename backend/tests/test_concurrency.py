@@ -125,7 +125,7 @@ async def test_a_write_is_committed_before_the_response_starts(database: Databas
             async with database.session() as session:
                 visible = (
                     await session.execute(
-                        text("SELECT count(*) FROM price_series WHERE symbol = 'RACE'")
+                        text("SELECT count(*) FROM user_account WHERE email = 'race@example.com'")
                     )
                 ).scalar_one()
             committed_when_response_started.append(visible == 1)
@@ -169,7 +169,7 @@ async def test_many_concurrent_authenticated_requests_share_a_small_pool_without
         assert elapsed < 5.0  # queued for the 3 connections, but no request starved
     finally:
         async with database.session() as session:
-            await session.execute(text("TRUNCATE price_series, user_account CASCADE"))
+            await session.execute(text("TRUNCATE user_account CASCADE"))
         await database.dispose()
 
 
