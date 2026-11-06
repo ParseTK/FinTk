@@ -11,9 +11,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, PlainSerializer
 
-from app.domain.crypto import CryptoAsset, FearGreed, MarketTotals
-from app.domain.crypto_markets import Composition, CompositionRow
-from app.services.crypto import CryptoMarkets, CryptoOverview, MajorCoin
+from app.domain.crypto import CryptoAsset, CryptoOverview, FearGreed, MarketTotals
+from app.domain.crypto_markets import Composition, CompositionRow, CryptoMarkets, MajorCoin
 
 # A plain fixed-point string: ``format(value, "f")`` never uses an exponent.
 PlainDecimal = Annotated[

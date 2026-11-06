@@ -13,14 +13,18 @@ import asyncio
 import logging
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import AppError, NotFoundError
-from app.domain.crypto import AnchorPrices, CryptoAsset, FearGreed, MarketTotals
-from app.domain.crypto_markets import Composition, composition, percent_change
+from app.domain.crypto import AnchorPrices, CryptoAsset, CryptoOverview, FearGreed, MarketTotals
+from app.domain.crypto_markets import (
+    CryptoMarkets,
+    MajorCoin,
+    composition,
+    percent_change,
+)
 from app.domain.crypto_search import search_assets
 from app.providers.base import CryptoProvider
 
@@ -47,32 +51,6 @@ ANCHOR_TTL = 12 * 60 * 60.0
 ANCHOR_STALE = 24 * 60 * 60.0
 # The free plan allows twelve months of history. 358 days back stays safely inside it.
 PAST_YEAR_DAYS = 358
-
-
-@dataclass(frozen=True, slots=True)
-class CryptoOverview:
-    assets: tuple[CryptoAsset, ...]
-    as_of: datetime
-    totals: MarketTotals | None
-    fear_greed: FearGreed | None
-    unavailable: tuple[str, ...]  # summaries that could not be loaded this time
-
-
-@dataclass(frozen=True, slots=True)
-class MajorCoin:
-    asset: CryptoAsset  # its 24 hour, 7 day, 30 day and 90 day changes come with the listing
-    year_to_date: Decimal | None  # percent, from its price on the first day of the year
-    past_year: Decimal | None  # percent, from its price about a year ago
-
-
-@dataclass(frozen=True, slots=True)
-class CryptoMarkets:
-    majors: tuple[MajorCoin, ...]
-    composition: Composition | None
-    as_of: datetime
-    year_start: date | None  # the day the year-to-date change is measured from
-    past_year_start: date | None  # the day the past-year change is measured from
-    unavailable: tuple[str, ...]  # parts that could not be loaded this time
 
 
 class CryptoService:

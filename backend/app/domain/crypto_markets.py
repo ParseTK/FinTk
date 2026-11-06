@@ -11,10 +11,11 @@ Nothing is guessed: a figure is ``None`` when an input is missing or a divisor i
 """
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Literal
 
-from app.domain.crypto import MarketTotals
+from app.domain.crypto import CryptoAsset, MarketTotals
 
 ZERO = Decimal(0)
 HUNDRED = Decimal(100)
@@ -116,3 +117,20 @@ def composition(totals: MarketTotals) -> Composition:
         total_change_24h=percent_change(total, totals.total_market_cap_yesterday),
         rows=rows,
     )
+
+
+@dataclass(frozen=True, slots=True)
+class MajorCoin:
+    asset: CryptoAsset  # its 24 hour, 7 day, 30 day and 90 day changes come with the listing
+    year_to_date: Decimal | None  # percent, from its price on the first day of the year
+    past_year: Decimal | None  # percent, from its price about a year ago
+
+
+@dataclass(frozen=True, slots=True)
+class CryptoMarkets:
+    majors: tuple[MajorCoin, ...]
+    composition: Composition | None
+    as_of: datetime
+    year_start: date | None  # the day the year-to-date change is measured from
+    past_year_start: date | None  # the day the past-year change is measured from
+    unavailable: tuple[str, ...]  # parts that could not be loaded this time

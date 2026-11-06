@@ -1,9 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Response
 
+from app.api.deps import get_crypto_service
 from app.api.internal_deps import require_internal_caller
-from app.core.errors import UnavailableError
 from app.domain.crypto_search import MAX_QUERY
 from app.schemas.crypto import (
     CoinDetailResponse,
@@ -20,14 +20,6 @@ router = APIRouter(
     tags=["crypto"],
     dependencies=[Depends(require_internal_caller)],
 )
-
-
-def get_crypto_service(request: Request) -> CryptoService:
-    service: CryptoService | None = request.app.state.crypto_service
-    if service is None:
-        msg = "Crypto data is not configured on this server."
-        raise UnavailableError(msg)
-    return service
 
 
 @router.get(

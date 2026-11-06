@@ -8,13 +8,12 @@ every refresh fails.
 import asyncio
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import AppError, UnavailableError
 from app.domain.crypto_news import CRYPTO_COMPANIES, assemble_crypto_news, filing_cutoff
-from app.domain.news import NewsItem, filing_news
+from app.domain.news import NewsDigest, NewsItem, filing_news
 from app.providers.feeds import CRYPTO_FEEDS, FeedProvider
 from app.services.companies import CompanyService
 
@@ -38,12 +37,6 @@ def _readable(results: Sequence[list[NewsItem] | BaseException]) -> list[list[Ne
         else:
             raise result
     return readable
-
-
-@dataclass(frozen=True, slots=True)
-class NewsDigest:
-    items: tuple[NewsItem, ...]
-    unavailable: tuple[str, ...]  # names of sources that could not be read this time
 
 
 class NewsService:

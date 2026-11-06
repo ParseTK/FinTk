@@ -9,11 +9,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import Settings
 from app.core.errors import UnavailableError
 from app.db.engine import Database
+from app.services.crypto import CryptoService
 
 
 def get_settings_from(request: Request) -> Settings:
     settings: Settings = request.app.state.settings
     return settings
+
+
+def get_crypto_service(request: Request) -> CryptoService:
+    service: CryptoService | None = request.app.state.crypto_service
+    if service is None:
+        msg = "Crypto data is not configured on this server."
+        raise UnavailableError(msg)
+    return service
 
 
 def get_database(request: Request) -> Database:

@@ -93,3 +93,9 @@ def filing_news(filing: Filing, company_name: str) -> NewsItem | None:
 def latest_first(items: list[NewsItem]) -> list[NewsItem]:
     """Newest first; ties keep a stable order by source then title."""
     return sorted(items, key=lambda item: (item.published, item.source, item.title), reverse=True)
+
+
+@dataclass(frozen=True, slots=True)
+class NewsDigest:
+    items: tuple[NewsItem, ...]
+    unavailable: tuple[str, ...]  # names of sources that could not be read this time
