@@ -36,6 +36,17 @@ describe("buildCsp", () => {
     expect(buildCsp("abc123", { https: true })).toContain("upgrade-insecure-requests");
   });
 
+  it("keeps style elements to our own files and allows inline only for style attributes", () => {
+    expect(directive(policy, "style-src")).toBe("'self'");
+    expect(directive(policy, "style-src-attr")).toBe("'unsafe-inline'");
+  });
+
+  it("lets the development server use inline style elements, which it injects", () => {
+    expect(directive(buildCsp("n", { development: true }), "style-src")).toContain(
+      "'unsafe-inline'",
+    );
+  });
+
   it("adds eval for the development server only", () => {
     expect(directive(buildCsp("n", { development: true }), "script-src")).toContain(
       "'unsafe-eval'",

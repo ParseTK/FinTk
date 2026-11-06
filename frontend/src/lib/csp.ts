@@ -7,9 +7,10 @@
  * Everything else is same-origin: the site embeds no outside images,
  * fonts, frames or scripts, and links to other sites are plain anchors, which a CSP does not govern.
  *
- * Styles keep 'unsafe-inline' because React writes a few style attributes (animation offsets) and a
- * nonce cannot cover an attribute. Script injection is the risk a CSP is here to stop, and that
- * directive stays strict.
+ * Style elements are held to our own stylesheet files. Only style *attributes* may be inline, because
+ * React writes a few (bar widths, animation offsets) and a nonce cannot cover an attribute; an
+ * injected attribute cannot run code. (The development server injects style tags, so it alone may
+ * use inline style elements.)
  */
 
 export type CspMode = "enforce" | "report-only" | "off";
@@ -60,7 +61,8 @@ export function buildCsp(
       "script-src",
       ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...(development ? ["'unsafe-eval'"] : [])],
     ],
-    ["style-src", ["'self'", "'unsafe-inline'"]],
+    ["style-src", ["'self'", ...(development ? ["'unsafe-inline'"] : [])]],
+    ["style-src-attr", ["'unsafe-inline'"]],
     ["img-src", ["'self'", "data:", "blob:"]],
     ["font-src", ["'self'"]],
     ["connect-src", ["'self'"]],
