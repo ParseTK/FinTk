@@ -23,6 +23,7 @@ from typing import Any, cast
 import httpx
 
 from app.core.errors import UnavailableError, UpstreamError
+from app.core.http import build_client
 from app.core.rate_limit import SlidingWindowBudget
 from app.domain.crypto import AnchorPrices, CryptoListings, FearGreed, MarketTotals
 from app.providers.coinmarketcap import parsers
@@ -37,11 +38,10 @@ MAX_BYTES = 2_000_000  # a 200-row listing is about 300 KB
 
 
 def build_http_client(api_key: str) -> httpx.AsyncClient:
-    return httpx.AsyncClient(
+    return build_client(
         base_url=BASE_URL,
         headers={"X-CMC_PRO_API_KEY": api_key, "Accept": "application/json"},
         timeout=TIMEOUT,
-        follow_redirects=False,
     )
 
 

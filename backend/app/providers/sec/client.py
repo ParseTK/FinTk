@@ -21,6 +21,7 @@ import httpx
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import UpstreamError
+from app.core.http import build_client
 from app.core.rate_limit import AsyncRateLimiter
 from app.domain.models import CompanyRef, Filing
 from app.providers.sec import parsers
@@ -45,10 +46,9 @@ def build_user_agent(contact_email: str) -> str:
 
 
 def build_http_client(contact_email: str) -> httpx.AsyncClient:
-    return httpx.AsyncClient(
+    return build_client(
         headers={"User-Agent": build_user_agent(contact_email), "Accept": "application/json"},
         timeout=TIMEOUT,
-        follow_redirects=False,
     )
 
 

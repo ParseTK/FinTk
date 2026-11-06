@@ -8,12 +8,12 @@ even if closing one of them fails. ``create_app`` decides what the app is; this 
 
 from contextlib import AsyncExitStack
 
-import httpx
 from fastapi import FastAPI
 
 from app.api.health import ReadinessCheck
 from app.auth.providers import build_oauth_providers
 from app.core.config import Settings
+from app.core.http import build_client
 from app.core.rate_limit import SlidingWindowBudget
 from app.db.engine import Database
 from app.providers.coinmarketcap.client import CoinMarketCapProvider
@@ -40,7 +40,7 @@ def open_resources(app: FastAPI, settings: Settings, stack: AsyncExitStack) -> N
 def _open_sign_in(app: FastAPI, settings: Settings, stack: AsyncExitStack) -> None:
     if app.state.oauth_providers or not settings.enabled_providers:
         return
-    client = httpx.AsyncClient(follow_redirects=False)
+    client = build_client()
     stack.push_async_callback(client.aclose)
     app.state.oauth_providers = build_oauth_providers(settings, client)
 
@@ -67,12 +67,11 @@ def _open_companies(app: FastAPI, settings: Settings, stack: AsyncExitStack) -> 
 def _open_news(app: FastAPI, settings: Settings, stack: AsyncExitStack) -> None:
     if app.state.news_service is not None:
         return
-    client = httpx.AsyncClient(
+    client = build_client(
         headers={
             "User-Agent": build_user_agent(settings.sec_contact_email or "no contact set"),
             "Accept": "application/rss+xml, application/xml",
         },
-        follow_redirects=False,
     )
     stack.push_async_callback(client.aclose)
     app.state.news_service = NewsService(FeedProvider(client), app.state.company_service)
