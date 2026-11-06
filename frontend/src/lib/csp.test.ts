@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCsp, cspHeaderName, cspMode, newNonce } from "./csp";
+import { buildCsp, cspHeaderName, cspMode, newNonce, requestIsHttps } from "./csp";
 
 const directive = (policy: string, name: string) =>
   policy
@@ -8,7 +8,7 @@ const directive = (policy: string, name: string) =>
     ?.slice(name.length + 1);
 
 describe("buildCsp", () => {
-  const policy = buildCsp("abc123", false);
+  const policy = buildCsp("abc123", { development: false });
 
   it("lets scripts run only with the request's nonce, never inline or eval", () => {
     const scripts = directive(policy, "script-src")!;
@@ -28,13 +28,18 @@ describe("buildCsp", () => {
     expect(policy).not.toMatch(/https?:|\*/);
   });
 
-  it("upgrades to https only in a production build", () => {
-    expect(policy).toContain("upgrade-insecure-requests");
-    expect(buildCsp("abc123", true)).not.toContain("upgrade-insecure-requests");
+  it("asks for the https upgrade only when told the page came over https", () => {
+    expect(policy).not.toContain("upgrade-insecure-requests");
+    expect(buildCsp("abc123", { development: false, https: true })).toContain(
+      "upgrade-insecure-requests",
+    );
+    expect(buildCsp("abc123", { https: true })).toContain("upgrade-insecure-requests");
   });
 
   it("adds eval for the development server only", () => {
-    expect(directive(buildCsp("n", true), "script-src")).toContain("'unsafe-eval'");
+    expect(directive(buildCsp("n", { development: true }), "script-src")).toContain(
+      "'unsafe-eval'",
+    );
   });
 });
 
@@ -59,5 +64,29 @@ describe("cspMode and cspHeaderName", () => {
     expect(cspHeaderName("enforce")).toBe("Content-Security-Policy");
     expect(cspHeaderName("report-only")).toBe("Content-Security-Policy-Report-Only");
     expect(cspHeaderName("off")).toBeNull();
+  });
+});
+
+describe("requestIsHttps", () => {
+  const none = new Headers();
+
+  it("is true for an https address and false for http", () => {
+    expect(requestIsHttps(none, "https://virello.example/")).toBe(true);
+    expect(requestIsHttps(none, "http://localhost:3000/")).toBe(false);
+  });
+
+  it("believes the proxy in front when it says the visitor used https", () => {
+    const proxied = new Headers({ "x-forwarded-proto": "https" });
+    expect(requestIsHttps(proxied, "http://internal:3000/")).toBe(true);
+  });
+
+  it("uses the first value of a chain, and lets the proxy say http over an https-looking address", () => {
+    expect(requestIsHttps(new Headers({ "x-forwarded-proto": "https, http" }), "http://a/")).toBe(
+      true,
+    );
+    expect(requestIsHttps(new Headers({ "x-forwarded-proto": "http, https" }), "https://a/")).toBe(
+      false,
+    );
+    expect(requestIsHttps(new Headers({ "x-forwarded-proto": " HTTPS " }), "http://a/")).toBe(true);
   });
 });

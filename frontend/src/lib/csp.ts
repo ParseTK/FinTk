@@ -28,7 +28,31 @@ export function newNonce(): string {
   return btoa(binary);
 }
 
-export function buildCsp(nonce: string, development = process.env.NODE_ENV !== "production") {
+/**
+ * Whether the visitor reached us over https: the address says so, or the proxy in front (which
+ * terminates TLS) says so in x-forwarded-proto. A visitor can set that header on their own request,
+ * but it only changes the policy on their own response, so there is nothing to gain by lying.
+ */
+export function requestIsHttps(headers: Headers, url: string): boolean {
+  const forwarded = headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  return forwarded ? forwarded === "https" : url.startsWith("https:");
+}
+
+export interface CspOptions {
+  /** The dev server's hot reload evaluates code. Default: not a production build. */
+  development?: boolean;
+  /**
+   * Ask the browser to upgrade any http request to https. Only sensible when the page itself came
+   * over https: on a plain-http run (a local production build, a container behind no TLS) the
+   * upgrade would break the site's own prefetches. Default: off.
+   */
+  https?: boolean;
+}
+
+export function buildCsp(
+  nonce: string,
+  { development = process.env.NODE_ENV !== "production", https = false }: CspOptions = {},
+) {
   const directives: Array<[string, string[]]> = [
     ["default-src", ["'self'"]],
     // The dev server's hot reload evaluates code; production never does.
@@ -46,8 +70,7 @@ export function buildCsp(nonce: string, development = process.env.NODE_ENV !== "
     ["frame-ancestors", ["'none'"]],
   ];
   const parts = directives.map(([name, values]) => `${name} ${values.join(" ")}`);
-  // Only production builds ask browsers to upgrade to https; a development server is plain http.
-  if (!development) parts.push("upgrade-insecure-requests");
+  if (https) parts.push("upgrade-insecure-requests");
   return parts.join("; ");
 }
 

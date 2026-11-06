@@ -1,4 +1,4 @@
-import { buildCsp, cspHeaderName, cspMode, newNonce } from "@/lib/csp";
+import { buildCsp, cspHeaderName, cspMode, newNonce, requestIsHttps } from "@/lib/csp";
 
 /**
  * The Content-Security-Policy for one page request: a fresh nonce, the request headers that carry
@@ -6,11 +6,12 @@ import { buildCsp, cspHeaderName, cspMode, newNonce } from "@/lib/csp";
  *
  * Next reads the nonce out of the request's policy and stamps it on its own scripts; the layout
  * reads x-nonce for the one inline script it writes itself. With CSP_MODE=off nothing is added.
+ * The https upgrade is asked for only when the page itself came over https.
  */
-export function pagePolicy(incoming: Headers) {
+export function pagePolicy(incoming: Headers, url: string) {
   const name = cspHeaderName(cspMode());
   const nonce = newNonce();
-  const policy = name ? buildCsp(nonce) : null;
+  const policy = name ? buildCsp(nonce, { https: requestIsHttps(incoming, url) }) : null;
   const headers = new Headers(incoming);
   if (name && policy) {
     headers.set(name, policy);
