@@ -1,8 +1,9 @@
 # Operations runbook
 
 What to do when something about the data or the database needs attention. It contains no secrets: use
-the host's secret store for credentials, never this file. The host has not been chosen yet, so
-the provider-specific facts are marked *confirm at deploy*.
+the host's secret store for credentials, never this file. Production runs on Render (API), Vercel
+(website) and Neon (Postgres), all on free plans. Some provider-specific facts are still marked
+*confirm at deploy*.
 
 ## What is stored (and what is not)
 
@@ -96,6 +97,28 @@ If a secret reached git history, also see `SECURITY.md`.
 3. Market pages say figures are unavailable: the data provider or its budget is the usual cause.
    The API logs the reason with a request id, never the key.
 4. Every response carries an `x-request-id`; quote it when looking up a request in the logs.
+
+A scheduled workflow (**Actions > Uptime check**, hourly) requests the website and `/healthz` and
+fails, which emails the person who last edited its schedule, if either does not answer after
+retries. It is deliberately hourly: the free API host stops after 15 idle minutes, and a faster
+check would keep it awake and use up the monthly free hours. Expect the first request after a sleep
+to take up to a minute.
+
+## Known limit: one shared sign-in allowance
+
+`VIRELLO_TRUST_PROXY_HOPS` is left at `0` in production, so the API ignores `X-Forwarded-For` and
+sees every visitor as one caller (the host's front door). All sign-in attempts therefore share one
+rate-limit allowance: someone hammering sign-in could lock everyone out for a minute.
+
+It was measured on 2026-11-06 instead of guessed. A request reaches the API with 4 forwarded
+entries, but a visitor can add entries through the website's proxy (a request with two fake entries
+arrived with 5), so no fixed hop count is safe: a wrong one lets a visitor pick the address the
+limiter uses. The API logs `forwarded_entries` (a count, never the addresses) on every request line
+if this needs measuring again.
+
+If it ever matters, do not set a hop count. Have the website add the visitor's address in a header
+the API trusts only when the request also carries the internal token, so only our own server can set
+it. That is a design change, so plan it first.
 
 ## Migrating the production database
 
