@@ -1,7 +1,7 @@
 import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { STORAGE_KEYS } from "./preferences";
+import { STORAGE_KEYS } from "./options";
 import { PalettePicker } from "./PalettePicker";
 
 afterEach(() => {
