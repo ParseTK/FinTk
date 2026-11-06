@@ -44,6 +44,7 @@ def test_the_database_url_never_appears_in_a_repr() -> None:
         ("db_pool_size", 0),
         ("db_pool_size", 500),
         ("db_pool_timeout_seconds", 0),
+        ("db_connect_timeout_seconds", 0),
         ("db_statement_timeout_ms", 1),
     ],
 )
