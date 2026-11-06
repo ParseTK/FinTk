@@ -12,7 +12,7 @@ import uuid
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-from app.core.errors import error_response
+from app.core.error_handlers import error_response
 from app.core.request_context import reset_request_id, set_request_id
 
 logger = logging.getLogger("app.request")
