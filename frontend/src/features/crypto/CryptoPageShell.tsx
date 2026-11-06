@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { WakeNotice } from "@/components/ui/WakeNotice";
 
 /**
  * The frame every crypto page shares: a heading and one line of context, then the body, which streams
@@ -35,6 +36,7 @@ export function CryptoPageShell({
               </p>
               <Skeleton className="h-4 w-2/3" />
               <Skeleton className="h-40 w-full" />
+              <WakeNotice />
             </Card>
           }
         >

@@ -56,4 +56,44 @@ describe("API client", () => {
     await publicApi.GET("/api/v1/meta");
     expect(sentHeader()).toBe("second-second-second-second-second-se");
   });
+
+  describe("waiting for a sleeping API", () => {
+    const starting = () =>
+      new Response("starting", { status: 503, headers: { "content-type": "text/html" } });
+    const ok = () => new Response("{}", { headers: { "content-type": "application/json" } });
+
+    it("keeps trying data reads while the host is starting", async () => {
+      vi.stubEnv("API_WAKE_BUDGET_MS", "60000");
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      fetchMock.mockReset();
+      fetchMock.mockResolvedValueOnce(starting()).mockResolvedValueOnce(ok());
+      const { privateApi } = await import("./client");
+      const pending = privateApi.GET("/api/v1/meta");
+      await vi.advanceTimersByTimeAsync(2_500);
+      const { response } = await pending;
+      vi.useRealTimers();
+      expect(response.status).toBe(200);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not wait for the per-page who-is-signed-in check", async () => {
+      vi.stubEnv("API_WAKE_BUDGET_MS", "60000");
+      fetchMock.mockReset();
+      fetchMock.mockResolvedValue(starting());
+      const { quickApi } = await import("./client");
+      const { response } = await quickApi.GET("/api/v1/meta");
+      expect(response.status).toBe(503);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("makes one attempt in development, where a down API should fail fast", async () => {
+      vi.stubEnv("API_WAKE_BUDGET_MS", "");
+      vi.stubEnv("NODE_ENV", "test");
+      fetchMock.mockReset();
+      fetchMock.mockResolvedValue(starting());
+      const { privateApi } = await import("./client");
+      await privateApi.GET("/api/v1/meta");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });
