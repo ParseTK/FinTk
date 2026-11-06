@@ -13,7 +13,10 @@ The headline is the source's own; this module never rewrites, scores or ranks an
 """
 
 import re
+from collections.abc import Sequence
 from datetime import date, timedelta
+
+from app.domain.news import NewsItem, latest_first
 
 # Whole words or phrases, matched case-insensitively ("crypto" does not match "cryptography").
 CRYPTO_TERMS: tuple[str, ...] = (
@@ -64,3 +67,33 @@ def is_crypto_related(title: str) -> bool:
 def filing_cutoff(today: date) -> date:
     """The oldest filing date still shown."""
     return today - timedelta(days=FILING_DAYS)
+
+
+# One source and what it returned: its name, and its items (None when it could not be read).
+SourceItems = tuple[str, list[NewsItem] | None]
+
+
+def assemble_crypto_news(
+    announcements: Sequence[SourceItems], filings: Sequence[SourceItems], cutoff: date
+) -> tuple[list[NewsItem], list[str]]:
+    """The crypto news page's items, newest first, and the names of the sources that were down.
+
+    Announcements are kept when their own headline mentions a crypto term. Each company's filings
+    are cut to those on or after cutoff and then to the newest PER_COMPANY_LIMIT. An item that
+    several sources carry (the two CFTC feeds can repeat one) appears once, by its link.
+    """
+    items: list[NewsItem] = []
+    down: list[str] = []
+    for name, found in announcements:
+        if found is None:
+            down.append(name)
+        else:
+            items.extend(item for item in found if is_crypto_related(item.title))
+    for name, found in filings:
+        if found is None:
+            down.append(name)
+        else:
+            recent = [item for item in found if item.published >= cutoff]
+            items.extend(latest_first(recent)[:PER_COMPANY_LIMIT])
+    unique = {item.url: item for item in items}
+    return latest_first(list(unique.values())), down
