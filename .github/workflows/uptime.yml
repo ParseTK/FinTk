@@ -1,0 +1,38 @@
+name: Uptime check
+
+# Once an hour, asks the live website and the API whether they answer. A failed run emails the
+# person who last edited this schedule, which is the alert. It uses no account, no secret and no
+# third-party service.
+#
+# Deliberately slow: the free API host stops the service after 15 idle minutes, so hourly checks let
+# it sleep between runs (a check every few minutes would keep it awake and use up the monthly free
+# hours). The first request after a sleep takes up to a minute, so the timeouts below are long and
+# the checks retry before reporting a failure. /healthz does not touch the database, so the free
+# database is not woken by these checks.
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Website answers
+        run: |
+          curl --fail --silent --show-error --location --max-time 30 \
+            --retry 3 --retry-delay 10 --retry-all-errors \
+            --output /dev/null https://fin-tk.vercel.app/
+      - name: API answers
+        run: |
+          curl --fail --silent --show-error --max-time 90 \
+            --retry 4 --retry-delay 20 --retry-all-errors \
+            --output /dev/null https://virello-api.onrender.com/healthz
