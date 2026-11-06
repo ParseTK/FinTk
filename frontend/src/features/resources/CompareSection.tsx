@@ -89,7 +89,7 @@ export async function CompareSection({ slugs }: { slugs: readonly string[] }) {
 
       {notFound.length > 0 && (
         <Alert title="Some coins were not found">
-          Virello does not cover: {notFound.join(", ")}. Remove them above, or search for another
+          FinTk does not cover: {notFound.join(", ")}. Remove them above, or search for another
           coin.
         </Alert>
       )}

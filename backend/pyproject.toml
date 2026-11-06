@@ -1,7 +1,7 @@
 [project]
 name = "virello-api"
 version = "0.1.0"
-description = "Virello API: company data, caching, and (later) accounts and portfolios."
+description = "FinTk API: company data, caching, and (later) accounts and portfolios."
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.1",

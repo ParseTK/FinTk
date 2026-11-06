@@ -27,7 +27,7 @@ const sourceSerif = Source_Serif_4({
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { default: "Virello", template: "%s | Virello" },
+  title: { default: "FinTk", template: "%s | FinTk" },
   description: "Crypto market data and official filings, shown as published.",
 };
 

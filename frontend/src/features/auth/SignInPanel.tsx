@@ -21,7 +21,7 @@ export function SignInPanel({ providers, next, error, reachable = true }: SignIn
     <section aria-labelledby="sign-in-heading" className="space-y-6">
       <div className="space-y-2">
         <h1 id="sign-in-heading" className="text-3xl font-bold">
-          Sign in to Virello
+          Sign in to FinTk
         </h1>
         <p className="text-fg-muted">
           There are no passwords here. You sign in with an account you already have, and we only

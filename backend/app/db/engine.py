@@ -43,7 +43,7 @@ def create_engine(settings: Settings) -> AsyncEngine:
                     settings.db_idle_in_transaction_timeout_ms
                 ),
             },
-            "timeout": settings.db_pool_timeout_seconds,  # connecting, not querying
+            "timeout": settings.db_connect_timeout_seconds,  # connecting, not querying
         },
         echo=False,  # statements and parameters must never reach the logs
         hide_parameters=True,  # ...nor appear inside error messages, which are logged

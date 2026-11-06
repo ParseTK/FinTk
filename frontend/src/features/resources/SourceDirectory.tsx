@@ -6,8 +6,8 @@ import { FILING_TYPES, SOURCE_GROUPS } from "./sources";
 const EYEBROW = "text-brand text-xs font-semibold tracking-[0.14em] uppercase";
 
 /**
- * The Source directory: the original publishers Virello reads, grouped by kind, each with what it
- * covers and where on Virello it is used, plus a short guide to the SEC forms a reader will meet.
+ * The Source directory: the original publishers FinTk reads, grouped by kind, each with what it
+ * covers and where on FinTk it is used, plus a short guide to the SEC forms a reader will meet.
  * Static text from `sources.ts`, so the page needs no data.
  */
 export function SourceDirectory() {
@@ -17,7 +17,7 @@ export function SourceDirectory() {
         <p className={EYEBROW}>Resources</p>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Source directory</h1>
         <p className="text-fg-muted max-w-2xl">
-          Where the original documents live. Virello shows headlines and figures, but the source is
+          Where the original documents live. FinTk shows headlines and figures, but the source is
           always the better place to read the full text.
         </p>
       </header>
@@ -44,8 +44,8 @@ export function SourceDirectory() {
                 </div>
                 <p className="text-fg-muted text-sm">{entry.covers}</p>
                 <p className="text-sm">
-                  <span className="font-semibold">On Virello: </span>
-                  <span className="text-fg-muted">{entry.onVirello}</span>
+                  <span className="font-semibold">On FinTk: </span>
+                  <span className="text-fg-muted">{entry.onFinTk}</span>
                 </p>
               </li>
             ))}

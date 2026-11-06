@@ -40,8 +40,8 @@ export function DataMethodology() {
         <p className={EYEBROW}>Resources</p>
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Data &amp; methodology</h1>
         <p className="text-fg-muted max-w-2xl">
-          Where the figures come from, how old they can be, what each one means, and what Virello
-          does not cover.
+          Where the figures come from, how old they can be, what each one means, and what FinTk does
+          not cover.
         </p>
         <nav aria-label="On this page" className="pt-1">
           <ul className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
@@ -61,7 +61,7 @@ export function DataMethodology() {
 
       <Section id="sources" title="Where the figures come from">
         <p className="text-fg-muted max-w-2xl">
-          Virello does not produce market data. It reads it from the sources below and shows it as
+          FinTk does not produce market data. It reads it from the sources below and shows it as
           published. “How old” is the longest a stored copy is used before it is read again.
         </p>
         <div
@@ -156,8 +156,8 @@ export function DataMethodology() {
           Market data is provided by{" "}
           <ExternalLink href="https://coinmarketcap.com/">CoinMarketCap.com</ExternalLink>.
           Announcements and filings are published by the SEC, the CFTC and the U.S. Department of
-          Justice. Virello is an independent project and is not affiliated with or endorsed by any
-          of them.
+          Justice. FinTk is an independent project and is not affiliated with or endorsed by any of
+          them.
         </p>
         <LinkButton href="/resources" variant="secondary">
           Back to the overview

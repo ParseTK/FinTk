@@ -10,7 +10,7 @@ vi.mock("next/headers", () => ({
 }));
 
 const GET = vi.fn();
-vi.mock("@/lib/api/client", () => ({ privateApi: { GET: (...args: unknown[]) => GET(...args) } }));
+vi.mock("@/lib/api/client", () => ({ quickApi: { GET: (...args: unknown[]) => GET(...args) } }));
 
 const { getSession } = await import("./session");
 
@@ -28,7 +28,7 @@ beforeEach(() => {
 describe("getSession", () => {
   it("asks the API who is signed in and maps the answer", async () => {
     GET.mockResolvedValue({ data: signedIn });
-    jar.set("virello_session", "token-abc");
+    jar.set("fintk_session", "token-abc");
 
     expect(await getSession()).toEqual({
       user: signedIn.user,
@@ -37,20 +37,20 @@ describe("getSession", () => {
       reachable: true,
     });
     expect(GET).toHaveBeenCalledWith("/api/v1/auth/session", {
-      headers: { cookie: "virello_session=token-abc" },
+      headers: { cookie: "fintk_session=token-abc" },
     });
   });
 
   it("forwards only our own session cookie, never the other cookies the browser sent", async () => {
     GET.mockResolvedValue({ data: signedIn });
-    jar.set("__Host-virello_session", "prod-token");
+    jar.set("__Host-fintk_session", "prod-token");
     jar.set("theme", "dark");
     jar.set("analytics_id", "tracking-value");
 
     await getSession();
 
     const { headers } = GET.mock.calls[0]![1] as { headers: { cookie: string } };
-    expect(headers.cookie).toBe("__Host-virello_session=prod-token");
+    expect(headers.cookie).toBe("__Host-fintk_session=prod-token");
     expect(headers.cookie).not.toContain("tracking-value");
   });
 

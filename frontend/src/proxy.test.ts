@@ -8,7 +8,7 @@ const rewrittenTo = (response: Response) => response.headers.get("x-middleware-r
 const passesThrough = (response: Response) => response.headers.get("x-middleware-next") === "1";
 
 const withSession = (path: string) =>
-  new NextRequest(`http://localhost:3000${path}`, { headers: { cookie: "virello_session=abc" } });
+  new NextRequest(`http://localhost:3000${path}`, { headers: { cookie: "fintk_session=abc" } });
 
 afterEach(() => vi.unstubAllEnvs());
 

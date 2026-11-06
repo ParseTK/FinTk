@@ -101,7 +101,7 @@ describe("CompareSection", () => {
       slug === "nope" ? { status: "not_found" } : coin(slug, slug.toUpperCase(), "X"),
     );
     await show(["bitcoin", "nope", "ethereum"]);
-    expect(screen.getByText(/Virello does not cover: nope/)).toBeInTheDocument();
+    expect(screen.getByText(/FinTk does not cover: nope/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove nope" })).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();
   });

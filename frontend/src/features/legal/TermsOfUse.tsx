@@ -11,7 +11,7 @@ const SECTIONS: readonly LegalSection[] = [
     body: (
       <>
         <p>
-          Virello is a free project made for learning and research, and it is for personal,
+          FinTk is a free project made for learning and research, and it is for personal,
           non-commercial use only. Please do not use it, or anything you take from it, in a
           business, to run a service for others, or for any paid purpose.
         </p>
@@ -27,8 +27,8 @@ const SECTIONS: readonly LegalSection[] = [
     body: (
       <>
         <p>
-          Everything on Virello is information, shown as published, for research and education. It
-          is not investment, financial, tax or legal advice, and nothing here recommends buying,
+          Everything on FinTk is information, shown as published, for research and education. It is
+          not investment, financial, tax or legal advice, and nothing here recommends buying,
           selling or holding anything. Digital assets are volatile and you can lose money.
         </p>
         <p>
@@ -51,11 +51,11 @@ const SECTIONS: readonly LegalSection[] = [
           announcements come from official public feeds of the U.S. Securities and Exchange
           Commission, the Commodity Futures Trading Commission and the Department of Justice, and
           from company filings on SEC EDGAR. Those sources own their data and their own terms apply
-          to it. Virello is not endorsed by any of them. The Data &amp; methodology page explains
-          each figure.
+          to it. FinTk is not endorsed by any of them. The Data &amp; methodology page explains each
+          figure.
         </p>
         <p>
-          Market data is shown only inside Virello&apos;s own pages, for you to read. Please do not
+          Market data is shown only inside FinTk&apos;s own pages, for you to read. Please do not
           copy it in bulk, scrape it, resell it or republish it.
         </p>
       </>
@@ -69,7 +69,7 @@ const SECTIONS: readonly LegalSection[] = [
         <p>
           Signing in is optional and uses your Google or GitHub account. You are responsible for
           what happens under your sign-in, so keep access to those accounts secure. What you put in
-          your watchlist and holdings is yours: Virello uses it only to show it back to you. You can
+          your watchlist and holdings is yours: FinTk uses it only to show it back to you. You can
           delete your account, and everything stored with it, at any time. The{" "}
           <Link
             href="/privacy"
@@ -111,13 +111,13 @@ const SECTIONS: readonly LegalSection[] = [
     body: (
       <>
         <p>
-          Virello is offered free and as is, with no promise that it will be available, accurate,
+          FinTk is offered free and as is, with no promise that it will be available, accurate,
           complete or suitable for any purpose. It can change, pause or stop at any time.
         </p>
         <p>
-          To the fullest extent the law allows, the person who runs Virello is not liable for any
-          loss or damage that comes from using it or relying on it, including financial loss.
-          Nothing here limits rights you have by law that cannot be limited.
+          To the fullest extent the law allows, the person who runs FinTk is not liable for any loss
+          or damage that comes from using it or relying on it, including financial loss. Nothing
+          here limits rights you have by law that cannot be limited.
         </p>
       </>
     ),
@@ -142,8 +142,8 @@ export function TermsOfUse() {
       updated={LEGAL_UPDATED}
       intro={
         <p>
-          The short version: Virello is a free research tool for personal use. It is information,
-          not advice, and it comes without guarantees.
+          The short version: FinTk is a free research tool for personal use. It is information, not
+          advice, and it comes without guarantees.
         </p>
       }
       sections={SECTIONS}

@@ -1,4 +1,4 @@
-# Virello API
+# FinTk API
 
 FastAPI service that owns crypto market data, official crypto news, caching and accounts, so the web
 app never holds a data-provider key. Python 3.13, managed with [uv](https://docs.astral.sh/uv/).

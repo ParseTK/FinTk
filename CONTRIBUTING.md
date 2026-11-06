@@ -1,6 +1,6 @@
 # Contributing
 
-Virello is a personal project and the code is not licensed for reuse (see [LICENSE](LICENSE)), so
+FinTk is a personal project and the code is not licensed for reuse (see [LICENSE](LICENSE)), so
 code contributions are not being accepted. Bug reports, accessibility problems and questions are
 welcome.
 

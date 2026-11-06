@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(default=5, ge=1, le=50)
     db_max_overflow: int = Field(default=5, ge=0, le=50)
     db_pool_timeout_seconds: float = Field(default=5.0, gt=0, le=60)
+    # Opening a new connection. Longer than the pool wait because a scale-to-zero host (Neon free)
+    # needs several seconds to wake on the first connection after idle.
+    db_connect_timeout_seconds: float = Field(default=15.0, gt=0, le=60)
     db_pool_recycle_seconds: int = Field(default=1800, ge=60)
     # Server-side limits so one bad query or a forgotten transaction cannot hold the database.
     db_statement_timeout_ms: int = Field(default=5000, ge=100, le=120_000)
@@ -84,7 +87,7 @@ class Settings(BaseSettings):
     # Signs the short-lived OAuth state cookie. Rotating it only invalidates logins in progress.
     secret_key: SecretStr | None = None
     # Public origin of the site users visit (the Next.js app, which proxies /api to this service),
-    # e.g. https://virello.example. OAuth redirect URIs and the CSRF Origin check derive from it.
+    # e.g. https://fin-tk.example. OAuth redirect URIs and the CSRF Origin check derive from it.
     public_url: str | None = None
 
     session_idle_days: int = Field(default=30, ge=1, le=90)  # sliding: each visit extends it

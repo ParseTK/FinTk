@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { authHeaders } from "@/lib/api/authHeaders";
-import { privateApi } from "@/lib/api/client";
+import { quickApi } from "@/lib/api/client";
 import { SIGNED_OUT, type SessionInfo } from "./types";
 
 /**
@@ -14,7 +14,7 @@ import { SIGNED_OUT, type SessionInfo } from "./types";
  */
 export const getSession = cache(async (): Promise<SessionInfo> => {
   try {
-    const { data } = await privateApi.GET("/api/v1/auth/session", {
+    const { data } = await quickApi.GET("/api/v1/auth/session", {
       headers: await authHeaders(),
     });
     if (!data) return { ...SIGNED_OUT, reachable: false };

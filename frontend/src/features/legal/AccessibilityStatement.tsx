@@ -9,7 +9,7 @@ const SECTIONS: readonly LegalSection[] = [
     title: "Our goal",
     body: (
       <p>
-        Virello aims to meet the Web Content Accessibility Guidelines (WCAG) 2.1 at level AA, and to
+        FinTk aims to meet the Web Content Accessibility Guidelines (WCAG) 2.1 at level AA, and to
         move to 2.2 AA. That means the whole site can be used with a keyboard, with a screen reader,
         with zoom or large text, and with reduced motion.
       </p>
@@ -61,7 +61,7 @@ const SECTIONS: readonly LegalSection[] = [
     title: "Tell us about a problem",
     body: (
       <p>
-        If something on Virello is hard to use, open an issue on the{" "}
+        If something on FinTk is hard to use, open an issue on the{" "}
         <ExternalLink href={SITE.issuesUrl}>project&apos;s GitHub page</ExternalLink> and describe
         the page and what happened. Please do not include personal information. Accessibility
         problems are treated as bugs.
@@ -77,7 +77,7 @@ export function AccessibilityStatement() {
       updated={LEGAL_UPDATED}
       intro={
         <p>
-          Virello should be usable by everyone. This page says what we aim for, what is already in
+          FinTk should be usable by everyone. This page says what we aim for, what is already in
           place, and where it still falls short.
         </p>
       }
