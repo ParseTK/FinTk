@@ -85,7 +85,6 @@ include_external_packages = true
 [[tool.importlinter.contracts]]
 name = "Domain rules are pure: no web, database, HTTP, or other layers"
 type = "forbidden"
-allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
 source_modules = ["app.domain"]
 forbidden_modules = [
     "app.api",
@@ -103,21 +102,18 @@ forbidden_modules = [
 [[tool.importlinter.contracts]]
 name = "Services do not know about the web"
 type = "forbidden"
-allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
 source_modules = ["app.services"]
 forbidden_modules = ["app.api", "app.schemas", "fastapi", "starlette"]
 
 [[tool.importlinter.contracts]]
 name = "Repositories hold SQL only"
 type = "forbidden"
-allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
 source_modules = ["app.repositories"]
 forbidden_modules = ["app.api", "app.services", "app.providers", "fastapi", "starlette", "httpx"]
 
 [[tool.importlinter.contracts]]
 name = "Providers talk to vendors only: no web, database, or services"
 type = "forbidden"
-allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
 source_modules = ["app.providers"]
 forbidden_modules = [
     "app.api",
@@ -132,7 +128,9 @@ forbidden_modules = [
 [[tool.importlinter.contracts]]
 name = "Schemas describe the API only: no database or provider code"
 type = "forbidden"
-allow_indirect_imports = true  # direct imports only: shared helpers such as core.errors are checked separately
+# Direct imports only, for now: the schemas import result types that live in services (finding B5), and
+# those reach the providers. Moving the types to the domain lets this contract be strict too.
+allow_indirect_imports = true
 source_modules = ["app.schemas"]
 forbidden_modules = ["app.db", "app.repositories", "app.providers", "sqlalchemy", "httpx"]
 

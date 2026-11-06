@@ -16,7 +16,8 @@ from app.api.health import ReadinessCheck
 from app.api.v1 import router as v1_router
 from app.auth.providers import OAuthProvider
 from app.core.config import Settings, get_settings
-from app.core.errors import ERROR_RESPONSES, install_error_handlers
+from app.core.error_handlers import install_error_handlers
+from app.core.errors import ERROR_RESPONSES
 from app.core.logging import configure_logging
 from app.core.middleware import (
     REQUEST_ID_HEADER,
