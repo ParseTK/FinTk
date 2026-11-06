@@ -71,3 +71,12 @@ class AnchorPrices:
 
     on: date
     prices: dict[int, Decimal]
+
+
+@dataclass(frozen=True, slots=True)
+class CryptoOverview:
+    assets: tuple[CryptoAsset, ...]
+    as_of: datetime
+    totals: MarketTotals | None
+    fear_greed: FearGreed | None
+    unavailable: tuple[str, ...]  # summaries that could not be loaded this time

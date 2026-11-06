@@ -4,8 +4,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.api.deps import DbSession
-from app.api.v1.crypto import get_crypto_service
+from app.api.deps import DbSession, get_crypto_service
 from app.repositories.holdings import HoldingRepository, WatchRepository
 from app.services.crypto import CryptoService
 from app.services.holdings import HoldingsService

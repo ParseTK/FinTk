@@ -1,17 +1,16 @@
 "use client";
 
 import { useCallback, useId, useMemo, useSyncExternalStore } from "react";
+import { applyPreferences, readPreferences } from "./browser";
 import {
   ACCENTS,
-  applyPreferences,
   DEFAULT_PREFERENCES,
   FONTS,
   MODES,
   MOTIONS,
-  readPreferences,
   STORAGE_KEYS,
   type Preferences,
-} from "./preferences";
+} from "./options";
 import { withViewTransition } from "@/lib/motion";
 import { useDisclosure } from "@/lib/useDisclosure";
 import { PaletteIcon } from "@/components/ui/icons";
