@@ -128,9 +128,6 @@ forbidden_modules = [
 [[tool.importlinter.contracts]]
 name = "Schemas describe the API only: no database or provider code"
 type = "forbidden"
-# Direct imports only, for now: the schemas import result types that live in services (finding B5), and
-# those reach the providers. Moving the types to the domain lets this contract be strict too.
-allow_indirect_imports = true
 source_modules = ["app.schemas"]
 forbidden_modules = ["app.db", "app.repositories", "app.providers", "sqlalchemy", "httpx"]
 

@@ -6,8 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from app.domain.crypto_news import CRYPTO_COMPANIES, CRYPTO_TERMS, FILING_DAYS, PER_COMPANY_LIMIT
-from app.domain.news import NewsItem
-from app.services.news import NewsDigest
+from app.domain.news import NewsDigest, NewsItem
 
 
 class NewsItemResponse(BaseModel):
