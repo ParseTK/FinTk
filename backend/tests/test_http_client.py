@@ -16,7 +16,7 @@ async def test_callers_can_set_headers_base_url_and_timeout() -> None:
     async with build_client(
         base_url="https://example.test", headers={"Accept": "application/json"}, timeout=timeout
     ) as client:
-        assert str(client.base_url).startswith("https://example.test")
+        assert client.base_url.host == "example.test"
         assert client.headers["Accept"] == "application/json"
         assert client.timeout == timeout
 
