@@ -96,3 +96,12 @@ If a secret reached git history, also see `SECURITY.md`.
 3. Market pages say figures are unavailable: the data provider or its budget is the usual cause.
    The API logs the reason with a request id, never the key.
 4. Every response carries an `x-request-id`; quote it when looking up a request in the logs.
+
+## Migrating the production database
+
+Production migrations run from GitHub, not from a laptop: **Actions > Migrate production database >
+Run workflow** (from `main`). The run waits for the required reviewer on the `production`
+environment, checks that the target is a remote, encrypted database (it prints the host, never the
+URL), shows the current revision, runs `alembic upgrade`, and shows the revision after. The connection
+string is the environment secret `VIRELLO_DATABASE_URL`. Run it before deploying an API version that
+needs a new migration (expand, then contract, so the running version keeps working meanwhile).
