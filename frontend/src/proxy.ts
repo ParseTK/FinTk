@@ -36,7 +36,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(`${pathname}${search}`, apiBaseUrl()));
   }
 
-  const policy = pagePolicy(request.headers);
+  const policy = pagePolicy(request.headers, request.url);
   const response = await routePage(request, policy.headers);
   policy.attach(response);
   return response;

@@ -6,7 +6,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 
 from app.core.config import Settings
-from app.core.errors import is_database_unavailable
+from app.core.error_handlers import is_database_unavailable
 from app.db.engine import Database, create_engine
 from app.main import create_app
 from tests.conftest import make_settings
