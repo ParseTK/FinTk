@@ -5,9 +5,8 @@
 """
 
 from collections.abc import AsyncGenerator, Mapping, Sequence
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 
-import httpx
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +14,7 @@ from app import __version__
 from app.api import health
 from app.api.health import ReadinessCheck
 from app.api.v1 import router as v1_router
-from app.auth.providers import OAuthProvider, build_oauth_providers
+from app.auth.providers import OAuthProvider
 from app.core.config import Settings, get_settings
 from app.core.errors import ERROR_RESPONSES, install_error_handlers
 from app.core.logging import configure_logging
@@ -24,78 +23,28 @@ from app.core.middleware import (
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.core.rate_limit import KeyedRateLimiter, SlidingWindowBudget
+from app.core.rate_limit import KeyedRateLimiter
 from app.db.engine import Database
-from app.providers.coinmarketcap.client import CoinMarketCapProvider
-from app.providers.coinmarketcap.client import build_http_client as build_crypto_client
-from app.providers.feeds import FeedProvider
-from app.providers.sec.client import SecProvider, build_http_client, build_user_agent
 from app.services.companies import CompanyService
 from app.services.crypto import CryptoService
 from app.services.news import NewsService
+from app.startup import open_resources
 
 _DOCS_PATHS = ("/docs", "/openapi.json")
 
 
 def _lifespan(settings: Settings):
-    """Builds long-lived resources lazily, only for what is configured and not injected.
+    """Opens the configured resources when the app starts and closes them all when it stops.
 
-    The SEC client and the database engine are created once per process and closed on shutdown.
-    Neither opens a connection until it is first used.
+    What is built, and how each piece is closed, is app.startup; this only holds the exit stack open
+    for the life of the app.
     """
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
-        client: httpx.AsyncClient | None = None
-        owned_database: Database | None = None
-        auth_client: httpx.AsyncClient | None = None
-        feed_client: httpx.AsyncClient | None = None
-        crypto_client: httpx.AsyncClient | None = None
-        if not app.state.oauth_providers and settings.enabled_providers:
-            auth_client = httpx.AsyncClient(follow_redirects=False)
-            app.state.oauth_providers = build_oauth_providers(settings, auth_client)
-        if app.state.database is None and settings.database_url is not None:
-            owned_database = Database.from_settings(settings)
-            app.state.database = owned_database
-            checks: dict[str, ReadinessCheck] = app.state.readiness_checks
-            checks["database"] = owned_database.ping
-        if app.state.company_service is None and settings.sec_contact_email:
-            client = build_http_client(settings.sec_contact_email)
-            sec = SecProvider(client)
-            app.state.company_service = CompanyService(sec, sec)
-        if app.state.news_service is None:
-            feed_client = httpx.AsyncClient(
-                headers={
-                    "User-Agent": build_user_agent(settings.sec_contact_email or "no contact set"),
-                    "Accept": "application/rss+xml, application/xml",
-                },
-                follow_redirects=False,
-            )
-            app.state.news_service = NewsService(
-                FeedProvider(feed_client), app.state.company_service
-            )
-        if app.state.crypto_service is None and settings.cmc_api_key is not None:
-            crypto_client = build_crypto_client(settings.cmc_api_key.get_secret_value())
-            app.state.crypto_service = CryptoService(
-                CoinMarketCapProvider(
-                    crypto_client,
-                    per_minute=SlidingWindowBudget(settings.cmc_calls_per_minute, 60),
-                    per_day=SlidingWindowBudget(settings.cmc_credits_per_day, 86_400),
-                )
-            )
-        try:
+        async with AsyncExitStack() as stack:
+            open_resources(app, settings, stack)
             yield
-        finally:
-            if crypto_client is not None:
-                await crypto_client.aclose()
-            if client is not None:
-                await client.aclose()
-            if owned_database is not None:
-                await owned_database.dispose()
-            if auth_client is not None:
-                await auth_client.aclose()
-            if feed_client is not None:
-                await feed_client.aclose()
 
     return lifespan
 

@@ -6,8 +6,14 @@ from typing import Annotated
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings
 from app.core.errors import UnavailableError
 from app.db.engine import Database
+
+
+def get_settings_from(request: Request) -> Settings:
+    settings: Settings = request.app.state.settings
+    return settings
 
 
 def get_database(request: Request) -> Database:

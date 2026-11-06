@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { isForwardedApiPath, proxy } from "./proxy";
+import { proxy } from "./proxy";
+import { isForwardedApiPath } from "./proxy-steps/forwarding";
 
 const request = (path: string) => new NextRequest(`http://localhost:3000${path}`);
 const rewrittenTo = (response: Response) => response.headers.get("x-middleware-rewrite");
