@@ -136,7 +136,7 @@ class GitHubProvider(_HttpProvider):
         headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github+json",
-            "User-Agent": "Virello",
+            "User-Agent": "FinTk",
         }
         user = await self._json(
             await self._request("GET", f"{self.API}/user", headers=headers), what="profile"

@@ -51,9 +51,9 @@ def make_provider(upstream: Upstream) -> SecProvider:
 
 
 def test_the_user_agent_identifies_the_app_with_a_contact() -> None:
-    assert build_user_agent("ops@example.test") == "Virello/0.1 (ops@example.test)"
+    assert build_user_agent("ops@example.test") == "FinTk/0.1 (ops@example.test)"
     client = build_http_client("ops@example.test")
-    assert client.headers["User-Agent"] == "Virello/0.1 (ops@example.test)"
+    assert client.headers["User-Agent"] == "FinTk/0.1 (ops@example.test)"
 
 
 async def test_lookups_use_one_directory_download() -> None:
@@ -71,7 +71,7 @@ async def test_requests_carry_the_identifying_user_agent() -> None:
     upstream = Upstream()
     provider = make_provider(upstream)
     await provider.lookup("AAPL")
-    assert upstream.requests[0].headers["user-agent"] == "Virello/0.1 (ops@example.test)"
+    assert upstream.requests[0].headers["user-agent"] == "FinTk/0.1 (ops@example.test)"
 
 
 async def test_repeated_filing_lists_share_one_submissions_download() -> None:

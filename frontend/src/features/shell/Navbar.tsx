@@ -29,7 +29,7 @@ export function Navbar() {
           aria-label="Main"
           className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3"
         >
-          <Link href="/" aria-label="Virello home">
+          <Link href="/" aria-label="FinTk home">
             <Logo />
           </Link>
           <Feature flag="crypto_search">

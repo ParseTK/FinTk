@@ -30,7 +30,7 @@ export function AboutBuilder() {
         </div>
         <div className="space-y-4">
           <p className="text-fg-muted max-w-xl">
-            I built Virello as a free, open project to show how crypto market data and official
+            I built FinTk as a free, open project to show how crypto market data and official
             announcements can be presented plainly: sourced, readable by everyone, and honest about
             what is missing. It is a working full-stack app, not a mock-up, and the code is public.
           </p>

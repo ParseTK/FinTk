@@ -6,11 +6,11 @@ import { LEGAL_UPDATED } from "./updated";
 const SECTIONS: readonly LegalSection[] = [
   {
     id: "who",
-    title: "Who runs Virello",
+    title: "Who runs FinTk",
     body: (
       <>
         <p>
-          Virello is a personal, non-commercial project by an individual developer. It is not a
+          FinTk is a personal, non-commercial project by an individual developer. It is not a
           company and it does not sell anything. There is no advertising, no tracking and no
           analytics on this site.
         </p>
@@ -31,19 +31,19 @@ const SECTIONS: readonly LegalSection[] = [
     body: (
       <>
         <p>
-          You can read all of the research pages without an account. If you sign in, Virello stores:
+          You can read all of the research pages without an account. If you sign in, FinTk stores:
         </p>
         <Bullets
           items={[
             <>
               <strong>From Google or GitHub:</strong> your email address, your display name, the
               address of your profile picture, which provider you used and your ID at that provider.
-              Virello asks those providers only for that basic profile and your email. It never
+              FinTk asks those providers only for that basic profile and your email. It never
               receives your password and cannot act on your Google or GitHub account.
             </>,
             <>
               <strong>What you enter:</strong> the coins on your watchlist, and for each holding the
-              coin, the amount and, if you choose to give it, the total you paid. Virello does not
+              coin, the amount and, if you choose to give it, the total you paid. FinTk does not
               connect to any exchange or wallet, so nothing else about your holdings is known.
             </>,
             <>
@@ -76,7 +76,7 @@ const SECTIONS: readonly LegalSection[] = [
             <>
               <strong>Display choices.</strong> Your theme, accent color, typeface and motion
               setting are saved in your browser&apos;s own storage on your device. They are never
-              sent to Virello&apos;s servers.
+              sent to FinTk&apos;s servers.
             </>,
           ]}
         />
@@ -93,7 +93,7 @@ const SECTIONS: readonly LegalSection[] = [
     body: (
       <p>
         Servers keep short technical logs so problems can be fixed: the time, the page requested,
-        the result and a random request number. Virello&apos;s logs leave out the part of a web
+        the result and a random request number. FinTk&apos;s logs leave out the part of a web
         address after the question mark, your sign-in token and anything you type into a form. The
         companies that host the site may keep their own technical logs under their own policies.
       </p>
@@ -110,7 +110,7 @@ const SECTIONS: readonly LegalSection[] = [
           companies that host the site and its database.
         </p>
         <p>
-          Market figures come from CoinMarketCap and news from official government feeds. Virello
+          Market figures come from CoinMarketCap and news from official government feeds. FinTk
           requests those from its own servers, so those providers are never told who you are or what
           you look at.
         </p>
@@ -140,7 +140,7 @@ const SECTIONS: readonly LegalSection[] = [
     title: "Children",
     body: (
       <p>
-        Virello is not meant for children under 13 and does not knowingly collect their information.
+        FinTk is not meant for children under 13 and does not knowingly collect their information.
       </p>
     ),
   },
@@ -163,7 +163,7 @@ export function PrivacyPolicy() {
       updated={LEGAL_UPDATED}
       intro={
         <p>
-          What Virello stores about you, why, and how to remove it. In short: a little, only if you
+          What FinTk stores about you, why, and how to remove it. In short: a little, only if you
           sign in, and you can delete all of it yourself.
         </p>
       }

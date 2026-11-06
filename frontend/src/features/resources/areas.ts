@@ -64,7 +64,7 @@ export const AREAS: readonly Area[] = [
       "Understand where the figures come from, how often they update, and what is outside the coverage.",
     tags: ["Data sources", "Refresh intervals", "Coverage & limits"],
     action: "Understand the data",
-    kind: "How Virello works",
+    kind: "How FinTk works",
   },
 ];
 

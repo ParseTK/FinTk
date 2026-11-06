@@ -84,7 +84,7 @@ class Settings(BaseSettings):
     # Signs the short-lived OAuth state cookie. Rotating it only invalidates logins in progress.
     secret_key: SecretStr | None = None
     # Public origin of the site users visit (the Next.js app, which proxies /api to this service),
-    # e.g. https://virello.example. OAuth redirect URIs and the CSRF Origin check derive from it.
+    # e.g. https://fin-tk.example. OAuth redirect URIs and the CSRF Origin check derive from it.
     public_url: str | None = None
 
     session_idle_days: int = Field(default=30, ge=1, le=90)  # sliding: each visit extends it

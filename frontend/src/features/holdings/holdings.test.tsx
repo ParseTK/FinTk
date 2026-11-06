@@ -20,7 +20,7 @@ vi.mock("@/lib/api/client", () => ({
   publicApi: { GET: vi.fn() },
 }));
 vi.mock("@/lib/api/authHeaders", () => ({
-  authHeaders: async () => ({ cookie: "virello_session=abc" }),
+  authHeaders: async () => ({ cookie: "fintk_session=abc" }),
 }));
 
 const session = vi.fn();
@@ -122,7 +122,7 @@ describe("reading the portfolio and watchlist", () => {
     GET.mockResolvedValue({ data: portfolio([]), response: { status: 200 } });
     expect(await getPortfolio()).toMatchObject({ status: "ok" });
     expect(GET).toHaveBeenCalledWith("/api/v1/portfolio", {
-      headers: { cookie: "virello_session=abc" },
+      headers: { cookie: "fintk_session=abc" },
     });
     GET.mockResolvedValue({ data: undefined, response: { status: 401 } });
     expect(await getWatchlist()).toEqual({ status: "signed-out" });

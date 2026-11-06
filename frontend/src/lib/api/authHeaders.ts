@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 
 /** The API's session cookie, by its development and production (__Host- prefixed) names. */
-const SESSION_COOKIES = ["__Host-virello_session", "virello_session"] as const;
+const SESSION_COOKIES = ["__Host-fintk_session", "fintk_session"] as const;
 
 /**
  * Headers that let a server component act as the visitor when it calls the API.

@@ -1,6 +1,6 @@
 /**
  * The text of the Education page, as plain data so it is easy to read and review. These guides
- * explain ideas and the figures Virello shows. They never say what to buy or sell, never predict,
+ * explain ideas and the figures FinTk shows. They never say what to buy or sell, never predict,
  * and any example is labelled as an example with round numbers.
  */
 
@@ -77,7 +77,7 @@ export const GUIDE_GROUPS: readonly GuideGroup[] = [
         title: "The Fear and Greed index",
         paragraphs: [
           "The index is a score from 0 to 100 published by CoinMarketCap. Low scores are labelled fear and high scores greed.",
-          "It is a summary of mood at one moment. It does not predict what happens next, and Virello shows it exactly as CoinMarketCap reports it. How it is built is explained in CoinMarketCap's methodology.",
+          "It is a summary of mood at one moment. It does not predict what happens next, and FinTk shows it exactly as CoinMarketCap reports it. How it is built is explained in CoinMarketCap's methodology.",
         ],
       },
     ],
@@ -99,8 +99,8 @@ export const GUIDE_GROUPS: readonly GuideGroup[] = [
         id: "cost",
         title: "What you paid, and more than one purchase",
         paragraphs: [
-          "Virello uses the total you enter as paid for each coin. If you bought a coin more than once, add the amounts and the totals together. Your average cost is the total paid divided by the total amount.",
-          "Virello cannot check what you enter, and it does not include fees or tax. A coin with no amount paid has a value but no gain or loss.",
+          "FinTk uses the total you enter as paid for each coin. If you bought a coin more than once, add the amounts and the totals together. Your average cost is the total paid divided by the total amount.",
+          "FinTk cannot check what you enter, and it does not include fees or tax. A coin with no amount paid has a value but no gain or loss.",
         ],
       },
     ],
@@ -131,7 +131,7 @@ export const GUIDE_GROUPS: readonly GuideGroup[] = [
         title: "Four questions to ask of any figure",
         paragraphs: [
           "Where does it come from, and who published it? How old is it? What is the unit, and over what period? What is missing from it?",
-          "Virello answers these on the Data and methodology page, and the Source directory points to the originals.",
+          "FinTk answers these on the Data and methodology page, and the Source directory points to the originals.",
         ],
       },
     ],

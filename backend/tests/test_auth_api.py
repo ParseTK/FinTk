@@ -109,7 +109,7 @@ async def test_login_redirects_to_the_provider_and_sets_a_signed_flow_cookie(
     assert params["code_challenge_method"] == "S256"
     assert "gh-secret-value" not in location
     cookie = response.headers["set-cookie"]
-    assert "virello_oauth=" in cookie
+    assert "fintk_oauth=" in cookie
     assert "HttpOnly" in cookie
     assert "SameSite=lax" in cookie
 
@@ -150,7 +150,7 @@ async def test_a_full_sign_in_creates_a_session_and_returns_to_the_requested_pag
 
     assert response.status_code == 302
     assert response.headers["location"] == "/portfolio"
-    assert any("virello_session=" in c for c in response.headers.get_list("set-cookie"))
+    assert any("fintk_session=" in c for c in response.headers.get_list("set-cookie"))
     me = await client.get("/api/v1/me")
     assert me.status_code == 200
     assert me.json()["email"] == "octo@example.com"
@@ -182,9 +182,9 @@ async def test_the_flow_cookie_is_single_use(client: httpx.AsyncClient) -> None:
     state = await start_login(client)
     first = await client.get(f"{AUTH}/github/callback", params={"code": "abc", "state": state})
     assert first.headers["location"] == "/portfolio"
-    assert "virello_oauth=" in "".join(first.headers.get_list("set-cookie"))  # cleared
+    assert "fintk_oauth=" in "".join(first.headers.get_list("set-cookie"))  # cleared
 
-    client.cookies.delete("virello_session")
+    client.cookies.delete("fintk_session")
     replay = await client.get(f"{AUTH}/github/callback", params={"code": "abc", "state": state})
     assert replay.headers["location"] == "/sign-in?error=invalid"
 
@@ -215,7 +215,7 @@ async def test_a_tampered_or_foreign_flow_cookie_is_refused(
     client: httpx.AsyncClient, idp: FakeIdentityProviders
 ) -> None:
     forged = sign({"s": "s", "v": "v", "p": "github", "n": "/"}, b"attacker-secret-" * 4)
-    client.cookies.set("virello_oauth", forged)
+    client.cookies.set("fintk_oauth", forged)
     response = await client.get(f"{AUTH}/github/callback", params={"code": "abc", "state": "s"})
     assert response.headers["location"] == "/sign-in?error=invalid"
     assert idp.requests == []
@@ -299,7 +299,7 @@ async def test_session_responses_are_never_cached(client: httpx.AsyncClient) -> 
 
 async def test_a_garbage_session_cookie_is_simply_signed_out(client: httpx.AsyncClient) -> None:
     for value in ("nonsense", "x" * 5000, "../../etc/passwd", ""):
-        client.cookies.set("virello_session", value)
+        client.cookies.set("fintk_session", value)
         assert (await client.get("/api/v1/me")).status_code == 401
     assert (await client.get(f"{AUTH}/session")).json()["user"] is None
 
@@ -322,7 +322,7 @@ async def test_logout_ends_the_session_and_clears_the_cookie(
     response = await client.post(f"{AUTH}/logout", headers=unsafe_headers(token))
 
     assert response.status_code == 204
-    assert "virello_session=" in response.headers["set-cookie"]
+    assert "fintk_session=" in response.headers["set-cookie"]
     assert "Max-Age=0" in response.headers["set-cookie"]
     assert (await client.get("/api/v1/me")).status_code == 401
     async with database.session() as session:
@@ -415,7 +415,7 @@ async def test_production_cookies_are_secure_host_prefixed_and_scoped_to_the_who
         session = next(v for v in done.headers.get_list("set-cookie") if "session" in v)
 
     for cookie in (flow, session):
-        assert cookie.startswith("__Host-virello_")
+        assert cookie.startswith("__Host-fintk_")
         assert "Secure" in cookie
         assert "HttpOnly" in cookie
         assert "SameSite=lax" in cookie

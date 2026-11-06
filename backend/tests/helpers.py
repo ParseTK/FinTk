@@ -89,7 +89,7 @@ async def sign_in_person(app: FastAPI, database: Database, email: str) -> Person
         )
     transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
     client = httpx.AsyncClient(transport=transport, base_url=ORIGIN)
-    client.cookies.set("virello_session", token)
+    client.cookies.set("fintk_session", token)
     return Person(client=client, csrf=context.csrf_token, user_id=context.user.id)
 
 

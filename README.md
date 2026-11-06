@@ -1,6 +1,6 @@
-# Virello
+# FinTk
 
-> The product is called **Virello**. The repository and package names stay **FinTk**.
+> The product is called **FinTk**. The repository and package names stay **FinTk**.
 
 A fact-first place to research public companies. Work in progress.
 
