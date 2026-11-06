@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Request, Response
 
-from app.api.auth_deps import AuthServiceDep, CsrfProtectedAuth, CurrentAuth, get_settings_from
+from app.api.auth_deps import CsrfProtectedAuth, CurrentAuth
+from app.api.deps import get_settings_from
+from app.api.session_deps import AuthServiceDep
 from app.auth.cookies import clear_cookie, session_cookie_name
 from app.core.errors import ErrorResponse
 from app.schemas.auth import UserResponse
