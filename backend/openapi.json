@@ -799,14 +799,14 @@
         "properties": {
           "amount": {
             "description": "How many coins are held. Must be greater than zero.",
-            "pattern": "^\\d{1,12}(\\.\\d{1,18})?$",
+            "pattern": "^[0-9]{1,12}(\\.[0-9]{1,18})?$",
             "title": "Amount",
             "type": "string"
           },
           "cost": {
             "anyOf": [
               {
-                "pattern": "^\\d{1,16}(\\.\\d{1,2})?$",
+                "pattern": "^[0-9]{1,16}(\\.[0-9]{1,2})?$",
                 "type": "string"
               },
               {

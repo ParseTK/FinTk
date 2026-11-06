@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { sendJson } from "@/lib/apiRequest";
+import { useMutation } from "@/lib/useMutation";
 
 export interface WatchButtonProps {
   slug: string;
@@ -31,8 +32,7 @@ export function WatchButton({ slug, name, watched, csrfToken, signInNext }: Watc
     setSeen(watched);
     setIsWatched(watched);
   }
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState("");
+  const { busy, problem, run } = useMutation();
 
   if (!csrfToken) {
     return (
@@ -47,19 +47,16 @@ export function WatchButton({ slug, name, watched, csrfToken, signInNext }: Watc
   }
 
   async function toggle() {
-    setBusy(true);
-    setProblem("");
-    const result = await sendJson(
-      isWatched ? "DELETE" : "PUT",
-      `/api/v1/watchlist/${encodeURIComponent(slug)}`,
-      csrfToken!,
+    const result = await run(() =>
+      sendJson(
+        isWatched ? "DELETE" : "PUT",
+        `/api/v1/watchlist/${encodeURIComponent(slug)}`,
+        csrfToken!,
+      ),
     );
-    setBusy(false);
-    if (result.ok) {
+    if (result?.ok) {
       setIsWatched(!isWatched);
       router.refresh();
-    } else {
-      setProblem(result.message);
     }
   }
 

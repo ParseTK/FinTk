@@ -9,3 +9,5 @@
 - [ ] `npm run lint`, `typecheck`, `test` and `build` pass
 - [ ] UI changes are keyboard accessible and have labels / alt text
 - [ ] Unfinished or risky behavior is behind a feature flag
+- [ ] Each changed file or function has one reason to change (which single change would force it to be edited again?)
+- [ ] Backend: `uv run lint-imports` passes (layers are not crossed)

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { sendJson } from "@/lib/apiRequest";
+import { useMutation } from "@/lib/useMutation";
 import { actionClass } from "./actionStyles";
 
 export interface RemoveButtonProps {
@@ -25,18 +26,13 @@ export interface RemoveButtonProps {
 export function RemoveButton({ what, path, csrfToken }: RemoveButtonProps) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState("");
+  const { busy, problem, run } = useMutation();
 
   async function remove() {
-    if (busy) return;
-    setBusy(true);
-    setProblem("");
-    const result = await sendJson("DELETE", path, csrfToken);
-    setBusy(false);
+    const result = await run(() => sendJson("DELETE", path, csrfToken));
+    if (result === null) return; // already removing: this press did nothing
     setConfirming(false);
     if (result.ok) router.refresh();
-    else setProblem(result.message);
   }
 
   return (
