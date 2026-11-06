@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PalettePicker } from "./PalettePicker";
-import { STORAGE_KEYS } from "./preferences";
+import { STORAGE_KEYS } from "./options";
 
 function stubMatchMedia(reducedMotion: boolean) {
   vi.stubGlobal("matchMedia", (query: string) => ({
