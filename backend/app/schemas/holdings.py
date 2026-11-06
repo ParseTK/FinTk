@@ -25,8 +25,10 @@ from app.domain.holdings import Holding, Totals, Valuation, WatchEntry, WatchRow
 from app.schemas.crypto import ATTRIBUTION_TEXT, ATTRIBUTION_URL, AttributionResponse, PlainDecimal
 
 # NUMERIC(30, 18): up to 12 digits before the point, 18 after. A cost is NUMERIC(18, 2).
-Amount = Annotated[str, StringConstraints(pattern=r"^\d{1,12}(\.\d{1,18})?$")]
-Cost = Annotated[str, StringConstraints(pattern=r"^\d{1,16}(\.\d{1,2})?$")]
+# [0-9], not \d: in a Unicode-aware regex \d also matches the digits of other scripts (Arabic-Indic,
+# fullwidth), which Decimal would then read as ordinary numbers. Money is plain ASCII digits only.
+Amount = Annotated[str, StringConstraints(pattern=r"^[0-9]{1,12}(\.[0-9]{1,18})?$")]
+Cost = Annotated[str, StringConstraints(pattern=r"^[0-9]{1,16}(\.[0-9]{1,2})?$")]
 
 # A coin amount without the trailing zeros the database pads it with ("1.5", not "1.5000...").
 Coins = Annotated[

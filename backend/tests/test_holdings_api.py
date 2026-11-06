@@ -249,6 +249,11 @@ async def test_removing_a_holding(world: World) -> None:
         {"amount": "1", "cost": 5},
         {"amount": "1", "cost": "NaN"},
         {"amount": "1", "extra": "x"},
+        # Digits from other scripts are not numbers we accept, even though Decimal could read them.
+        {"amount": "\u0661\u0662\u0663"},  # Arabic-Indic 123
+        {"amount": "1.\u0665"},
+        {"amount": "\uff11\uff12"},  # fullwidth 12
+        {"amount": "1", "cost": "\u0661\u0660\u0660"},
     ],
 )
 async def test_bad_input_is_refused_before_anything_is_saved(world: World, body: Any) -> None:
