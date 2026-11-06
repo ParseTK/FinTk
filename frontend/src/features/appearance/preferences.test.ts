@@ -1,20 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { applyPreferences, readPreferences } from "./browser";
+import { PREFERENCES_INIT_SCRIPT } from "./initScript";
+import { ACCENTS, DEFAULT_PREFERENCES, FONTS, MOTIONS, STORAGE_KEYS } from "./options";
 import {
-  ACCENTS,
-  applyPreferences,
-  DEFAULT_PREFERENCES,
-  FONTS,
-  MOTIONS,
   parseAccent,
   parseFont,
   parseMode,
   parseMotion,
-  PREFERENCES_INIT_SCRIPT,
-  readPreferences,
   resolveMode,
   resolveMotion,
-  STORAGE_KEYS,
-} from "./preferences";
+} from "./parse";
 
 describe("parsers", () => {
   it("accept known ids and fall back to the defaults", () => {
