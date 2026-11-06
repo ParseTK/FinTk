@@ -32,6 +32,18 @@ def _incoming_request_id(scope: Scope) -> str | None:
     return None
 
 
+def _forwarded_entry_count(scope: Scope) -> int:
+    """How many addresses X-Forwarded-For lists: only a count, never the addresses themselves.
+
+    It shows how many proxies sit in front of the API, which is what VIRELLO_TRUST_PROXY_HOPS needs.
+    """
+    count = 0
+    for name, value in scope["headers"]:
+        if name == b"x-forwarded-for":
+            count += sum(1 for part in value.decode("latin-1").split(",") if part.strip())
+    return count
+
+
 class RequestContextMiddleware:
     """Gives every request an id, logs it once, and turns unexpected crashes into a safe 500."""
 
@@ -75,6 +87,7 @@ class RequestContextMiddleware:
                         "path": scope["path"],  # never the query string
                         "status": status,
                         "duration_ms": round((time.perf_counter() - started) * 1000, 1),
+                        "forwarded_entries": _forwarded_entry_count(scope),
                     }
                 },
             )
