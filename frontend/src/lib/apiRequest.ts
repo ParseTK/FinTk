@@ -114,6 +114,42 @@ async function readError(response: Response): Promise<ErrorBody["error"]> {
 /** The API's own message is shown only for these codes, whose text is authored and fixed. */
 const AUTHORED = new Set(["limit_reached", "conflict", "bad_request"]);
 
+/** The per-field messages for the fields the API reports as invalid (422). Unknown fields are ignored. */
+function fieldMessages(error: ErrorBody["error"]): Record<string, string> {
+  const fields: Record<string, string> = {};
+  for (const detail of error?.details ?? []) {
+    const name = (detail.loc ?? []).at(-1);
+    if (typeof name === "string" && name in FIELD_MESSAGES) fields[name] = FIELD_MESSAGES[name]!;
+  }
+  return fields;
+}
+
+/** Statuses that map to one fixed failure with a fixed message. */
+const PLAIN_FAILURES: Record<number, FailureKind> = {
+  401: "signed-out",
+  403: "stale",
+  404: "not-found",
+  429: "rate-limited",
+};
+
+/** Which failure an error response is. Only fixed, authored text from the server is ever shown. */
+function failureFor(status: number, error: ErrorBody["error"]): Failure {
+  const plain = PLAIN_FAILURES[status];
+  if (plain) return failure(plain);
+  const authored = error?.code && AUTHORED.has(error.code) ? error.message : undefined;
+  if (status === 400) return failure("invalid", authored);
+  if (status === 409)
+    return failure(error?.code === "limit_reached" ? "limit" : "conflict", authored);
+  if (status === 422) return failure("invalid", undefined, fieldMessages(error));
+  return failure("failed");
+}
+
+async function readSuccess<T>(response: Response): Promise<Success<T>> {
+  const data =
+    response.status === 204 ? undefined : ((await response.json().catch(() => undefined)) as T);
+  return { ok: true, data: data as T, created: response.status === 201 };
+}
+
 export async function sendJson<T = unknown>(
   method: "POST" | "PUT" | "DELETE",
   path: string,
@@ -135,39 +171,6 @@ export async function sendJson<T = unknown>(
   } catch {
     return failure("failed");
   }
-
-  if (response.ok) {
-    const data =
-      response.status === 204 ? undefined : ((await response.json().catch(() => undefined)) as T);
-    return { ok: true, data: data as T, created: response.status === 201 };
-  }
-
-  const error = await readError(response);
-  const authored = error?.code && AUTHORED.has(error.code) ? error.message : undefined;
-  switch (response.status) {
-    case 400:
-      return failure("invalid", authored);
-    case 401:
-      return failure("signed-out");
-    case 403:
-      return failure("stale");
-    case 404:
-      return failure("not-found");
-    case 409:
-      return failure(error?.code === "limit_reached" ? "limit" : "conflict", authored);
-    case 422: {
-      const fields: Record<string, string> = {};
-      for (const detail of error?.details ?? []) {
-        const loc = detail.loc ?? [];
-        const name = loc.at(-1);
-        if (typeof name !== "string" || !(name in FIELD_MESSAGES)) continue;
-        fields[name] = FIELD_MESSAGES[name]!;
-      }
-      return failure("invalid", undefined, fields);
-    }
-    case 429:
-      return failure("rate-limited");
-    default:
-      return failure("failed");
-  }
+  if (response.ok) return readSuccess<T>(response);
+  return failureFor(response.status, await readError(response));
 }
