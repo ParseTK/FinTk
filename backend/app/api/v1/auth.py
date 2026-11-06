@@ -13,13 +13,10 @@ from urllib.parse import urlencode, urlparse
 from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import RedirectResponse
 
-from app.api.auth_deps import (
-    AuthServiceDep,
-    CsrfProtectedAuth,
-    get_settings_from,
-    limit_auth_requests,
-    optional_auth,
-)
+from app.api.auth_deps import CsrfProtectedAuth
+from app.api.deps import get_settings_from
+from app.api.limits import limit_auth_requests
+from app.api.session_deps import AuthServiceDep, optional_auth
 from app.auth.cookies import (
     clear_cookie,
     flow_cookie_name,

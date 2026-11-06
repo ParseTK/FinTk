@@ -10,7 +10,7 @@ This is not user authentication. It says "this call came from our site", not who
 
 from fastapi import Request
 
-from app.api.auth_deps import get_settings_from
+from app.api.deps import get_settings_from
 from app.auth.security import safe_equals
 from app.core.errors import ForbiddenError
 
