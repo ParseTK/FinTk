@@ -7,18 +7,14 @@ every refresh fails.
 
 import asyncio
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from app.core.cache import AsyncTTLCache
 from app.core.errors import AppError, UnavailableError
-from app.domain.crypto_news import (
-    CRYPTO_COMPANIES,
-    PER_COMPANY_LIMIT,
-    filing_cutoff,
-    is_crypto_related,
-)
-from app.domain.news import NewsItem, filing_news, latest_first
+from app.domain.crypto_news import CRYPTO_COMPANIES, assemble_crypto_news, filing_cutoff
+from app.domain.news import NewsItem, filing_news
 from app.providers.feeds import CRYPTO_FEEDS, FeedProvider
 from app.services.companies import CompanyService
 
@@ -28,6 +24,20 @@ NEWS_TTL = 15 * 60.0
 NEWS_STALE = 7 * 86400.0
 # The most 8-Ks looked at per company; a year of them is rarely more than a dozen.
 COMPANY_FETCH = 50
+
+
+def _readable(results: Sequence[list[NewsItem] | BaseException]) -> list[list[NewsItem] | None]:
+    """A source that failed with one of our own errors becomes None (reported as down); anything
+    else is a bug and is raised, never quietly turned into a missing source."""
+    readable: list[list[NewsItem] | None] = []
+    for result in results:
+        if isinstance(result, list):
+            readable.append(result)
+        elif isinstance(result, AppError):
+            readable.append(None)
+        else:
+            raise result
+    return readable
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,30 +70,18 @@ class NewsService:
                 return_exceptions=True,
             ),
         )
-        items: list[NewsItem] = []
-        down: list[str] = []
-        for feed, result in zip(CRYPTO_FEEDS, announcements, strict=True):
-            if isinstance(result, list):
-                items.extend(item for item in result if is_crypto_related(item.title))
-            elif isinstance(result, AppError):
-                down.append(feed.name)
-            else:
-                raise result
-        for ticker, filed in zip(CRYPTO_COMPANIES, filings, strict=True):
-            if isinstance(filed, list):
-                recent = [item for item in filed if item.published >= cutoff]
-                items.extend(latest_first(recent)[:PER_COMPANY_LIMIT])
-            elif isinstance(filed, AppError):
-                down.append(ticker)
-            else:
-                raise filed
+        # What to keep, cap and order is the domain's rule; this only fetches and decides failure.
+        items, down = assemble_crypto_news(
+            list(zip((feed.name for feed in CRYPTO_FEEDS), _readable(announcements), strict=True)),
+            list(zip(CRYPTO_COMPANIES, _readable(filings), strict=True)),
+            cutoff,
+        )
         if not items and down:
             # Nothing at all: fail, so a stale copy (if there is one) is served and nothing
             # empty is cached as if it were fresh.
             msg = "News is unavailable right now. Please try again shortly."
             raise UnavailableError(msg)
-        unique = {item.url: item for item in items}  # the two CFTC feeds can repeat an item
-        return NewsDigest(items=tuple(latest_first(list(unique.values()))), unavailable=tuple(down))
+        return NewsDigest(items=tuple(items), unavailable=tuple(down))
 
     async def _company_events(self, ticker: str) -> list[NewsItem]:
         if self._companies is None:
