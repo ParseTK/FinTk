@@ -5,6 +5,7 @@ import { MenuIcon, PaletteIcon, SearchIcon } from "@/components/ui/icons";
 import { Container } from "@/components/ui/Container";
 import { Alert } from "@/components/ui/Alert";
 import { LiveMessage } from "@/components/ui/LiveMessage";
+import { WakeNotice } from "@/components/ui/WakeNotice";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Change } from "@/components/ui/Change";
@@ -154,6 +155,7 @@ export default function DesignPage() {
           <LiveMessage>Could not sign you out. Reload the page and try again.</LiveMessage>
           <LiveMessage tone="success">Added 0.5 BTC.</LiveMessage>
           <LiveMessage />
+          <WakeNotice delayMs={0} />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <Card>

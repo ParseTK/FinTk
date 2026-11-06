@@ -10,7 +10,7 @@ vi.mock("next/headers", () => ({
 }));
 
 const GET = vi.fn();
-vi.mock("@/lib/api/client", () => ({ privateApi: { GET: (...args: unknown[]) => GET(...args) } }));
+vi.mock("@/lib/api/client", () => ({ quickApi: { GET: (...args: unknown[]) => GET(...args) } }));
 
 const { getSession } = await import("./session");
 
