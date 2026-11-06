@@ -1,57 +1,114 @@
 # FinTk
 
-> The product is called **FinTk**. The repository and package names stay **FinTk**.
+A free, accessible place to research crypto markets: live prices and market make-up, coin pages,
+official regulatory news, and a personal watchlist and holdings list. Everything shown is labelled
+with where it came from, and nothing is a prediction or advice.
 
-A fact-first place to research public companies. Work in progress.
+Live: https://fin-tk.vercel.app (the free host puts the API to sleep when idle, so the first visit
+after a quiet spell can take up to a minute; the site says so while it waits).
+
+## What is in it
+
+- **Crypto**: overview (market mood, Fear and Greed), markets (movers, make-up, ten largest), coin
+  search and coin pages with reported price changes.
+- **News**: official items only (SEC, CFTC, DOJ and company 8-K filings), filtered by a printed
+  keyword rule. Nothing is ranked.
+- **Holdings** (signed in): a watchlist and the coins you hold, with the amount and optional cost.
+- **Resources**: data and methodology, source directory, education guides, calculators with exact
+  decimal maths, and a coin comparison.
+- **Accessibility** is a requirement (WCAG 2.1 AA): keyboard use, visible focus, live regions, a
+  skip link, a light and a dark theme, and a motion control that stops animation.
 
 ## Stack
 
-- Frontend: Next.js (App Router), React, TypeScript, Tailwind CSS
-- Backend: FastAPI (Python 3.13, managed with uv); Postgres is planned. See [backend/README.md](backend/README.md)
+- Frontend: Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS 4. Server
+  components by default.
+- Backend: FastAPI, Pydantic v2, async SQLAlchemy and asyncpg, Alembic, Python 3.13 with `uv`.
+  See [backend/README.md](backend/README.md) and [backend/RUNBOOK.md](backend/RUNBOOK.md).
+- Database: Postgres 17.
+- Contract: the API's OpenAPI file (`backend/openapi.json`) is the single source. The frontend
+  client types are generated from it, and CI fails if either is stale.
+- Hosting: Vercel (website), Render (API, Docker), Neon (Postgres), all on free plans.
+
+## Data and licences
+
+- Crypto prices come from CoinMarketCap's free plan and are shown with attribution, only inside
+  this site and only for personal, non-commercial use. The API route that carries them requires an
+  internal token, so it is not a public feed.
+- News and company filings come from official US sources (SEC EDGAR, CFTC, DOJ).
+- The code is all rights reserved (see [LICENSE](LICENSE)).
 
 ## Develop
 
-Requires Node 24 (see `.nvmrc`).
+Requires Node 24 (see `.nvmrc`) and [uv](https://docs.astral.sh/uv/).
 
 ```bash
+# website
 cd frontend
-cp .env.example .env     # add any keys you have; never commit .env
+cp .env.example .env.local   # add any values you have; never commit it
 npm ci
 npm run dev
+
+# API (second terminal)
+cd backend
+cp .env.example .env
+uv sync
+uv run uvicorn app.main:app --reload
 ```
 
-The API lives in `backend/` (`uv sync`, then `uv run uvicorn app.main:app --reload`); see its README.
+With [just](https://github.com/casey/just) installed, `just` lists shortcuts: `just api`, `just web`,
+`just test`, `just lint`, `just migrate`, `just gen-api`.
 
-With [just](https://github.com/casey/just) installed, `just` lists shortcuts for the above: `just api`, `just web`, `just test`, `just lint`, `just migrate`, `just gen-api` (regenerate the API contract and the typed client).
+Checks that CI also runs:
 
-### Sign-in (off by default)
+- frontend: `npm run format:check`, `lint`, `typecheck`, `test`, `build`
+- backend: `uv run ruff format --check .`, `ruff check .`, `pyright`, `pytest`
 
-Sign-in with Google or GitHub is behind the `auth` feature flag. With the flag off, `/sign-in`,
-`/account` and the `/api` proxy answer 404, so nothing half-finished is reachable.
+### Environment
 
-1. Register an OAuth app with each provider you want and set the backend variables (see the
-   "Sign-in" section of `backend/README.md`): the client ids and secrets, `VIRELLO_SECRET_KEY`, and
-   `VIRELLO_PUBLIC_URL` set to the address you browse (for example `http://localhost:3000`).
-2. Run the backend with a database (see below), and start the frontend with
-   `FEATURE_AUTH=true` and `API_URL` pointing at the backend.
+Nothing secret goes in git. The website reads `frontend/.env.local`; the API reads `backend/.env`.
+Both have an `.env.example` listing every variable.
 
-With the flag on, signed-in people also get `/watchlist` (companies they follow, with a Watch toggle on
-search results and company pages) and `/portfolio` (purchases of shares at a price; holdings and
-average cost are computed from them). Amounts are exact decimals in US dollars and show what was
-paid; current values need price data, which is not added yet. Visitors who are not signed in are sent
-to sign in and then back.
+- Crypto data needs `VIRELLO_CMC_API_KEY` (a free CoinMarketCap key) on the API and the same
+  `VIRELLO_INTERNAL_API_TOKEN` on the API and `INTERNAL_API_TOKEN` on the website.
+- News needs `VIRELLO_SEC_CONTACT_EMAIL` (SEC requires every client to identify itself).
+- The website finds the API through `API_URL` (default `http://localhost:8000`).
 
-Browsers only ever talk to the Next.js origin; `src/proxy.ts` forwards a small allowlist of paths
-(`/api/v1/auth/*`, `/api/v1/me`, `/api/v1/watchlist*` and `/api/v1/portfolio*`) to the API at request
-time, which keeps the session cookie same-site. Behind a load balancer, set `VIRELLO_TRUST_PROXY_HOPS` so the login rate limit sees real
-client addresses.
+### Feature flags
+
+Pages are switched on with server-side flags (`FEATURE_<NAME>=true`), read at request time, so a
+change needs a restart but not a rebuild. The registry is `frontend/src/lib/flag-core.ts`; a flag
+that needs another says so in a comment there.
+
+| Flag                       | Shows                               | Also needs       |
+| -------------------------- | ----------------------------------- | ---------------- |
+| `crypto`                   | overview and the crypto pages       |                  |
+| `crypto_markets`           | markets page                        | `crypto`         |
+| `crypto_news`              | news page                           | `crypto`         |
+| `crypto_search`            | search box, coin pages              | `crypto`         |
+| `resources`                | resources section                   |                  |
+| `auth`                     | sign-in and account                 |                  |
+| `holdings`                 | watchlist and holdings              | `crypto`, `auth` |
+| `palette`, `scroll_motion` | appearance picker, scroll animation |                  |
+| `design`                   | component gallery at `/design`      |                  |
+
+### Sign-in
+
+Sign-in with Google or GitHub is behind the `auth` flag. Register an OAuth app with each provider
+(callback `<your address>/api/v1/auth/<github|google>/callback`), set the client ids and secrets,
+`VIRELLO_SECRET_KEY` and `VIRELLO_PUBLIC_URL` on the API, and start the website with
+`FEATURE_AUTH=true`. See the "Sign-in" section of [backend/README.md](backend/README.md).
+
+Browsers only talk to the website's own address; `frontend/src/proxy.ts` forwards a short allowlist of
+paths to the API at request time, which keeps the session cookie same-site. Behind a proxy, set
+`VIRELLO_TRUST_PROXY_HOPS` so rate limits see real client addresses.
 
 ### Local database
 
-The API stores data in Postgres 17. A compose file runs one for development:
+A compose file runs Postgres 17 for development:
 
 ```bash
-cp .env.example .env              # set POSTGRES_PASSWORD (there is deliberately no default)
+cp .env.example .env              # set POSTGRES_PASSWORD (deliberately no default)
 docker compose up -d --wait       # Postgres on 127.0.0.1:5433, plus an empty virello_test database
 cd backend
 # put the two URLs from .env.example into backend/.env, then:
@@ -60,66 +117,46 @@ uv run pytest                     # the database tests run against it
 docker compose down               # stop it; add -v to also delete the data
 ```
 
-The container listens on localhost only, is memory-capped, and keeps its data in a named volume.
-Use `127.0.0.1` rather than `localhost` in the URLs (the port is IPv4 only).
-
-Frontend checks run in CI and locally: `npm run format:check`, `lint`, `typecheck`, `test`, `build`.
+It listens on localhost only. Use `127.0.0.1` rather than `localhost` in the URLs (the port is IPv4
+only). The `VIRELLO_` prefix and `virello_*` database names are internal and unchanged by the rename.
 
 ## Project structure
 
-The frontend is organized by feature, with one-way dependencies that ESLint enforces:
+The frontend is organised by feature, with one-way dependencies that ESLint enforces:
 
 ```
-src/
+frontend/src/
   app/             routes only (thin pages that compose features)
-  components/ui/   generic building blocks, one folder per component (Button/, Card/, Field/ ...)
+  components/ui/   generic building blocks, one folder per component
   features/        one folder per feature, each with a public index.ts
     appearance/    palette picker and preferences
-    home/          hero, chart, ticker, feature cards
-    market-data/   the data provider (the seam a backend client replaces)
-    portfolio/     portfolio state and UI
-    search/        search field and result cards
-    shell/         navbar, footer, logo, nav links
-  lib/             framework-free helpers (formatting, flags, contrast)
+    auth/          sign-in, session, account menu
+    crypto/        overview, markets, news, search, coin pages
+    holdings/      watchlist and holdings
+    home/          landing page
+    legal/         privacy, terms, accessibility
+    resources/     methodology, sources, education, tools
+    shell/         header, footer, sidebar, logo
+  lib/             framework-free helpers (formatting, flags, decimal maths)
 ```
 
 Dependencies point one way: `app` -> `features` -> `components/ui` -> `lib`. Features reach each
-other only through a feature's `index.ts`, and nothing imports from `app`. Tests live next to the
-code they cover.
+other only through a feature's `index.ts`, and nothing imports from `app`. Tests sit next to the
+code. To add a UI component run `npm run new:component -- Name` in `frontend/`.
 
-To add a UI component, run `npm run new:component -- Name` (in `frontend/`). It creates
-`components/ui/Name/` with the component, a test that includes an accessibility check, and the
-`index.ts` that other code imports from.
+The backend follows route -> service -> repository or provider, with separate request, response and
+database models; `import-linter` enforces the layers.
 
 ## Workflow
 
-Work happens on short-lived branches that merge into `dev`; `dev` merges into `main`. `main` is always deployable. Unfinished features are hidden behind server-side feature flags (`FEATURE_<NAME>=true`).
+Work happens on short-lived branches (`feature/*`, `fix/*`, `docs/*`, `chore/*`) that are squash
+merged into `dev` through a pull request. `main` is always deployable and is updated by a release
+pull request from `dev`, merged with **Create a merge commit**. CI must pass on every pull request:
+formatting, lint, types, tests, build, dependency audit, secret scanning, CodeQL, container image
+scans and a browser smoke test. Vercel and Render deploy from `main`.
 
-## Releasing
-
-Releases are a one-click fast-forward, so `main` and `dev` are always the same commit afterwards
-(`dev` is never "behind"). In GitHub: **Actions, "Release: fast-forward", Run workflow, action: release**.
-
-The workflow refuses to run unless:
-
-- `main` can be fast-forwarded to `dev` (nothing on `main` would be lost), and
-- the required checks (frontend, secrets, CodeQL analysis) have passed on that exact commit.
-
-It adds no merge commit and needs no extra pull request. Use **action: sync** only if something ever
-lands on `main` directly, to bring `dev` up to it.
-
-### One-time setup
-
-Moving `main` without a pull request needs an identity that is allowed to, which the built-in workflow
-token is not. Create a fine-grained personal access token and store it as a repository secret:
-
-1. GitHub, Settings, Developer settings, Fine-grained tokens, **Generate new token**.
-2. Repository access: **only this repository**. Permissions: **Contents: Read and write**,
-   **Checks: Read-only** (Metadata is added automatically). Set an expiry (90 days is a good default).
-3. Add it as the Actions secret **RELEASE_TOKEN** (Settings, Secrets and variables, Actions).
-
-The token owner must be a repository admin. Because the push uses this token (not the built-in one),
-it also starts CI and the container-image build on `main`. Rotate the token before it expires.
+Database changes reach production through the manual **Migrate production database** workflow,
+which waits for an approval first (see the runbook).
 
 ## Security
 
