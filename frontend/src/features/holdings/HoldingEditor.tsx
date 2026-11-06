@@ -7,6 +7,7 @@ import { TextField } from "@/components/ui/Field";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { LiveMessage } from "@/components/ui/LiveMessage";
 import { sendJson } from "@/lib/apiRequest";
+import { useMutation } from "@/lib/useMutation";
 import { useFocusFirstInvalid } from "@/lib/useFocusFirstInvalid";
 import { tidyDecimal } from "./format";
 import { RemoveButton } from "./RemoveButton";
@@ -45,9 +46,8 @@ export function HoldingEditor({
   const [amount, setAmount] = useState(current?.amount ?? "");
   const [cost, setCost] = useState(current?.cost ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [problem, setProblem] = useState("");
   const [saved, setSaved] = useState("");
-  const [busy, setBusy] = useState(false);
+  const { busy, problem, run } = useMutation();
   const form = useRef<HTMLFormElement>(null);
   const focusInvalid = useFocusFirstInvalid(form);
 
@@ -65,26 +65,17 @@ export function HoldingEditor({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy) return;
-    setBusy(true);
     setErrors({});
-    setProblem("");
     setSaved("");
     const tidyCost = tidyDecimal(cost);
     const body = { amount: tidyDecimal(amount), ...(tidyCost ? { cost: tidyCost } : {}) };
-    const result = await sendJson(
-      "PUT",
-      `/api/v1/portfolio/${encodeURIComponent(slug)}`,
-      csrfToken!,
-      {
-        body,
-      },
+    const result = await run(() =>
+      sendJson("PUT", `/api/v1/portfolio/${encodeURIComponent(slug)}`, csrfToken!, { body }),
     );
-    setBusy(false);
+    if (result === null) return; // already saving: this press did nothing
     if (!result.ok) {
       setErrors(result.fields);
       if (Object.keys(result.fields).length > 0) focusInvalid();
-      else setProblem(result.message);
       return;
     }
     setAmount(body.amount);
