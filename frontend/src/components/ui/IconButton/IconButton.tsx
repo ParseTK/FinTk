@@ -27,7 +27,9 @@ export function IconButton({
     <button
       type={type}
       aria-label={label}
-      className={clsx(buttonStyles({ variant, size, className }), "p-0", SQUARE[size])}
+      // "p-0!" is important on purpose: the size padding from buttonStyles (px-4 ...) would otherwise
+      // win over p-0 and squeeze the icon to a sliver inside the square.
+      className={clsx(buttonStyles({ variant, size, className }), "p-0!", SQUARE[size])}
       {...rest}
     >
       {children}
