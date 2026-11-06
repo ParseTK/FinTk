@@ -86,7 +86,7 @@ test.describe("a signed-in person", () => {
   }) => {
     const email = `e2e-${Date.now()}@example.test`;
     await context.addCookies([
-      { name: "virello_session", value: mintSession(email), url: "http://localhost" },
+      { name: "fintk_session", value: mintSession(email), url: "http://localhost" },
     ]);
 
     // Watch.

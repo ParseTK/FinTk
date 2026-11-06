@@ -3,7 +3,7 @@ import { PrivacyPolicy } from "@/features/legal";
 
 export const metadata: Metadata = {
   title: "Privacy policy",
-  description: "What Virello stores about you, why, and how to delete it.",
+  description: "What FinTk stores about you, why, and how to delete it.",
 };
 
 export default function Page() {

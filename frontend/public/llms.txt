@@ -1,6 +1,6 @@
-# Virello
+# FinTk
 
-> Virello is a fact-first place to research public companies: search a company or ticker and read its profile. A watchlist, a portfolio with cost basis, and month-by-year performance patterns are planned. It shows financial information for research and education only; it is not investment advice.
+> FinTk is a fact-first place to research public companies: search a company or ticker and read its profile. A watchlist, a portfolio with cost basis, and month-by-year performance patterns are planned. It shows financial information for research and education only; it is not investment advice.
 
 ## Pages
 

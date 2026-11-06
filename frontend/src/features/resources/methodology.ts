@@ -14,7 +14,7 @@ export interface SourceRow {
   name: string;
   href: string;
   provides: string;
-  /** How old the copy Virello shows can be. */
+  /** How old the copy FinTk shows can be. */
   age: string;
 }
 
@@ -56,7 +56,7 @@ export const FIGURES: readonly Figure[] = [
   {
     name: "Price, market cap, volume and supply",
     meaning:
-      "Shown as CoinMarketCap reports them, in US dollars. Virello does not adjust, smooth or estimate them.",
+      "Shown as CoinMarketCap reports them, in US dollars. FinTk does not adjust, smooth or estimate them.",
   },
   {
     name: "Change over 24 hours, 7, 30 and 90 days (and 1 hour on a coin page)",
@@ -66,7 +66,7 @@ export const FIGURES: readonly Figure[] = [
   {
     name: "Year to date and past year",
     meaning:
-      "Worked out by Virello from two prices: the price on 1 January (or about a year ago) and the price now, as (now − then) ÷ then × 100, rounded to two decimals. “About a year” is 358 days, the furthest back the free data plan allows safely. The dates used are printed in the table headings.",
+      "Worked out by FinTk from two prices: the price on 1 January (or about a year ago) and the price now, as (now − then) ÷ then × 100, rounded to two decimals. “About a year” is 358 days, the furthest back the free data plan allows safely. The dates used are printed in the table headings.",
   },
   {
     name: "Market make-up",
@@ -81,12 +81,12 @@ export const FIGURES: readonly Figure[] = [
   {
     name: "Fear and Greed",
     meaning:
-      "A score and label calculated by CoinMarketCap. Virello shows them unchanged. How the score is built is explained in CoinMarketCap's own methodology.",
+      "A score and label calculated by CoinMarketCap. FinTk shows them unchanged. How the score is built is explained in CoinMarketCap's own methodology.",
   },
   {
     name: "Your portfolio",
     meaning:
-      "Value is the amount you entered times the current price. Paid is the total you entered, and gain or loss is value minus paid. Virello cannot check what you entered. A holding with no amount paid has no gain or loss.",
+      "Value is the amount you entered times the current price. Paid is the total you entered, and gain or loss is value minus paid. FinTk cannot check what you entered. A holding with no amount paid has no gain or loss.",
   },
 ];
 
@@ -102,7 +102,7 @@ export const LIMITS: readonly Limit[] = [
   },
   {
     title: "Largest coins only",
-    text: "Virello reads the 200 largest coins by market capitalization. The markets page lists 25 of them. Coin pages and search cover the 200. A smaller coin will not be found.",
+    text: "FinTk reads the 200 largest coins by market capitalization. The markets page lists 25 of them. Coin pages and search cover the 200. A smaller coin will not be found.",
   },
   {
     title: "No price history",
@@ -122,6 +122,6 @@ export const LIMITS: readonly Limit[] = [
   },
   {
     title: "Information, not advice",
-    text: "Virello is for personal, non-commercial research. Nothing on it is investment advice, and data can be delayed, incomplete or briefly unavailable.",
+    text: "FinTk is for personal, non-commercial research. Nothing on it is investment advice, and data can be delayed, incomplete or briefly unavailable.",
   },
 ];

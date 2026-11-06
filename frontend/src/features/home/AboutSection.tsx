@@ -82,7 +82,7 @@ export function AboutSection() {
     <section aria-labelledby="about-heading" className="border-border border-t">
       <Container size="wide" className="space-y-10 py-14 lg:py-20">
         <div className="text-fg-muted border-border flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-xs tracking-[0.14em] uppercase">
-          <p className="text-brand font-semibold">About Virello</p>
+          <p className="text-brand font-semibold">About FinTk</p>
           <p>Free to explore / Built for personal research</p>
         </div>
 
@@ -97,8 +97,8 @@ export function AboutSection() {
               <span className="text-brand font-medium italic">A clearer starting point.</span>
             </h2>
             <p className="text-fg-muted max-w-md text-lg">
-              Virello brings crypto market figures, public announcements and company filings into
-              one place, so you can spend more time understanding what you find.
+              FinTk brings crypto market figures, public announcements and company filings into one
+              place, so you can spend more time understanding what you find.
             </p>
             <p className="text-fg-muted text-sm">
               <span aria-hidden="true">&bull; </span>Published information. A source you can trace.

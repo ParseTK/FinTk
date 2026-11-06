@@ -1,5 +1,5 @@
 export const SITE = {
-  name: "Virello",
+  name: "FinTk",
   repoUrl: "https://github.com/ParseTK/FinTk",
   /** Private vulnerability reporting: the one contact route that publishes no address. */
   securityReportUrl: "https://github.com/ParseTK/FinTk/security/advisories/new",

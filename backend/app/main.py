@@ -67,7 +67,7 @@ def create_app(
     configure_logging(settings.log_level)
 
     app = FastAPI(
-        title="Virello API",
+        title="FinTk API",
         version=__version__,
         # Interactive docs and the schema are off in production.
         docs_url="/docs" if settings.docs_active else None,

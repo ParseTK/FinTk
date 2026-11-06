@@ -5,9 +5,9 @@ import { Navbar } from "./Navbar";
 afterEach(() => vi.unstubAllEnvs());
 
 describe("Navbar", () => {
-  it("links the Virello logo home with an accessible name", () => {
+  it("links the FinTk logo home with an accessible name", () => {
     render(<Navbar />);
-    expect(screen.getByRole("link", { name: "Virello home" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "FinTk home" })).toHaveAttribute("href", "/");
   });
 
   it("has no section links while the crypto pages are off, so there is never a dead link", () => {
@@ -43,7 +43,7 @@ describe("Navbar palette flag", () => {
     vi.stubEnv("FEATURE_CRYPTO", "true");
     render(<Navbar />);
     expect(screen.queryByRole("button", { name: "Appearance" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Virello home" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "FinTk home" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Crypto" })).toBeInTheDocument();
   });
 });

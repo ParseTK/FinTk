@@ -14,11 +14,11 @@ FLOW_MAX_AGE_SECONDS = 600  # ten minutes to finish signing in at the provider
 
 
 def session_cookie_name(settings: Settings) -> str:
-    return "__Host-virello_session" if settings.is_production else "virello_session"
+    return "__Host-fintk_session" if settings.is_production else "fintk_session"
 
 
 def flow_cookie_name(settings: Settings) -> str:
-    return "__Host-virello_oauth" if settings.is_production else "virello_oauth"
+    return "__Host-fintk_oauth" if settings.is_production else "fintk_oauth"
 
 
 def _set(response: Response, settings: Settings, name: str, value: str, max_age: int) -> None:

@@ -1,6 +1,6 @@
 /**
- * The text of the Source directory page, as plain data. Only publishers Virello itself reads are
- * listed, so "On Virello" is always true: it names the page that uses the source. Check that when a
+ * The text of the Source directory page, as plain data. Only publishers FinTk itself reads are
+ * listed, so "On FinTk" is always true: it names the page that uses the source. Check that when a
  * source is added or a page stops using one.
  */
 
@@ -9,7 +9,7 @@ export interface SourceEntry {
   publisher: string;
   href: string;
   covers: string;
-  onVirello: string;
+  onFinTk: string;
 }
 
 export interface SourceGroup {
@@ -30,28 +30,28 @@ export const SOURCE_GROUPS: readonly SourceGroup[] = [
         publisher: "U.S. Securities and Exchange Commission",
         href: "https://www.sec.gov/newsroom/press-releases",
         covers: "Announcements of enforcement actions, rules and other agency news.",
-        onVirello: "Read for the news page, kept when the headline mentions crypto.",
+        onFinTk: "Read for the news page, kept when the headline mentions crypto.",
       },
       {
         name: "CFTC press releases",
         publisher: "Commodity Futures Trading Commission",
         href: "https://www.cftc.gov/PressRoom/PressReleases",
         covers: "Announcements about rules, enforcement and the oversight of derivatives markets.",
-        onVirello: "Read for the news page, kept when the headline mentions crypto.",
+        onFinTk: "Read for the news page, kept when the headline mentions crypto.",
       },
       {
         name: "CFTC enforcement",
         publisher: "Commodity Futures Trading Commission",
         href: "https://www.cftc.gov/LawRegulation/Enforcement/index.htm",
         covers: "The agency's enforcement work and the actions it has announced.",
-        onVirello: "Its enforcement release feed is read for the news page.",
+        onFinTk: "Its enforcement release feed is read for the news page.",
       },
       {
         name: "Justice Department press releases",
         publisher: "U.S. Department of Justice",
         href: "https://www.justice.gov/news/press-releases",
         covers: "Announcements of charges, pleas, sentences and settlements.",
-        onVirello: "Read for the news page, kept when the headline mentions crypto.",
+        onFinTk: "Read for the news page, kept when the headline mentions crypto.",
       },
     ],
   },
@@ -66,7 +66,7 @@ export const SOURCE_GROUPS: readonly SourceGroup[] = [
         href: "https://www.sec.gov/edgar/search/",
         covers:
           "Every filing by US public companies. Search by company name or ticker, then filter by form type.",
-        onVirello:
+        onFinTk:
           "Form 8-K filings of a short, fixed list of crypto companies are shown on the news page.",
       },
     ],
@@ -81,14 +81,14 @@ export const SOURCE_GROUPS: readonly SourceGroup[] = [
         publisher: "CoinMarketCap",
         href: "https://coinmarketcap.com/",
         covers: "Prices, market capitalization, trading volume and supply for listed coins.",
-        onVirello: "The source of every price and market figure on the site.",
+        onFinTk: "The source of every price and market figure on the site.",
       },
       {
         name: "CoinMarketCap methodology",
         publisher: "CoinMarketCap",
         href: "https://coinmarketcap.com/methodology/",
         covers: "How CoinMarketCap calculates its figures, including its indexes.",
-        onVirello: "Read it to see how the Fear and Greed score and market totals are built.",
+        onFinTk: "Read it to see how the Fear and Greed score and market totals are built.",
       },
     ],
   },

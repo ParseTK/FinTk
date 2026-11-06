@@ -2,7 +2,7 @@ import { isUnder } from "./gates";
 
 /** Pages that only make sense for a signed-in person, and the API's session cookie names. */
 const SIGNED_IN_PAGES = ["/holdings", "/account"] as const;
-const SESSION_COOKIES = ["__Host-virello_session", "virello_session"] as const;
+const SESSION_COOKIES = ["__Host-fintk_session", "fintk_session"] as const;
 
 /**
  * Whether a visitor with no session cookie should be sent to sign in before the page renders. Left

@@ -10,8 +10,8 @@ describe("needsSignIn", () => {
   );
 
   it("lets a visitor with either session cookie through to the page's own check", () => {
-    expect(needsSignIn("/holdings", jar("virello_session"))).toBe(false);
-    expect(needsSignIn("/account", jar("__Host-virello_session"))).toBe(false);
+    expect(needsSignIn("/holdings", jar("fintk_session"))).toBe(false);
+    expect(needsSignIn("/account", jar("__Host-fintk_session"))).toBe(false);
   });
 
   it("leaves public pages alone, and does not match a similar name", () => {

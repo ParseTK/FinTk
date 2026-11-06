@@ -38,9 +38,7 @@ describe("SignInPanel", () => {
       <SignInPanel providers={["github", "google"]} next="/crypto/news" />,
     );
 
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Sign in to Virello" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Sign in to FinTk" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Continue with GitHub" })).toHaveAttribute(
       "href",
       "/api/v1/auth/github/login?next=%2Fcrypto%2Fnews",

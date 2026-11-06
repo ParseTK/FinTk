@@ -29,7 +29,7 @@ export function ResourcesOverview() {
     <Container className="space-y-12 py-8 lg:space-y-14">
       <header className="grid gap-6 md:grid-cols-[1fr_minmax(0,22rem)] md:items-end">
         <div className="space-y-3">
-          <p className={EYEBROW}>The Virello resource desk</p>
+          <p className={EYEBROW}>The FinTk resource desk</p>
           <h1 className="text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl">
             A clearer route <br />
             <span className="text-brand font-medium italic">to your research.</span>

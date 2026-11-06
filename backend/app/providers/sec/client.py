@@ -42,7 +42,7 @@ STALE = 7 * 86400.0  # how long an old copy may be served if the SEC is down
 
 
 def build_user_agent(contact_email: str) -> str:
-    return f"Virello/0.1 ({contact_email})"
+    return f"FinTk/0.1 ({contact_email})"
 
 
 def build_http_client(contact_email: str) -> httpx.AsyncClient:
