@@ -2,17 +2,14 @@
 
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { findCoins, type CoinSuggestion } from "./actions";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
+import type { CoinSuggestion } from "./actions";
+import { useCoinLookup, type LookupStatus } from "./useCoinLookup";
 
 export type { CoinSuggestion };
 
-const DEBOUNCE_MS = 150;
-
-type Status = "idle" | "loading" | "done";
-
 /** What a screen reader is told about the list, which it cannot see appear. Empty when nothing changed. */
-function suggestionMessage(query: string, status: Status, count: number): string {
+function suggestionMessage(query: string, status: LookupStatus, count: number): string {
   if (query === "" || status !== "done") return "";
   if (count === 0) return "No coins found. Press Enter to search the full list.";
   const noun = count === 1 ? "suggestion" : "suggestions";
@@ -96,32 +93,10 @@ export function CoinSearch({
   const id = useId();
   const listId = `${id}-list`;
   const [text, setText] = useState("");
-  const [suggestions, setSuggestions] = useState<CoinSuggestion[]>([]);
-  const [status, setStatus] = useState<Status>("idle");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const latest = useRef(0);
   const box = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const query = text.trim();
-    const ticket = ++latest.current;
-    if (query === "") return;
-    const timer = setTimeout(async () => {
-      setStatus("loading");
-      let found: CoinSuggestion[] = [];
-      try {
-        found = await findCoins(query);
-      } catch {
-        // A failed lookup is shown as "no matches"; the search page is still one Enter away.
-      }
-      if (ticket !== latest.current) return; // a newer keystroke owns the list now
-      setSuggestions(found);
-      setActive(-1);
-      setStatus("done");
-    }, DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [text]);
+  const { suggestions, status, clear } = useCoinLookup(text, () => setActive(-1));
 
   const query = text.trim();
   const showList = open && query !== "" && status === "done" && suggestions.length > 0;
@@ -130,8 +105,7 @@ export function CoinSearch({
   const go = (coin: CoinSuggestion) => {
     setOpen(false);
     setText("");
-    setSuggestions([]);
-    setStatus("idle");
+    clear();
     if (onPick) onPick(coin);
     else router.push(`/crypto/coins/${coin.slug}`);
   };
@@ -199,10 +173,7 @@ export function CoinSearch({
             setText(event.target.value);
             setOpen(true);
             setActive(-1);
-            if (event.target.value.trim() === "") {
-              setSuggestions([]);
-              setStatus("idle");
-            }
+            if (event.target.value.trim() === "") clear();
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
