@@ -1,0 +1,47 @@
+name: Migrate production database
+
+# Runs the database migrations against the production database (Neon). Manual only, from main only,
+# and it waits for the required reviewer on the "production" environment before it starts, so
+# nothing changes the live schema without an explicit approval. The connection string is the
+# environment secret VIRELLO_DATABASE_URL; it is never printed (only the host name is).
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: "Alembic revision to migrate to (head, or a specific revision id)"
+        required: true
+        default: head
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      VIRELLO_DATABASE_URL: ${{ secrets.VIRELLO_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked --no-dev
+      - name: Check the target is the production database
+        run: uv run python -m scripts.check_migration_target
+      - name: Current revision
+        run: uv run alembic current
+      - name: Upgrade
+        env:
+          REVISION: ${{ inputs.revision }}
+        run: uv run alembic upgrade "$REVISION"
+      - name: Revision after
+        run: uv run alembic current
