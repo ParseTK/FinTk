@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+from app.core.database_url import normalise_database_url, uses_tls_or_is_local
+
 Environment = Literal["development", "test", "production"]
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR"]
 
@@ -22,6 +24,9 @@ class Settings(BaseSettings):
         env_file=".env",
         extra="ignore",
         frozen=True,
+        # A rejected value is never echoed back: it may be a password or a key, and the message
+        # goes to the host's logs.
+        hide_input_in_errors=True,
     )
 
     environment: Environment = "development"
@@ -148,6 +153,17 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
+    def _check_database_is_encrypted(self) -> "Settings":
+        if (
+            self.is_production
+            and self.database_url is not None
+            and not uses_tls_or_is_local(self.database_url.get_secret_value())
+        ):
+            msg = "the production database connection must use TLS (add ?sslmode=require)"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
     def _check_vendor_data_is_gated(self) -> "Settings":
         # The vendor licence allows its data only inside our product, never as a public feed. In
         # production the routes that return it must therefore be behind the internal token.
@@ -164,6 +180,14 @@ class Settings(BaseSettings):
         if self.google_client_id and self.google_client_secret:
             enabled.append("google")
         return tuple(enabled)
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _accept_hosted_database_url(cls, value: object) -> object:
+        # A hosted database's own string (postgresql://...?sslmode=require) is accepted as given.
+        if isinstance(value, SecretStr):
+            value = value.get_secret_value()
+        return normalise_database_url(value) if isinstance(value, str) else value
 
     @field_validator("database_url")
     @classmethod

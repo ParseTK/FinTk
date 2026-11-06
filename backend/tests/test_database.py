@@ -26,7 +26,7 @@ def test_building_the_engine_opens_no_connection() -> None:
     assert engine.pool.checkedout() == 0  # type: ignore[attr-defined]
 
 
-@pytest.mark.parametrize("url", ["postgresql://u:p@h/db", "mysql://u:p@h/db", "sqlite:///x.db"])
+@pytest.mark.parametrize("url", ["mysql://u:p@h/db", "sqlite:///x.db"])
 def test_only_the_async_postgres_driver_is_accepted(url: str) -> None:
     with pytest.raises(ValueError, match=r"postgresql\+asyncpg"):
         make_settings(database_url=url)
