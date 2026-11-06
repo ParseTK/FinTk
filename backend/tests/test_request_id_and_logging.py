@@ -63,6 +63,22 @@ async def test_the_request_log_has_the_id_and_never_the_query_string(
     assert all("super-secret-value" not in str(getattr(r, "fields", "")) for r in ours)
 
 
+async def test_the_request_log_counts_forwarded_addresses_without_recording_them(
+    client: AsyncClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO, logger="app.request"):
+        await client.get("/healthz", headers={"X-Forwarded-For": "203.0.113.7, 198.51.100.2"})
+        await client.get("/healthz")
+
+    fields: list[dict[str, object]] = [
+        r.fields  # pyright: ignore[reportAttributeAccessIssue,reportUnknownMemberType]
+        for r in caplog.records
+        if r.name == "app.request" and r.getMessage() == "request"
+    ]
+    assert [f["forwarded_entries"] for f in fields] == [2, 0]
+    assert "203.0.113.7" not in json.dumps(fields)
+
+
 def test_the_json_formatter_emits_one_json_object_per_line() -> None:
     record = logging.LogRecord("x", logging.INFO, __file__, 1, "hello %s", ("world",), None)
     record.request_id = "abc"
